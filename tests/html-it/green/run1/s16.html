@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en" data-variant="graphite">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Password reset prototype</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+/* ---------- Page: wider frame for the prototype, running text stays at the measure ---------- */
+.page { max-width: 84rem; }
+.page > main { max-width: 66rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 13rem minmax(0, 66rem); } }
+main > p, main > ul, main > ol, main > aside, main > dl, main > h2, main > h3, main > .table-wrap.text { max-width: var(--measure); }
+details { border: 1px solid var(--line); border-radius: var(--radius); padding: .5rem .8rem; }
+summary { cursor: pointer; font-weight: 600; }
+
+/* ---------- Prototype frame ---------- */
+.proto-wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
+@media (min-width: 900px) { .proto-wrap { grid-template-columns: minmax(0, 1fr) 17rem; align-items: start; } }
+.device { border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); overflow: hidden; }
+.device-bar { display: flex; gap: .5rem; align-items: center; padding: .45rem .7rem; border-bottom: 1px solid var(--line); font-size: .8rem; color: var(--muted); }
+.device-bar .dots { display: flex; gap: .3rem; }
+.device-bar .dots i { width: .6rem; height: .6rem; border-radius: 50%; background: var(--line); display: block; }
+.device-bar .addr { flex: 1; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: .1rem .7rem; font-family: var(--mono); font-size: .75rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.portal-head { display: flex; align-items: center; gap: .5rem; padding: .7rem 1rem; background: var(--surface); border-bottom: 1px solid var(--line); font-weight: 600; }
+.portal-head svg { width: 1.4rem; height: 1.4rem; color: var(--accent); }
+.proto { padding: 2rem 1rem 2.5rem; }
+
+/* Screens styled as the product */
+.proto [data-screen] { max-width: 25rem; margin: 0 auto 1.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1.4rem 1.5rem; }
+.proto [data-screen] h4 { margin: 0 0 .3rem; font-size: 1.3rem; }
+.proto .step-tag { display: block; font-size: .75rem; color: var(--muted); margin-bottom: .8rem; }
+.proto label { display: block; font-size: .9rem; font-weight: 600; margin: .9rem 0 .25rem; }
+.proto input[type="email"], .proto input[type="password"], .proto input[type="text"] { width: 100%; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: .55rem .7rem; }
+.proto input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.proto .check { display: flex; gap: .4rem; align-items: center; font-weight: 400; margin-top: .4rem; }
+.btn-primary, .btn-secondary, .btn-link { font: inherit; cursor: pointer; border-radius: 6px; }
+.btn-primary { display: block; width: 100%; margin-top: 1.1rem; padding: .6rem 1rem; background: var(--accent); color: var(--surface); border: 1px solid var(--accent); font-weight: 600; }
+.btn-secondary { padding: .45rem .9rem; background: var(--surface-2); color: var(--fg); border: 1px solid var(--line); }
+.btn-primary:disabled, .btn-secondary:disabled { opacity: .45; cursor: not-allowed; }
+.btn-link { background: none; border: 0; padding: 0; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; }
+.proto .row { display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; margin-top: .9rem; }
+.proto .hint { font-size: .85rem; color: var(--muted); margin: .4rem 0 0; }
+.proto .err { font-size: .85rem; color: var(--bad); margin: .4rem 0 0; }
+.proto .confirm { font-size: .85rem; color: var(--ok); margin: .4rem 0 0; }
+.rules { list-style: none; padding: 0; margin: .8rem 0 0; font-size: .9rem; }
+.rules li { display: flex; justify-content: space-between; gap: .6rem; padding: .35rem 0; border-bottom: 1px solid var(--line); }
+.rules li .state { font-size: .75rem; font-weight: 600; padding: .05rem .5rem; border-radius: 999px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+.rules li[data-state="met"] .state { background: var(--ok-bg); color: var(--ok); }
+.rules li[data-state="unmet"] .state { background: var(--bad-bg); color: var(--bad); }
+.sim { margin-top: 1.2rem; border: 1px dashed var(--warn); background: var(--warn-bg); border-radius: 6px; padding: .7rem .8rem; font-size: .85rem; }
+.sim p { margin: 0 0 .5rem; }
+.sim .btn-secondary { display: block; width: 100%; margin-top: .4rem; text-align: left; }
+
+/* Moderator panel, kept apart from the screens */
+.moderator { border: 1px dashed var(--line); padding: .8rem .9rem; border-radius: var(--radius); color: var(--fg); font-size: .9rem; background: var(--surface); }
+.moderator h4.mod-title, .moderator > h4:first-child { margin: 0 0 .5rem; font-size: 1rem; }
+.moderator h5 { margin: 1rem 0 .3rem; font-size: .9rem; }
+.moderator .btn-secondary { width: 100%; margin-top: .4rem; }
+.moderator select, .moderator textarea { width: 100%; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: .35rem .5rem; margin-top: .25rem; }
+.moderator textarea { min-height: 7rem; resize: vertical; }
+.moderator .now { color: var(--muted); margin: .5rem 0 0; }
+.moderator ul { padding-left: 1.1rem; margin: .3rem 0 0; }
+.moderator code { font-size: .8rem; }
+.moderator .small { color: var(--muted); font-size: .8rem; margin: .3rem 0 0; }
+
+.proto.js [data-screen] { display: none; }
+.proto.js [data-screen].on { display: block; }
+.js-only { display: none; }
+.has-js .js-only { display: block; }
+
+/* Diagram */
+.diagram-wrap { overflow-x: auto; margin-bottom: 1rem; }
+svg.diagram { width: 100%; min-width: 640px; height: auto; color: var(--muted); font: 13px var(--sans); }
+svg.diagram .node rect { fill: var(--surface-2); stroke: var(--line); }
+svg.diagram .node.err rect { fill: var(--warn-bg); stroke: var(--warn); }
+svg.diagram text { fill: var(--fg); text-anchor: middle; }
+svg.diagram text.note { fill: var(--muted); font-size: 12px; }
+svg.diagram .edge { stroke: currentColor; stroke-width: 1.5; fill: none; }
+
+@media print {
+  .proto [data-screen] { display: block !important; break-inside: avoid; }
+  .moderator, .device-bar { display: none !important; }
+  .proto-wrap { display: block; }
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Patient portal team: usability test prototype</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Password reset prototype</h1>
+    <p class="lede">This clickable prototype of the patient portal's password reset is ready for the usability test on 6 November 2026. Testers go from the login screen to a new password and back to sign in; the moderator resets the flow or jumps to any screen with the controls beside it. Every email address leads to the same "Check your inbox" screen, so the portal never reveals whether an account exists, as the security rule <a class="ref" data-ref="SEC-31" href="#ref-SEC-31"><span class="ref-id">SEC-31</span> never reveal whether an account exists</a> requires.</p>
+    <p class="meta">Prepared 3 November 2026 for the patient portal team and the moderator of the usability test. Open the file in a browser on the test laptop; it needs no network connection.</p>
+    <aside class="callout" data-kind="warn"><p><strong>Date to confirm:</strong> the test plan says "Thursday 2026-11-06", but 6 November 2026 is a Friday. Check with the test organiser whether the test is on Thursday 5 November or Friday 6 November 2026.</p></aside>
+
+    <h2 id="try">What to try</h2>
+    <p>The main path has five screens, in this order:</p>
+    <ol>
+      <li>On the login screen, select "Forgot password?".</li>
+      <li>Enter an email address and send the reset link.</li>
+      <li>"Check your inbox" appears. "Resend email" stays disabled for 60 seconds, then becomes available.</li>
+      <li>Open the link and set a new password. A checklist under the field shows live which rules the password meets: at least 12 characters, and not one of the last 5 passwords.</li>
+      <li>A success screen confirms the change and leads back to the login screen.</li>
+    </ol>
+    <p>Two error paths are built in. An email address that has no account shows exactly the same "Check your inbox" screen as step 3, so a tester cannot tell the difference; this is intended and follows <a class="ref" data-ref="SEC-31" href="#ref-SEC-31"><span class="ref-id">SEC-31</span> no account enumeration</a>. A link older than 30 minutes shows "This link has expired" with a button that sends a new link and returns to "Check your inbox".</p>
+
+    <h2 id="not-real">What is not real</h2>
+    <ul>
+      <li>No email is sent and no account is checked. Any address that looks like an email address is accepted.</li>
+      <li>The tester's inbox is simulated: two dashed "Prototype only" buttons on the "Check your inbox" screen stand in for opening the email, once with a valid link and once with a link older than 30 minutes.</li>
+      <li>The portal has no password history here. The prototype treats five invented example passwords, listed in the moderator controls and in <a href="#rules">Rules the screens follow</a>, as the tester's last 5 passwords.</li>
+      <li>"Sign in" on the login screen does nothing; signing in is not part of this test.</li>
+      <li>Nothing is saved. Moderator notes stay in this browser on this laptop only and are not shared with anyone; copy them into the test log before closing the file.</li>
+    </ul>
+
+    <h2 id="prototype">Prototype</h2>
+    <div class="proto-wrap">
+      <div class="device">
+        <div class="device-bar" aria-hidden="true"><span class="dots"><i></i><i></i><i></i></span><span class="addr">patient portal, prototype (no server)</span></div>
+        <div class="portal-head"><svg viewBox="0 0 24 24" role="img" aria-labelledby="logo-t"><title id="logo-t">Patient portal mark</title><rect x="2" y="2" width="20" height="20" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v10M7 12h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Patient portal</div>
+        <div class="proto" id="proto">
+
+          <section data-screen="login" aria-label="1 Login">
+            <span class="step-tag">Screen 1 of 5: login</span>
+            <h4>Sign in</h4>
+            <label for="pp-login-email">Email</label>
+            <input type="email" id="pp-login-email" autocomplete="off">
+            <label for="pp-login-pw">Password</label>
+            <input type="password" id="pp-login-pw" autocomplete="off">
+            <button type="button" class="btn-primary" data-action="signin">Sign in</button>
+            <p class="hint" id="pp-signin-note" hidden>Signing in is not part of this test.</p>
+            <div class="row"><button type="button" class="btn-link" data-go="email">Forgot password?</button></div>
+          </section>
+
+          <section data-screen="email" aria-label="2 Enter email">
+            <span class="step-tag">Screen 2 of 5: enter email</span>
+            <h4>Reset your password</h4>
+            <p>Enter the email address you use for the patient portal. We will send you a link to set a new password.</p>
+            <label for="pp-email">Email</label>
+            <input type="email" id="pp-email" autocomplete="off" aria-describedby="pp-email-err">
+            <p class="err" id="pp-email-err" hidden>Enter an email address, for example name@example.org.</p>
+            <button type="button" class="btn-primary" data-action="send">Send reset link</button>
+            <div class="row"><button type="button" class="btn-link" data-go="login">Back to sign in</button></div>
+          </section>
+
+          <section data-screen="inbox" aria-label="3 Check your inbox">
+            <span class="step-tag">Screen 3 of 5: check your inbox (also shown for unknown emails)</span>
+            <h4>Check your inbox</h4>
+            <p>If an account exists for <strong id="pp-email-echo">the address you entered</strong>, we have sent an email with a link to set a new password. The link works for 30 minutes.</p>
+            <p class="hint">No email after a few minutes? Check your spam folder, or send it again.</p>
+            <div class="row">
+              <button type="button" class="btn-secondary" id="pp-resend" disabled>Resend email</button>
+              <span class="hint" id="pp-countdown" aria-live="polite">You can resend in 60 s</span>
+            </div>
+            <p class="confirm" id="pp-resent" hidden>We sent the email again.</p>
+            <div class="row"><button type="button" class="btn-link" data-go="login">Back to sign in</button></div>
+            <div class="sim">
+              <p><strong>Prototype only:</strong> these buttons stand in for the tester's email inbox.</p>
+              <button type="button" class="btn-secondary" data-go="newpw">Open the link from the email</button>
+              <button type="button" class="btn-secondary" data-go="expired">Open a link older than 30 minutes</button>
+            </div>
+          </section>
+
+          <section data-screen="newpw" aria-label="4 Set a new password">
+            <span class="step-tag">Screen 4 of 5: set a new password</span>
+            <h4>Set a new password</h4>
+            <label for="pp-pw">New password</label>
+            <input type="password" id="pp-pw" autocomplete="off" aria-describedby="pp-rules">
+            <label class="check"><input type="checkbox" id="pp-show"> Show password</label>
+            <ul class="rules" id="pp-rules" aria-live="polite">
+              <li data-rule="len" data-state="pending"><span>At least 12 characters</span><span class="state">Not checked yet</span></li>
+              <li data-rule="hist" data-state="pending"><span>Not one of your last 5 passwords</span><span class="state">Not checked yet</span></li>
+            </ul>
+            <button type="button" class="btn-primary" id="pp-save" data-action="save" disabled>Save new password</button>
+          </section>
+
+          <section data-screen="success" aria-label="5 Success">
+            <span class="step-tag">Screen 5 of 5: success</span>
+            <h4>Your password has been changed</h4>
+            <p>You can now sign in with your new password.</p>
+            <button type="button" class="btn-primary" data-go="login">Back to sign in</button>
+          </section>
+
+          <section data-screen="expired" aria-label="Error: link expired">
+            <span class="step-tag">Error path: link older than 30 minutes</span>
+            <h4>This link has expired</h4>
+            <p>Links to reset your password work for 30 minutes. Send a new link to the same email address.</p>
+            <button type="button" class="btn-primary" data-action="send-new">Send a new link</button>
+            <div class="row"><button type="button" class="btn-link" data-go="login">Back to sign in</button></div>
+          </section>
+
+        </div>
+      </div>
+
+      <aside class="moderator js-only" aria-label="Moderator controls">
+        <h4>Moderator controls</h4>
+        <button type="button" class="btn-secondary" id="proto-reset">Reset to start</button>
+        <label for="proto-jump" style="display:block;margin-top:.7rem">Jump to screen</label>
+        <select id="proto-jump"></select>
+        <button type="button" class="btn-secondary" id="proto-skip">Skip the 60-second wait</button>
+        <p class="now" id="proto-now" aria-live="polite"></p>
+        <p class="small">Each screen has its own <dfn data-gloss="A link that opens the page directly at one place, here at one screen of the prototype.">deep link</dfn>, for example <code>#screen-newpw</code> at the end of the file address.</p>
+        <h5>Example old passwords</h5>
+        <p class="small">Invented for the test, not real data. Typing one of these on screen 4 fails the "last 5 passwords" rule.</p>
+        <ul id="proto-old"></ul>
+        <h5><label for="proto-notes">Notes</label></h5>
+        <textarea id="proto-notes" placeholder="Observations per tester"></textarea>
+        <button type="button" class="btn-secondary" id="proto-copy">Copy notes</button>
+        <p class="small">Notes stay in this browser only. Copy them into the test log before closing.</p>
+      </aside>
+    </div>
+    <noscript><p>JavaScript is off, so all screens are shown one after another and the buttons do nothing. Turn on JavaScript to click through the flow.</p></noscript>
+
+    <h2 id="flow">How the flow fits together</h2>
+    <figure>
+      <div class="diagram-wrap">
+        <svg class="diagram" viewBox="0 0 760 262" role="img" aria-labelledby="flow-t">
+          <title id="flow-t">Password reset flow: login, enter email, check your inbox, set new password, success, back to login; an expired link leads to "This link has expired", which sends a new link back to check your inbox</title>
+          <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+          <text class="note" x="375" y="28">same screen for unknown emails</text>
+          <g class="node"><rect x="10" y="40" width="120" height="50" rx="6"/><text x="70" y="70">1 Login</text></g>
+          <line class="edge" x1="130" y1="65" x2="158" y2="65" marker-end="url(#arr)"/>
+          <g class="node"><rect x="160" y="40" width="120" height="50" rx="6"/><text x="220" y="70">2 Enter email</text></g>
+          <line class="edge" x1="280" y1="65" x2="308" y2="65" marker-end="url(#arr)"/>
+          <g class="node"><rect x="310" y="40" width="130" height="50" rx="6"/><text x="375" y="70">3 Check your inbox</text></g>
+          <line class="edge" x1="440" y1="65" x2="468" y2="65" marker-end="url(#arr)"/>
+          <g class="node"><rect x="470" y="40" width="140" height="50" rx="6"/><text x="540" y="70">4 Set new password</text></g>
+          <line class="edge" x1="610" y1="65" x2="638" y2="65" marker-end="url(#arr)"/>
+          <g class="node"><rect x="640" y="40" width="110" height="50" rx="6"/><text x="695" y="70">5 Success</text></g>
+          <path class="edge" d="M415,90 L415,185 L478,185" marker-end="url(#arr)"/>
+          <text class="note" x="370" y="150">link older</text>
+          <text class="note" x="370" y="165">than 30 min</text>
+          <g class="node err"><rect x="480" y="165" width="160" height="50" rx="6"/><text x="560" y="195">This link has expired</text></g>
+          <path class="edge" d="M560,215 L560,232 L340,232 L340,92" marker-end="url(#arr)"/>
+          <text class="note" x="450" y="226">Send a new link</text>
+          <path class="edge" d="M695,90 L695,252 L70,252 L70,92" marker-end="url(#arr)"/>
+          <text class="note" x="200" y="246">Back to sign in</text>
+        </svg>
+      </div>
+      <figcaption class="meta">The main path runs left to right. The expired-link screen loops back to "Check your inbox"; the success screen loops back to the login screen.</figcaption>
+    </figure>
+    <p>The flow has one branch point: what happens when the tester opens the link from the email. A link younger than 30 minutes leads to the new-password screen; an older one leads to "This link has expired", and sending a new link from there restarts the 60-second Resend wait on "Check your inbox". An unknown email address is not a branch at all: it lands on the same screen as a known one, with the same text, which is the point of <a class="ref" data-ref="SEC-31" href="#ref-SEC-31"><span class="ref-id">SEC-31</span> no account enumeration</a>.</p>
+
+    <h2 id="rules">Rules the screens follow</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Rule</th><th>What the prototype does</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td>Same response for known and unknown emails</td><td>Any email address leads to "Check your inbox" with text that starts "If an account exists for…"</td><td>Prevents <dfn data-gloss="Finding out which email addresses have an account by watching how a system responds to them.">account enumeration</dfn>; required by <a class="ref" data-ref="SEC-31" href="#ref-SEC-31"><span class="ref-id">SEC-31</span> never reveal whether an account exists</a></td></tr>
+          <tr><td>Resend after 60 seconds</td><td>"Resend email" is disabled for 60 s after each send, with a countdown; the moderator can skip the wait</td><td>Test plan</td></tr>
+          <tr><td>Link valid for 30 minutes</td><td>"Open a link older than 30 minutes" shows "This link has expired" with "Send a new link"</td><td>Test plan</td></tr>
+          <tr><td>At least 12 characters</td><td>Checked live as the tester types</td><td>Test plan</td></tr>
+          <tr><td>Not one of the last 5 passwords</td><td>Checked live against five invented example passwords: <code>Portal-spring-2026</code>, <code>Blue-harbour-41!</code>, <code>Kitchen-table-77</code>, <code>Morning-walk-2025</code>, <code>Seven-lemons-x9</code></td><td>Test plan; the real check needs the portal's password history</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>"Save new password" stays disabled until both password rules are met.</p>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-SEC-31"><b>SEC-31</b> <span class="ref-summary">The team's security rule "never reveal whether an account exists". It forbids screens or messages that let someone find out whether an email address has a portal account.</span> Source: the test plan for the password reset prototype, which defines it as "the security rule 'never reveal whether an account exists'".</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt id="gloss-enumeration">Account enumeration</dt>
+      <dd>Finding out which email addresses have an account by watching how a system responds to them, for example a different message for unknown addresses.</dd>
+      <dt id="gloss-deeplink">Deep link</dt>
+      <dd>A link that opens the page directly at one place; here, <code>#screen-</code> followed by a screen name opens that screen of the prototype.</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill. Opens offline; no network access needed.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  // Clickable prototype: screens as states, moderator controls, deep links (#screen-<id>).
+  document.documentElement.classList.add('has-js');
+  const proto = document.getElementById('proto'); proto.classList.add('js');
+  const screens = [...proto.querySelectorAll('[data-screen]')];
+  const ids = screens.map((s) => s.dataset.screen), first = ids[0];
+  const $ = (id) => document.getElementById(id);
+  const jump = $('proto-jump'), now = $('proto-now');
+  const OLD = ['Portal-spring-2026', 'Blue-harbour-41!', 'Kitchen-table-77', 'Morning-walk-2025', 'Seven-lemons-x9'];
+  OLD.forEach((p) => { const li = document.createElement('li'); const c = document.createElement('code'); c.textContent = p; li.append(c); $('proto-old').append(li); });
+  screens.forEach((s) => jump.append(new Option(s.getAttribute('aria-label'), s.dataset.screen)));
+
+  // Resend countdown (60 s after every send).
+  let timer = null, left = 0;
+  const resend = $('pp-resend'), countdown = $('pp-countdown');
+  const paint = () => {
+    resend.disabled = left > 0;
+    countdown.textContent = left > 0 ? 'You can resend in ' + left + ' s' : 'You can resend now';
+  };
+  const stopTimer = () => { clearInterval(timer); timer = null; };
+  const startTimer = () => {
+    stopTimer(); left = 60; paint();
+    timer = setInterval(() => { left -= 1; paint(); if (left <= 0) stopTimer(); }, 1000);
+  };
+
+  let current = null;
+  const show = (id, opts = {}) => {
+    if (!ids.includes(id)) id = first;
+    screens.forEach((s) => s.classList.toggle('on', s.dataset.screen === id));
+    if (id === 'inbox' && (current !== 'inbox' || opts.restart)) { $('pp-resent').hidden = !opts.resent; startTimer(); }
+    if (id !== 'inbox') stopTimer();
+    current = id; jump.value = id;
+    now.textContent = 'Showing: ' + screens[ids.indexOf(id)].getAttribute('aria-label');
+    if (opts.hash !== false) history.replaceState(null, '', '#screen-' + id);
+    const focusTarget = screens[ids.indexOf(id)].querySelector('h4');
+    if (opts.focus) { focusTarget.tabIndex = -1; focusTarget.focus({ preventScroll: true }); }
+  };
+
+  // Password rules, checked live.
+  const pw = $('pp-pw'), save = $('pp-save');
+  const setRule = (rule, state, text) => {
+    const li = proto.querySelector('[data-rule="' + rule + '"]');
+    li.dataset.state = state; li.querySelector('.state').textContent = text;
+  };
+  const checkPw = () => {
+    const v = pw.value;
+    if (!v) { setRule('len', 'pending', 'Not checked yet'); setRule('hist', 'pending', 'Not checked yet'); save.disabled = true; return; }
+    const lenOk = v.length >= 12, histOk = !OLD.includes(v);
+    setRule('len', lenOk ? 'met' : 'unmet', lenOk ? 'Met' : v.length + ' of 12');
+    setRule('hist', histOk ? 'met' : 'unmet', histOk ? 'Met' : 'Used before');
+    save.disabled = !(lenOk && histOk);
+  };
+  pw.addEventListener('input', checkPw);
+  $('pp-show').addEventListener('change', (e) => { pw.type = e.target.checked ? 'text' : 'password'; });
+
+  const sendFromEmail = () => {
+    const v = $('pp-email').value.trim();
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    $('pp-email-err').hidden = ok;
+    if (!ok) { $('pp-email').focus(); return; }
+    $('pp-email-echo').textContent = v;
+    show('inbox', { restart: true, focus: true });
+  };
+  $('pp-email').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendFromEmail(); } });
+  pw.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !save.disabled) { e.preventDefault(); show('success', { focus: true }); } });
+
+  proto.addEventListener('click', (e) => {
+    const go = e.target.closest('[data-go]');
+    if (go) { show(go.dataset.go, { focus: true }); return; }
+    const act = e.target.closest('[data-action]');
+    if (!act) return;
+    const a = act.dataset.action;
+    if (a === 'signin') $('pp-signin-note').hidden = false;
+    if (a === 'send') sendFromEmail();
+    if (a === 'send-new') show('inbox', { restart: true, resent: true, focus: true });
+    if (a === 'save' && !save.disabled) show('success', { focus: true });
+  });
+  resend.addEventListener('click', () => { if (left > 0) return; $('pp-resent').hidden = false; startTimer(); });
+
+  const reset = () => {
+    proto.querySelectorAll('input').forEach((i) => { if (i.type === 'checkbox') i.checked = false; else i.value = ''; });
+    pw.type = 'password'; checkPw();
+    ['pp-email-err', 'pp-signin-note', 'pp-resent'].forEach((id) => { $(id).hidden = true; });
+    $('pp-email-echo').textContent = 'the address you entered';
+    current = null; show(first);
+  };
+  $('proto-reset').addEventListener('click', reset);
+  jump.addEventListener('change', () => show(jump.value, { restart: true }));
+  $('proto-skip').addEventListener('click', () => { if (current === 'inbox') { stopTimer(); left = 0; paint(); } });
+
+  // Notes: kept in this browser only, when storage is available.
+  const notes = $('proto-notes');
+  try { notes.value = localStorage.getItem('s16-proto-notes') || ''; } catch {}
+  notes.addEventListener('input', () => { try { localStorage.setItem('s16-proto-notes', notes.value); } catch {} });
+  $('proto-copy').addEventListener('click', async (e) => {
+    const b = e.currentTarget;
+    try { await navigator.clipboard.writeText(notes.value); b.textContent = 'Copied'; }
+    catch { notes.select(); b.textContent = 'Selected, press Ctrl+C'; }
+    setTimeout(() => (b.textContent = 'Copy notes'), 1800);
+  });
+
+  // Start on the screen named in the address (#screen-<id>), otherwise on the login screen.
+  const fromHash = () => { const h = location.hash.replace(/^#screen-/, ''); return location.hash.startsWith('#screen-') && ids.includes(h) ? h : null; };
+  const initial = fromHash();
+  show(initial || first, { hash: !!initial, restart: true });
+  window.addEventListener('hashchange', () => { const h = fromHash(); if (h) show(h, { hash: false, restart: true }); });
+})();
+</script>
+</body>
+</html>

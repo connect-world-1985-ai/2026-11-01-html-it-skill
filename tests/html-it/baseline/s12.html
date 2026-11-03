@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PR 437 Paginate booking search</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one review column. The diff comes first, then three short notes in a row that stacks on phones. */
+:root {
+  --bg: #f7f8f9;
+  --surface: #ffffff;
+  --fg: #1b2228;
+  --muted: #5b6670;
+  --line: #dde2e6;
+  --accent: #1f5f8b;
+  --add-bg: #e6f4ea; --add-fg: #1a6b34;
+  --del-bg: #fbe9e9; --del-fg: #a3262a;
+  --warn-bg: #fff4dc; --warn-line: #d79a1c;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12171b; --surface: #1a2026; --fg: #e3e8ec; --muted: #95a1ab; --line: #2c353d; --accent: #7cb8e0;
+    --add-bg: #15301f; --add-fg: #7fd69a; --del-bg: #3a1a1c; --del-fg: #f19a9c;
+    --warn-bg: #33280f; --warn-line: #d7a33c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171b; --surface: #1a2026; --fg: #e3e8ec; --muted: #95a1ab; --line: #2c353d; --accent: #7cb8e0;
+  --add-bg: #15301f; --add-fg: #7fd69a; --del-bg: #3a1a1c; --del-fg: #f19a9c;
+  --warn-bg: #33280f; --warn-line: #d7a33c;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 15px/1.55 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 900px; margin: 0 auto; padding-block: 40px 64px; display: grid; gap: 32px; }
+h1, h2 { text-wrap: balance; margin: 0; }
+h1 { font-size: 1.75rem; font-weight: 600; line-height: 1.25; }
+h2 { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+code, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+p { margin: 0; }
+section { display: grid; gap: 12px; min-width: 0; }
+
+header { display: grid; gap: 10px; }
+.pr-num { font-family: var(--font-mono); color: var(--accent); font-weight: 500; }
+.branch { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; color: var(--muted); font-size: 0.9rem; }
+.branch code { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; color: var(--fg); overflow-wrap: anywhere; }
+.totals { font-family: var(--font-mono); font-size: 0.9rem; }
+.plus { color: var(--add-fg); } .minus { color: var(--del-fg); }
+
+.files-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+td.path { font-family: var(--font-mono); font-size: 0.82rem; overflow-wrap: anywhere; min-width: 16rem; }
+td.path .dir { color: var(--muted); }
+td.delta { font-family: var(--font-mono); font-size: 0.82rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+td.note { color: var(--fg); min-width: 14rem; }
+
+.diff { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.diff-head { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
+.diff pre { margin: 0; overflow-x: auto; font-family: var(--font-mono); font-size: 0.84rem; line-height: 1.6; }
+.diff .ln { display: block; padding: 0 12px; white-space: pre; }
+.diff .del { background: var(--del-bg); color: var(--del-fg); }
+.diff .add { background: var(--add-bg); color: var(--add-fg); }
+
+.notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.note-block { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.note-block.risk { background: var(--warn-bg); border-left: 3px solid var(--warn-line); padding: 12px 14px; border-radius: 0 6px 6px 0; }
+ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.refs { display: grid; gap: 6px; font-size: 0.88rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+.refs dt { font-family: var(--font-mono); color: var(--fg); font-weight: 500; display: inline; }
+.refs dd { display: inline; margin: 0 0 0 6px; }
+.refs div { min-width: 0; }
+
+@media (max-width: 720px) {
+  .notes { grid-template-columns: 1fr; }
+  h1 { font-size: 1.45rem; }
+  main { padding-block: 24px 48px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1><span class="pr-num">#437</span> Paginate booking search</h1>
+    <div class="branch">
+      <code>feature/KT-948-pagination</code><span>into</span><code>master</code>
+      <span class="totals"><span class="plus">+248</span> <span class="minus">−33</span> · 5 files</span>
+    </div>
+    <p>Booking search moves from OFFSET to keyset pagination on <code>(start_time, id)</code>, adds <code>page</code>/<code>size</code> parameters, and adds a supporting index. The response no longer includes the total count (see Risk below).</p>
+  </header>
+
+  <section aria-labelledby="h-diff">
+    <h2 id="h-diff">The core change</h2>
+    <div class="diff">
+      <div class="diff-head"><span>BookingSearchService.java</span><span>excerpt</span></div>
+<pre><span class="ln del">-    return query.offset(page * size).limit(size).fetch();</span><span class="ln add">+    return query.where(cursor.after(lastStartTime, lastId))</span><span class="ln add">+                .orderBy(SLOT.START_TIME.asc(), SLOT.ID.asc())</span><span class="ln add">+                .limit(size + 1).fetch();</span></pre>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-files">
+    <h2 id="h-files">Changed files</h2>
+    <div class="files-wrap">
+      <table>
+        <thead><tr><th scope="col">File</th><th scope="col">Lines</th><th scope="col">What changed</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="path"><span class="dir">booking-api/src/main/java/com/example/booking/</span>BookingSearchResource.java</td>
+            <td class="delta"><span class="plus">+42</span> <span class="minus">−11</span></td>
+            <td class="note"><code>page</code> and <code>size</code> query parameters; default size 20, maximum 100</td>
+          </tr>
+          <tr>
+            <td class="path"><span class="dir">booking-api/src/main/java/com/example/booking/</span>BookingSearchService.java</td>
+            <td class="delta"><span class="plus">+65</span> <span class="minus">−20</span></td>
+            <td class="note">Keyset pagination on <code>(start_time, id)</code> instead of OFFSET</td>
+          </tr>
+          <tr>
+            <td class="path"><span class="dir">booking-api/src/main/resources/db/migration/</span>V57__search_index.sql</td>
+            <td class="delta"><span class="plus">+3</span></td>
+            <td class="note">Index on <code>slots(practice_id, start_time, id)</code></td>
+          </tr>
+          <tr>
+            <td class="path"><span class="dir">booking-api/src/test/java/com/example/booking/</span>BookingSearchServiceIT.java</td>
+            <td class="delta"><span class="plus">+120</span></td>
+            <td class="note">6 new tests, including a stable order across pages</td>
+          </tr>
+          <tr>
+            <td class="path"><span class="dir">docs/api/</span>booking-search.md</td>
+            <td class="delta"><span class="plus">+18</span> <span class="minus">−2</span></td>
+            <td class="note">API docs updated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="notes">
+    <section class="note-block" aria-labelledby="h-why">
+      <h2 id="h-why">Why</h2>
+      <p>OFFSET pagination gets slow after page 50 (KT-948). INC-2307 showed what a full table scan does to us.</p>
+    </section>
+    <section class="note-block risk" aria-labelledby="h-risk">
+      <h2 id="h-risk">Risk</h2>
+      <p>The total count is gone from the response. Mobile app 3.2 uses it only for a label; the app team confirmed this.</p>
+    </section>
+    <section class="note-block" aria-labelledby="h-test">
+      <h2 id="h-test">How to test</h2>
+      <ol>
+        <li>Run <code>BookingSearchServiceIT</code>.</li>
+        <li><code>GET /bookings/search?practice=17&amp;size=5</code> and follow <code>nextCursor</code>.</li>
+      </ol>
+    </section>
+  </div>
+
+  <dl class="refs">
+    <div><dt>KT-948</dt><dd>Booking search slow on large practices</dd></div>
+    <div><dt>INC-2307</dt><dd>Booking outage on 2026-10-29, caused by a missing index</dd></div>
+  </dl>
+</main>
+</body>
+</html>

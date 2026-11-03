@@ -1,0 +1,99 @@
+<title>架构同步会 2026-11-03</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one narrow reading column; header line, then decisions, actions, open question, PR status. */
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --fg: #1c2330;
+  --muted: #5b6577;
+  --line: #dde2ea;
+  --accent: #2f5d8a;
+  --accent-soft: #e6eef6;
+  --warn: #8a5a12;
+  --warn-soft: #fbf1df;
+  --font-body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a2029; --fg: #e4e8ef; --muted: #9aa4b5; --line: #2c3442;
+    --accent: #8db8e3; --accent-soft: #1f2d3d; --warn: #e6b866; --warn-soft: #2d2517;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --fg: #e4e8ef; --muted: #9aa4b5; --line: #2c3442;
+  --accent: #8db8e3; --accent-soft: #1f2d3d; --warn: #e6b866; --warn-soft: #2d2517;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 48px;
+}
+main { max-width: 42rem; margin: 0 auto; display: grid; gap: 28px; }
+h1 { font-size: 1.6rem; line-height: 1.3; margin: 0; text-wrap: balance; font-weight: 600; }
+h2 { font-size: 1rem; margin: 0 0 10px; color: var(--accent); font-weight: 600; letter-spacing: .04em; }
+p { margin: 0; }
+.meta { display: grid; gap: 4px; color: var(--muted); font-size: .9rem; }
+.meta b { color: var(--fg); font-weight: 500; }
+.id { font-family: var(--font-mono); font-size: .85em; background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+ul.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+ul.list li { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: baseline; }
+ul.list li > div { min-width: 0; }
+.sub { color: var(--muted); font-size: .88rem; }
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+table { width: 100%; border-collapse: collapse; font-size: .93rem; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-weight: 500; color: var(--muted); font-size: .82rem; letter-spacing: .04em; }
+td.date { font-variant-numeric: tabular-nums; white-space: nowrap; font-family: var(--font-mono); font-size: .88rem; }
+td.who { white-space: nowrap; font-weight: 500; }
+.open { background: var(--warn-soft); border-radius: 8px; padding: 14px 16px; display: grid; gap: 4px; }
+.open h2 { color: var(--warn); margin: 0; }
+footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 4px; }
+</style>
+
+<main lang="zh-CN">
+  <header class="meta">
+    <h1>架构同步会纪要</h1>
+    <p><b>2026-11-03，10:00–10:45</b></p>
+    <p>出席：Lena、Tomasz、Priya、Raymond　缺席：Jonas</p>
+  </header>
+
+  <section>
+    <h2>决议（已加入团队决策记录）</h2>
+    <ul class="list">
+      <li><span class="id">D-14</span><div>9.0 版本移除 XML 导出接口。提前两个版本通知客户。</div></li>
+      <li><span class="id">D-15</span><div>集成测试改用 Testcontainers。CI agent 上的 Docker-in-Docker 暂时保留，直到 <span class="id">KT-940</span> 完成。<div class="sub">KT-940：将 CI agent 升级到 Docker 27</div></div></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>待办事项</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>负责人</th><th>事项</th><th>截止日期</th></tr></thead>
+        <tbody>
+          <tr><td class="who">Priya</td><td>复审 <span class="id">PR 431</span>（预订 API 分页）</td><td class="date">2026-11-04</td></tr>
+          <tr><td class="who">Tomasz</td><td>Priya 复审通过后合并 <span class="id">PR 431</span></td><td class="date">复审后</td></tr>
+          <tr><td class="who">Raymond</td><td>起草 XML 导出接口的弃用通知（D-14）</td><td class="date">2026-11-07</td></tr>
+          <tr><td class="who">Lena</td><td>在 <span class="id">ONB-01</span> 入职手册《How we work》中补充 Testcontainers 配置说明（D-15）</td><td class="date">2026-11-10</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="open">
+    <h2>待定问题</h2>
+    <p>SMS 网关合同续签由谁负责？由 Jonas 答复（本次缺席）。</p>
+  </section>
+
+  <footer>
+    <p><b>下次同步：</b>2026-11-10，10:00</p>
+    <p>注：原始记录未注明时区，时间按会议原文记录，未换算为北京时间。</p>
+  </footer>
+</main>

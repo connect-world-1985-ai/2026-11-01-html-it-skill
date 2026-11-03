@@ -1,0 +1,464 @@
+<title>First Week Pipeline</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: a CI run for a person. Pipeline strip on top, stage cards with steps below, team board and event log in a side column that stacks under on phones. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --ink: #17202c;
+  --muted: #5b6676;
+  --line: #d9dfe7;
+  --accent: #2557d6;
+  --accent-soft: #e4ebfb;
+  --pass: #17834f;
+  --pass-soft: #e0f2e8;
+  --run: #b86e00;
+  --run-soft: #fbefd9;
+  --queued: #9aa4b2;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --s-xs: 0.75rem; --s-sm: 0.875rem; --s-md: 1rem; --s-lg: 1.25rem; --s-xl: 2rem;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141b; --surface: #171e28; --ink: #e6ebf2; --muted: #95a1b2; --line: #2a3442;
+    --accent: #7ea2ff; --accent-soft: #1c2945; --pass: #4cc78a; --pass-soft: #15301f;
+    --run: #f0b048; --run-soft: #3a2a10; --queued: #5d6878; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141b; --surface: #171e28; --ink: #e6ebf2; --muted: #95a1b2; --line: #2a3442;
+  --accent: #7ea2ff; --accent-soft: #1c2945; --pass: #4cc78a; --pass-soft: #15301f;
+  --run: #f0b048; --run-soft: #3a2a10; --queued: #5d6878; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: var(--s-md); line-height: 1.5;
+}
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-block: 2rem 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 1.75rem;
+}
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.mono { font-family: var(--font-mono); }
+.label {
+  font-family: var(--font-mono); font-size: var(--s-xs); letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted);
+}
+
+/* Header */
+header { display: grid; gap: 0.75rem; }
+.runline { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+.badge {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-family: var(--font-mono); font-size: var(--s-xs); font-weight: 600;
+  padding: 0.2rem 0.6rem; border-radius: 999px;
+  background: var(--run-soft); color: var(--run);
+}
+.badge::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: currentColor; }
+.badge[data-state="passed"] { background: var(--pass-soft); color: var(--pass); }
+.badge[data-state="queued"] { background: var(--accent-soft); color: var(--accent); }
+h1 {
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(1.6rem, 4.2vw, 2.6rem); line-height: 1.15; letter-spacing: -0.02em;
+}
+.lede { color: var(--muted); max-width: 62ch; font-size: var(--s-lg); line-height: 1.45; }
+
+/* Pipeline strip */
+.pipeline {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 1.25rem; overflow-x: auto;
+}
+.stages { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 0; min-width: 620px; }
+.stage-node { position: relative; display: grid; gap: 0.35rem; padding-right: 1.25rem; }
+.stage-node .dot-row { display: flex; align-items: center; }
+.stage-node .dot {
+  width: 1.75rem; height: 1.75rem; border-radius: 50%; flex: none;
+  display: grid; place-items: center; font-family: var(--font-mono); font-size: var(--s-xs); font-weight: 600;
+  border: 2px solid var(--queued); color: var(--queued); background: var(--surface);
+}
+.stage-node .bar { flex: 1; height: 2px; background: var(--line); margin-left: 0.4rem; }
+.stage-node:last-child .bar { display: none; }
+.stage-node[data-state="passed"] .dot { background: var(--pass); border-color: var(--pass); color: var(--surface); }
+.stage-node[data-state="passed"] .bar { background: var(--pass); }
+.stage-node[data-state="running"] .dot { border-color: var(--run); color: var(--run); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px var(--run-soft); } }
+@media (prefers-reduced-motion: reduce) { .stage-node .dot { animation: none !important; } }
+.stage-node .name { font-weight: 700; }
+.stage-node .count { font-family: var(--font-mono); font-size: var(--s-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Main grid */
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 1.75rem; align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.col { display: grid; gap: 1rem; min-width: 0; }
+
+.stage {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+  display: grid;
+}
+.stage-head {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.25rem 1rem;
+  padding: 1rem 1.25rem; border-bottom: 1px solid var(--line);
+}
+.stage-head h2 { font-size: var(--s-lg); font-weight: 800; }
+.stage-head .when { font-family: var(--font-mono); font-size: var(--s-xs); color: var(--accent); }
+.steps { list-style: none; margin: 0; padding: 0; }
+.step { border-top: 1px solid var(--line); }
+.step:first-child { border-top: 0; }
+.step label {
+  display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) auto; gap: 0.85rem; align-items: start;
+  padding: 0.8rem 1.25rem; cursor: pointer;
+}
+.step label:hover { background: var(--accent-soft); }
+.step input {
+  appearance: none; -webkit-appearance: none; margin: 0.1rem 0 0;
+  width: 1.25rem; height: 1.25rem; border: 2px solid var(--queued); border-radius: 5px;
+  display: grid; place-items: center; cursor: pointer; background: var(--surface);
+}
+.step input::after {
+  content: ""; width: 0.35rem; height: 0.65rem; border: solid var(--surface);
+  border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); opacity: 0;
+}
+.step input:checked { background: var(--pass); border-color: var(--pass); }
+.step input:checked::after { opacity: 1; }
+.step input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.step .what { font-weight: 500; }
+.step .why { color: var(--muted); font-size: var(--s-sm); }
+.step .ref {
+  font-family: var(--font-mono); font-size: var(--s-xs); color: var(--accent);
+  background: var(--accent-soft); padding: 0.05rem 0.4rem; border-radius: 4px; white-space: nowrap;
+}
+.step .stamp { font-family: var(--font-mono); font-size: var(--s-xs); color: var(--pass); font-variant-numeric: tabular-nums; white-space: nowrap; padding-top: 0.15rem; }
+.step input:checked ~ .text .what { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--queued); }
+.req {
+  display: inline-block; margin-top: 0.3rem;
+  font-family: var(--font-mono); font-size: var(--s-xs); color: var(--run);
+}
+
+/* Side panels */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 1.1rem 1.25rem; display: grid; gap: 0.9rem; min-width: 0; }
+.panel h2 { font-size: var(--s-md); font-weight: 800; }
+.panel-head { display: grid; gap: 0.2rem; }
+.note { color: var(--muted); font-size: var(--s-sm); }
+.board { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.85rem; }
+.run { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: 0.25rem 0.7rem; align-items: center; }
+.run img { width: 2rem; height: 2rem; border-radius: 50%; grid-row: span 2; background: var(--line); }
+.run .who { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.run .who small { font-weight: 400; color: var(--muted); }
+.run .tally { font-family: var(--font-mono); font-size: var(--s-xs); font-variant-numeric: tabular-nums; color: var(--muted); }
+.segs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; grid-column: 2 / 4; }
+.seg { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.seg i { display: block; height: 100%; background: var(--run); }
+.seg[data-full] i { background: var(--pass); }
+.run .ago { grid-column: 2 / 4; font-size: var(--s-xs); color: var(--muted); }
+.empty { border: 1px dashed var(--line); border-radius: 8px; padding: 0.9rem; color: var(--muted); font-size: var(--s-sm); }
+
+.log { list-style: none; margin: 0; padding: 0; font-family: var(--font-mono); font-size: var(--s-xs); display: grid; gap: 0.45rem; max-height: 260px; overflow-y: auto; }
+.log li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.6rem; }
+.log time { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.log .ev { overflow-wrap: anywhere; }
+.log .ev b { font-weight: 600; color: var(--pass); }
+.log .ev b.undo { color: var(--run); }
+.mode { font-size: var(--s-sm); padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--run-soft); color: var(--ink); }
+.mode[hidden] { display: none; }
+footer { color: var(--muted); font-size: var(--s-sm); max-width: 70ch; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="runline">
+      <span class="label">Backend onboarding · run #1 · 4 stages · 13 steps</span>
+      <span class="badge" id="run-badge" data-state="queued">queued</span>
+    </div>
+    <h1>First Week Pipeline</h1>
+    <p class="lede">Your first week as a backend engineer, from a fresh laptop to a merged PR you demo on Friday. Tick each step as you finish it. Your buddy sees your run on the team board.</p>
+  </header>
+
+  <section class="pipeline" aria-label="Stage overview">
+    <div class="stages" id="strip"></div>
+  </section>
+
+  <p class="mode" id="mode" hidden></p>
+
+  <div class="main">
+    <div class="col" id="stages"></div>
+
+    <aside class="col">
+      <section class="panel" aria-labelledby="board-h">
+        <div class="panel-head">
+          <h2 id="board-h">Team board</h2>
+          <p class="note">Everyone running this week, with what they have finished. Buddies: find your new hire here.</p>
+        </div>
+        <ul class="board" id="board"></ul>
+        <div class="empty" id="board-empty">Connecting to the team board. Once someone ticks their first step, their run shows up here.</div>
+      </section>
+
+      <section class="panel" aria-labelledby="log-h">
+        <div class="panel-head">
+          <h2 id="log-h">Your event log</h2>
+          <p class="note">Progress is stored as an append-only list of events and folded into the state above, the same way ADR-007 describes our services.</p>
+        </div>
+        <ol class="log" id="log"></ol>
+        <div class="empty" id="log-empty">No events yet. Your first one is <span class="mono">StepCompleted day1.laptop</span>.</div>
+      </section>
+    </aside>
+  </div>
+
+  <footer>Stuck on a step for more than half a day? Tell your buddy in Teams. Asking early is part of the plan for the week.</footer>
+</div>
+
+<script>
+(() => {
+  const STAGES = [
+    { id: "day1", name: "Set up", when: "Day 1", steps: [
+      { id: "laptop", what: "Laptop set up", why: "Unbox, sign in, install the standard developer image." },
+      { id: "vpn", what: "VPN connected", why: "Needed for everything internal from here on." },
+      { id: "jira", what: "Jira account works", why: "You can open the team board and your onboarding ticket." },
+      { id: "bitbucket", what: "Bitbucket account works", why: "You can clone the core project." },
+      { id: "teams", what: "Teams account works", why: "Join the team channel and say hello." },
+      { id: "onb01", what: "Read “How we work”", ref: "ONB-01", why: "How we plan, review and release." }
+    ]},
+    { id: "day2", name: "Build", when: "Day 2", steps: [
+      { id: "build", what: "Build the core project locally", why: "A clean build from a fresh clone." },
+      { id: "itests", what: "Run the integration tests", why: "Expect a green run before moving on.", req: "requires Docker" },
+      { id: "pair", what: "Pair with your buddy", why: "Walk through the code together and ask the questions you saved up." }
+    ]},
+    { id: "day3", name: "First issue", when: "Day 3", steps: [
+      { id: "issue", what: "Pick a “good first issue”", why: "Assign it to yourself in Jira." },
+      { id: "adr007", what: "Read why we use event sourcing", ref: "ADR-007", why: "The decision record behind most of the core project's design." }
+    ]},
+    { id: "day45", name: "Ship", when: "Day 4–5", steps: [
+      { id: "pr", what: "Ship your first PR", why: "Reviewed, merged, deployed." },
+      { id: "demo", what: "Demo it at the Friday sync", why: "Five minutes: what you changed and what you learned." }
+    ]}
+  ];
+  const ALL = STAGES.flatMap(s => s.steps.map(st => s.id + "." + st.id));
+  const TOTAL = ALL.length;
+  const MAX_EVENTS = 300;
+  const LS_KEY = "first-week-pipeline.events";
+
+  const $ = id => document.getElementById(id);
+  let myEvents = [];
+  let others = {};      // id -> events
+  let myId = null;
+  let db = null, user = null, myRef = null;
+  let writeChain = Promise.resolve();
+
+  const fold = events => {
+    const done = {};
+    for (const e of events || []) {
+      if (e.type === "done") done[e.step] = e.t;
+      else if (e.type === "undone") delete done[e.step];
+    }
+    return done;
+  };
+  const stageState = (stage, done) => {
+    const n = stage.steps.filter(st => done[stage.id + "." + st.id]).length;
+    return { n, total: stage.steps.length };
+  };
+  const fmtTime = t => {
+    try { return new Date(t).toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" }); }
+    catch (e) { return ""; }
+  };
+  const ago = t => {
+    const m = Math.round((Date.now() - t) / 60000);
+    if (m < 1) return "just now";
+    if (m < 60) return m + " min ago";
+    const h = Math.round(m / 60);
+    if (h < 24) return h + " h ago";
+    return Math.round(h / 24) + " d ago";
+  };
+
+  // Build static structure once
+  function buildStages() {
+    const strip = $("strip"), col = $("stages");
+    STAGES.forEach((s, i) => {
+      const node = document.createElement("div");
+      node.className = "stage-node"; node.id = "node-" + s.id;
+      node.innerHTML = `<div class="dot-row"><span class="dot">${i + 1}</span><span class="bar"></span></div>
+        <span class="label">${s.when}</span><span class="name">${s.name}</span><span class="count"></span>`;
+      strip.appendChild(node);
+
+      const sec = document.createElement("section");
+      sec.className = "stage"; sec.setAttribute("aria-labelledby", "h-" + s.id);
+      sec.innerHTML = `<div class="stage-head"><h2 id="h-${s.id}">${s.name}</h2><span class="when">${s.when} · <span class="cnt"></span></span></div><ul class="steps"></ul>`;
+      const ul = sec.querySelector(".steps");
+      s.steps.forEach(st => {
+        const key = s.id + "." + st.id;
+        const li = document.createElement("li"); li.className = "step";
+        li.innerHTML = `<label for="cb-${s.id}-${st.id}">
+          <input type="checkbox" id="cb-${s.id}-${st.id}" data-step="${key}">
+          <span class="text"><span class="what">${st.what}</span>${st.ref ? ` <span class="ref">${st.ref}</span>` : ""}<br>
+          <span class="why">${st.why}</span>${st.req ? `<br><span class="req">${st.req}</span>` : ""}</span>
+          <span class="stamp"></span></label>`;
+        ul.appendChild(li);
+      });
+      col.appendChild(sec);
+    });
+    col.addEventListener("change", e => {
+      const cb = e.target.closest("input[data-step]");
+      if (!cb) return;
+      record(cb.dataset.step, cb.checked ? "done" : "undone");
+    });
+  }
+
+  function renderMine() {
+    const done = fold(myEvents);
+    let firstOpen = -1;
+    STAGES.forEach((s, i) => {
+      const { n, total } = stageState(s, done);
+      if (firstOpen < 0 && n < total) firstOpen = i;
+    });
+    STAGES.forEach((s, i) => {
+      const { n, total } = stageState(s, done);
+      const state = n === total ? "passed" : (i === firstOpen ? "running" : "queued");
+      const node = $("node-" + s.id);
+      node.dataset.state = state;
+      node.querySelector(".count").textContent = `${n}/${total} · ${state}`;
+      document.querySelector(`#h-${s.id}`).parentElement.querySelector(".cnt").textContent = `${n}/${total} passed`;
+      s.steps.forEach(st => {
+        const key = s.id + "." + st.id;
+        const cb = $(`cb-${s.id}-${st.id}`);
+        cb.checked = !!done[key];
+        cb.closest("label").querySelector(".stamp").textContent = done[key] ? fmtTime(done[key]) : "";
+      });
+    });
+    const count = Object.keys(done).length;
+    const badge = $("run-badge");
+    const st = count === TOTAL ? "passed" : count === 0 ? "queued" : "running";
+    badge.dataset.state = st;
+    badge.textContent = `${st} · ${count}/${TOTAL}`;
+
+    const log = $("log");
+    log.textContent = "";
+    const recent = myEvents.slice(-40).reverse();
+    for (const e of recent) {
+      const li = document.createElement("li");
+      const t = document.createElement("time"); t.textContent = fmtTime(e.t);
+      const ev = document.createElement("span"); ev.className = "ev";
+      const b = document.createElement("b"); b.textContent = e.type === "done" ? "StepCompleted" : "StepReopened";
+      if (e.type !== "done") b.className = "undo";
+      ev.append(b, " " + e.step);
+      li.append(t, ev); log.appendChild(li);
+    }
+    $("log-empty").hidden = recent.length > 0;
+  }
+
+  async function renderBoard() {
+    const board = $("board");
+    const runs = Object.entries(others)
+      .map(([id, ev]) => ({ id, ev, done: fold(ev) }))
+      .filter(r => r.ev.length > 0);
+    if (myId && myEvents.length && !runs.some(r => r.id === myId)) runs.push({ id: myId, ev: myEvents, done: fold(myEvents) });
+    runs.forEach(r => { if (r.id === myId) { r.ev = myEvents; r.done = fold(myEvents); } });
+    runs.sort((a, b) => (b.ev[b.ev.length - 1]?.t || 0) - (a.ev[a.ev.length - 1]?.t || 0));
+
+    let profiles = {};
+    if (user && runs.length) { try { profiles = await user.profiles(runs.map(r => r.id)); } catch (e) {} }
+
+    board.textContent = "";
+    for (const r of runs) {
+      const p = profiles[r.id] || {};
+      const li = document.createElement("li"); li.className = "run";
+      const img = document.createElement("img"); img.alt = ""; if (p.avatarUrl) img.src = p.avatarUrl;
+      const who = document.createElement("span"); who.className = "who";
+      who.textContent = p.name || (r.id === myId ? "You" : "Someone");
+      if (r.id === myId) { const s = document.createElement("small"); s.textContent = " (you)"; who.appendChild(s); }
+      const n = Object.keys(r.done).length;
+      const tally = document.createElement("span"); tally.className = "tally"; tally.textContent = `${n}/${TOTAL}`;
+      const segs = document.createElement("div"); segs.className = "segs";
+      segs.setAttribute("aria-label", STAGES.map(s => { const x = stageState(s, r.done); return `${s.when} ${x.n} of ${x.total}`; }).join(", "));
+      STAGES.forEach(s => {
+        const x = stageState(s, r.done);
+        const seg = document.createElement("span"); seg.className = "seg"; seg.title = `${s.when}: ${x.n}/${x.total}`;
+        if (x.n === x.total) seg.dataset.full = "";
+        const i = document.createElement("i"); i.style.width = (100 * x.n / x.total) + "%";
+        seg.appendChild(i); segs.appendChild(seg);
+      });
+      const last = r.ev[r.ev.length - 1];
+      const agoEl = document.createElement("span"); agoEl.className = "ago";
+      agoEl.textContent = last ? `Last: ${last.step} · ${ago(last.t)}` : "";
+      li.append(img, who, tally, segs, agoEl);
+      board.appendChild(li);
+    }
+    const empty = $("board-empty");
+    if (runs.length) empty.hidden = true;
+    else if (db) { empty.hidden = false; empty.textContent = "No runs yet. Tick your first step and your run appears here for your buddy."; }
+  }
+
+  function record(step, type) {
+    myEvents = myEvents.concat([{ t: Date.now(), step, type }]).slice(-MAX_EVENTS);
+    renderMine();
+    if (myRef) {
+      const body = { events: myEvents.slice() };
+      writeChain = writeChain.then(() => myRef.set(body)).catch(err => {
+        showMode(err && err.code === "quota_exceeded"
+          ? "The team board is full, so this tick was not shared. Ask the page owner to clear old runs."
+          : "This tick could not be saved to the team board. Check your connection and tick it again.");
+      });
+    } else {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(myEvents)); } catch (e) {}
+    }
+    renderBoard();
+  }
+
+  function showMode(text) { const m = $("mode"); m.textContent = text; m.hidden = false; }
+  function hideMode() { $("mode").hidden = true; }
+
+  function useLocal(reason) {
+    db = null; myRef = null;
+    try { myEvents = JSON.parse(localStorage.getItem(LS_KEY) || "[]") || []; } catch (e) { myEvents = []; }
+    renderMine();
+    showMode(reason);
+    const empty = $("board-empty"); empty.hidden = false;
+    empty.textContent = "The team board needs the shared page. Open this page from its artifact link, signed in, so your buddy can see your run.";
+  }
+
+  async function start() {
+    buildStages();
+    renderMine();
+    const api = window.claude;
+    if (!api || typeof api.use !== "function") {
+      useLocal("Progress is saved in this browser only. Your buddy cannot see it until you open the shared link.");
+      return;
+    }
+    try { [db, user] = await Promise.all([api.use("db"), api.use("user")]); } catch (e) { db = null; }
+    if (!db) { useLocal("Progress is saved in this browser only. Sign in and open the shared link so your buddy can see it."); return; }
+    try { myId = user ? await user.id() : null; } catch (e) { myId = null; }
+
+    const timer = setTimeout(() => showMode("The team board is not reachable yet. Your ticks are kept and will sync when it answers."), 10000);
+    let first = true;
+
+    db.collection("progress").onSnapshot(snap => {
+      const next = {};
+      snap.docs.forEach(d => { const ev = (d.data() || {}).events; next[d.id] = Array.isArray(ev) ? ev : []; });
+      others = next;
+      if (!snap.metadata.fromCache) { clearTimeout(timer); hideMode(); }
+      if (first && myId && next[myId] && !snap.metadata.hasPendingWrites) { myEvents = next[myId]; first = false; renderMine(); }
+      renderBoard();
+    }, err => {
+      clearTimeout(timer);
+      showMode("The team board stopped responding. Reload the page to reconnect; your ticks so far are saved.");
+    });
+
+    if (myId) {
+      myRef = db.doc("progress/" + myId);
+    } else {
+      showMode("You can follow the team board, but ticks need a signed-in account with access to this page.");
+    }
+  }
+
+  start();
+})();
+</script>

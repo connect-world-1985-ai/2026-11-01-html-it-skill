@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Booking App Layouts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a review wall. One row per screen, each holding an A and a B phone wireframe side by side, with notes on the left. */
+:root {
+  --paper: #f3f6f6;      /* page ground, cool grey biased toward the accent */
+  --sheet: #ffffff;      /* phone screen */
+  --ink: #17242a;        /* text */
+  --muted: #5d6e74;      /* secondary text */
+  --line: #d3dcde;       /* hairlines, wire boxes */
+  --wire: #e6ecec;       /* filled wire blocks */
+  --accent: #0b7a6c;     /* clinic teal: primary actions */
+  --accent-soft: #d8efea;
+  --warn: #b4441f;       /* error state */
+  --warn-soft: #fbe7df;
+  --frame: #26343a;      /* phone bezel */
+  --f-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --s1: .25rem; --s2: .5rem; --s3: .75rem; --s4: 1rem; --s5: 1.5rem; --s6: 2.5rem; --s7: 4rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10181b; --sheet: #1a2428; --ink: #e4ecee; --muted: #93a5aa; --line: #33444a;
+    --wire: #263338; --accent: #4fc4b1; --accent-soft: #173a36; --warn: #f08a63; --warn-soft: #3a2219;
+    --frame: #05090b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #10181b; --sheet: #1a2428; --ink: #e4ecee; --muted: #93a5aa; --line: #33444a;
+  --wire: #263338; --accent: #4fc4b1; --accent-soft: #173a36; --warn: #f08a63; --warn-soft: #3a2219;
+  --frame: #05090b; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 1rem/1.55 var(--f-body);
+}
+.wrap {
+  max-width: 76rem; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: var(--s6) var(--s7);
+  display: grid; gap: var(--s6);
+}
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 1.4rem + 2.6vw, 3.1rem); font-weight: 700; letter-spacing: -.02em; }
+h2 { font-size: 1.5rem; font-weight: 700; }
+h3 { font-size: 1rem; font-weight: 500; }
+p { margin: 0; max-width: 65ch; }
+.eyebrow { font: 600 .72rem/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.mono { font-family: var(--f-mono); }
+
+/* Header */
+header { display: grid; gap: var(--s4); }
+.lede { color: var(--muted); font-size: 1.1rem; }
+.brief {
+  display: grid; gap: var(--s4); grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  border-top: 1px solid var(--line); padding-top: var(--s5);
+}
+.brief div { display: grid; gap: var(--s1); min-width: 0; }
+.brief dt { font: 600 .72rem/1.2 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.brief dd { margin: 0; }
+dl { margin: 0; display: contents; }
+
+/* Shortlist tray */
+.tray {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--sheet); border: 1px solid var(--line); border-radius: 12px;
+  padding: var(--s3) var(--s4); display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); align-items: center;
+  box-shadow: 0 6px 20px -14px rgba(0,0,0,.35);
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+.tray strong { font-family: var(--f-display); font-weight: 700; }
+.tray .picks { display: flex; flex-wrap: wrap; gap: var(--s2); min-width: 0; flex: 1; }
+.tray .hint { color: var(--muted); font-size: .85rem; }
+.chip-pick { font: 600 .78rem/1 var(--f-mono); padding: .35rem .55rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.tray button { font: 600 .8rem/1 var(--f-body); color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 8px; padding: .45rem .7rem; cursor: pointer; }
+.tray button:hover { color: var(--ink); border-color: var(--muted); }
+
+/* Screen rows */
+.screens { display: grid; gap: var(--s7); }
+.screen {
+  display: grid; gap: var(--s5);
+  grid-template-columns: minmax(0, 17rem) minmax(0, 1fr);
+  align-items: start; border-top: 1px solid var(--line); padding-top: var(--s5);
+}
+.screen-notes { display: grid; gap: var(--s3); min-width: 0; }
+.screen-notes .num { font: 600 .8rem/1 var(--f-mono); color: var(--muted); }
+.screen-notes ul { margin: 0; padding-left: 1.1rem; color: var(--muted); display: grid; gap: var(--s1); }
+.variants { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s5); }
+.variant { display: grid; gap: var(--s3); justify-items: center; min-width: 0; }
+.variant figcaption { display: grid; gap: var(--s2); width: 100%; max-width: 16.5rem; }
+.vhead { display: flex; justify-content: space-between; align-items: center; gap: var(--s2); }
+.vtag { font: 600 .72rem/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.vdesc { font-size: .9rem; color: var(--muted); }
+.pick {
+  display: inline-flex; align-items: center; gap: .4rem; cursor: pointer;
+  font: 600 .78rem/1 var(--f-body); color: var(--muted);
+  border: 1px solid var(--line); border-radius: 999px; padding: .35rem .65rem .35rem .45rem; user-select: none;
+}
+.pick input { margin: 0; accent-color: var(--accent); width: .95rem; height: .95rem; }
+.pick:has(input:checked) { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.pick:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Phone frame */
+.phone {
+  width: 100%; max-width: 16.5rem; aspect-ratio: 9 / 18.5;
+  background: var(--frame); border-radius: 2.1rem; padding: .55rem;
+  box-shadow: 0 22px 40px -28px rgba(0,0,0,.6);
+}
+.scr {
+  position: relative; height: 100%; background: var(--sheet); border-radius: 1.65rem; overflow: hidden;
+  display: flex; flex-direction: column; font-size: .7rem; line-height: 1.35;
+}
+.sbar { display: flex; justify-content: space-between; padding: .55rem 1rem .3rem; font: 600 .6rem/1 var(--f-mono); color: var(--muted); flex: none; }
+.body { flex: 1; display: flex; flex-direction: column; gap: .5rem; padding: .35rem .7rem .7rem; min-height: 0; }
+.appbar { display: flex; justify-content: space-between; align-items: center; gap: .4rem; }
+.appbar b { font: 700 .9rem/1.1 var(--f-display); }
+.ico { width: 1.25rem; height: 1.25rem; border-radius: 50%; background: var(--wire); flex: none; }
+.card { border: 1px solid var(--line); border-radius: .6rem; padding: .55rem; display: grid; gap: .3rem; }
+.card.hl { background: var(--accent-soft); border-color: transparent; }
+.lbl { font: 600 .52rem/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.t { font-weight: 700; }
+.sub { color: var(--muted); }
+.btn { display: block; text-align: center; border-radius: .5rem; padding: .45rem; font-weight: 700; background: var(--accent); color: var(--sheet); }
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.btn.sm { padding: .25rem .45rem; font-size: .6rem; display: inline-block; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: .4rem; padding: .4rem 0; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row > span:first-child { min-width: 0; }
+.chips { display: flex; gap: .3rem; flex-wrap: nowrap; overflow: hidden; }
+.chip { flex: none; border: 1px solid var(--line); border-radius: 999px; padding: .2rem .45rem; font-size: .6rem; background: var(--sheet); }
+.chip.on { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--wire); border-radius: .45rem; padding: .15rem; font-size: .6rem; text-align: center; }
+.seg span { padding: .2rem; border-radius: .35rem; }
+.seg .on { background: var(--sheet); font-weight: 700; }
+.input { border: 1px solid var(--line); border-radius: .5rem; padding: .4rem .5rem; color: var(--muted); }
+.map {
+  background-color: var(--wire);
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 1.4rem 1.4rem; position: relative;
+}
+.pin { position: absolute; width: .7rem; height: .7rem; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--accent); }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--sheet); border-radius: 1rem 1rem 0 0; padding: .4rem .7rem .7rem; box-shadow: 0 -8px 20px -10px rgba(0,0,0,.35); display: grid; gap: .4rem; }
+.grab { width: 2rem; height: .22rem; border-radius: 1rem; background: var(--line); justify-self: center; }
+.scrim { position: absolute; inset: 0; background: var(--ink); opacity: .35; }
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: .2rem; text-align: center; }
+.week span { border-radius: .45rem; padding: .25rem 0; font-size: .58rem; display: grid; }
+.week b { font-size: .7rem; }
+.week .on { background: var(--accent); color: var(--sheet); }
+.week .off { color: var(--line); }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: .25rem; }
+.slot { border: 1px solid var(--line); border-radius: .4rem; text-align: center; padding: .3rem 0; font: 600 .6rem/1 var(--f-mono); }
+.slot.x { background: var(--wire); color: var(--muted); border-color: transparent; text-decoration: line-through; opacity: .7; }
+.slot.on { background: var(--accent); color: var(--sheet); border-color: var(--accent); }
+.photo { height: 2.6rem; border-radius: .4rem; background: repeating-linear-gradient(135deg, var(--wire) 0 .35rem, var(--sheet) .35rem .7rem); border: 1px dashed var(--muted); display: grid; place-items: center; color: var(--muted); font-size: .58rem; }
+.check { display: flex; gap: .35rem; align-items: flex-start; }
+.box { width: .75rem; height: .75rem; border: 1.5px solid var(--accent); border-radius: .2rem; flex: none; margin-top: .05rem; }
+.box.on { background: var(--accent); }
+.spacer { flex: 1; }
+.code { font: 600 .95rem/1 var(--f-mono); letter-spacing: .04em; }
+.big-ok { width: 2.8rem; height: 2.8rem; border-radius: 50%; background: var(--accent-soft); display: grid; place-items: center; color: var(--accent); font-size: 1.3rem; font-weight: 700; justify-self: center; }
+.center { text-align: center; justify-items: center; }
+.ticket { border: 1px solid var(--line); border-radius: .6rem; overflow: hidden; }
+.ticket .top { background: var(--accent); color: var(--sheet); padding: .55rem; display: grid; gap: .2rem; }
+.ticket .top .lbl { color: var(--sheet); opacity: .8; }
+.ticket .perf { border-top: 2px dashed var(--line); margin: 0 .4rem; }
+.ticket .bot { padding: .55rem; display: grid; gap: .3rem; }
+.alert { background: var(--warn-soft); color: var(--warn); border-radius: .55rem; padding: .5rem; display: grid; gap: .2rem; }
+.alert .t { color: var(--warn); }
+.step { display: flex; gap: .4rem; align-items: flex-start; }
+.dot { width: 1rem; height: 1rem; border-radius: 50%; flex: none; display: grid; place-items: center; font: 700 .52rem/1 var(--f-mono); background: var(--wire); color: var(--muted); }
+.dot.done { background: var(--accent); color: var(--sheet); }
+.dot.cur { border: 1.5px solid var(--accent); background: var(--sheet); color: var(--accent); }
+.tabbar { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); padding: .35rem 0 .55rem; text-align: center; font-size: .55rem; color: var(--muted); flex: none; }
+.tabbar .on { color: var(--accent); font-weight: 700; }
+
+/* Footer */
+.next { display: grid; gap: var(--s3); border-top: 1px solid var(--line); padding-top: var(--s5); }
+.next ol { margin: 0; padding-left: 1.2rem; display: grid; gap: var(--s2); max-width: 65ch; }
+
+@media (max-width: 56rem) {
+  .screen { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 30rem) {
+  .variants { gap: var(--s3); }
+  .phone { border-radius: 1.5rem; padding: .35rem; }
+  .scr { border-radius: 1.2rem; font-size: .56rem; }
+  .vdesc { font-size: .8rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pick, .tray button { transition: background-color .15s, border-color .15s, color .15s; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">Appointment booking · mobile · layout review</span>
+  <h1>Booking App Layouts</h1>
+  <p class="lede">Six screens from the sketch notes, each drawn two ways. Compare the A and B layouts and pick two directions to take forward.</p>
+  <dl class="brief">
+    <div><dt>Source</dt><dd>Team sketch notes, six screen ideas</dd></div>
+    <div><dt>Fidelity</dt><dd>Mid-fi wireframes. Names, dates and times are example data.</dd></div>
+    <div><dt>What's proposed</dt><dd>Every variant uses all the elements in the notes. Only the layout differs between A and B.</dd></div>
+  </dl>
+</header>
+
+<div class="tray" role="region" aria-label="Your shortlist">
+  <strong>Your shortlist</strong>
+  <div class="picks" id="picks"><span class="hint">Nothing picked yet. Use Shortlist under any variant.</span></div>
+  <span class="hint">Saved in this browser only.</span>
+  <button type="button" id="clear-picks">Clear</button>
+</div>
+
+<main class="screens">
+
+<!-- 1 HOME -->
+<section class="screen" id="home">
+  <div class="screen-notes">
+    <span class="num">Screen 1 of 6</span>
+    <h2>Home</h2>
+    <ul><li>Next appointment card</li><li>"Book again" button</li><li>List of past visits</li></ul>
+  </div>
+  <div class="variants">
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body">
+          <div class="appbar"><b>Hi, Mara</b><span class="ico"></span></div>
+          <div class="card hl">
+            <span class="lbl">Next appointment</span>
+            <span class="t">Dermatology · Dr. Okafor</span>
+            <span class="sub">Thu 12 Nov · 10:30</span>
+            <span class="sub">Lindenhof Clinic, Room 2</span>
+          </div>
+          <span class="btn">Book again</span>
+          <span class="lbl">Past visits</span>
+          <div>
+            <div class="row"><span>General practice<br><span class="sub">14 Oct</span></span><span class="sub">›</span></div>
+            <div class="row"><span>Dermatology<br><span class="sub">2 Sep</span></span><span class="sub">›</span></div>
+            <div class="row"><span>Physiotherapy<br><span class="sub">19 Jul</span></span><span class="sub">›</span></div>
+          </div>
+        </div>
+        <div class="tabbar"><span class="on">Home</span><span>Search</span><span>Profile</span></div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">1A · Hero card</span><label class="pick"><input type="checkbox" id="pick-1a" data-pick="1A Home: hero card">Shortlist</label></div>
+        <span class="vdesc">The next appointment fills the top. One large "Book again" button sits below it.</span>
+      </figcaption>
+    </figure>
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body">
+          <div class="appbar"><b>Appointments</b><span class="ico"></span></div>
+          <div class="card">
+            <div class="row" style="padding:0;border:0"><span><span class="lbl">Next</span><br><span class="t">Thu 12 Nov · 10:30</span><br><span class="sub">Dermatology</span></span><span class="sub">›</span></div>
+          </div>
+          <span class="lbl">Past visits</span>
+          <div>
+            <div class="row"><span>General practice<br><span class="sub">14 Oct · Dr. Brandt</span></span><span class="btn ghost sm">Book again</span></div>
+            <div class="row"><span>Dermatology<br><span class="sub">2 Sep · Dr. Okafor</span></span><span class="btn ghost sm">Book again</span></div>
+            <div class="row"><span>Physiotherapy<br><span class="sub">19 Jul · S. Lehmann</span></span><span class="btn ghost sm">Book again</span></div>
+            <div class="row"><span>Dentist<br><span class="sub">3 May · Dr. Ruiz</span></span><span class="btn ghost sm">Book again</span></div>
+          </div>
+        </div>
+        <div class="tabbar"><span class="on">Home</span><span>Search</span><span>Profile</span></div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">1B · Rebook per visit</span><label class="pick"><input type="checkbox" id="pick-1b" data-pick="1B Home: rebook per visit">Shortlist</label></div>
+        <span class="vdesc">A slim next-appointment row. Each past visit has its own "Book again", so the list does most of the work.</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 2 SEARCH -->
+<section class="screen" id="search">
+  <div class="screen-notes">
+    <span class="num">Screen 2 of 6</span>
+    <h2>Search</h2>
+    <ul><li>Specialty chips</li><li>Map / list toggle</li><li>Filter sheet</li></ul>
+  </div>
+  <div class="variants">
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body">
+          <div class="input">Search doctor or clinic</div>
+          <div class="chips"><span class="chip on">Dermatology</span><span class="chip">GP</span><span class="chip">Dentist</span><span class="chip">Physio</span></div>
+          <div class="seg"><span class="on">List</span><span>Map</span></div>
+          <div>
+            <div class="row"><span><span class="t">Dr. Okafor</span><br><span class="sub">Lindenhof · 1.2 km · Thu</span></span><span class="sub">›</span></div>
+            <div class="row"><span><span class="t">Dr. Weiss</span><br><span class="sub">Hautzentrum · 2.8 km · Fri</span></span><span class="sub">›</span></div>
+          </div>
+        </div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <span class="grab"></span>
+          <span class="t">Filters</span>
+          <span class="lbl">Earliest</span>
+          <div class="chips"><span class="chip on">This week</span><span class="chip">Next week</span></div>
+          <span class="lbl">Insurance</span>
+          <div class="chips"><span class="chip on">Public</span><span class="chip">Private</span></div>
+          <span class="btn">Show 14 results</span>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">2A · List first</span><label class="pick"><input type="checkbox" id="pick-2a" data-pick="2A Search: list first">Shortlist</label></div>
+        <span class="vdesc">Chips and a List/Map switch at the top. Filters open as a bottom sheet, shown open here.</span>
+      </figcaption>
+    </figure>
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr map">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body">
+          <div class="appbar"><div class="input" style="flex:1;background:var(--sheet)">Dermatology near me</div><span class="ico" style="background:var(--sheet);border:1px solid var(--line)"></span></div>
+          <div class="chips"><span class="chip on">Dermatology</span><span class="chip">GP</span><span class="chip">Dentist</span><span class="chip">Physio</span></div>
+          <span class="chip" style="align-self:flex-end;font-weight:700">☰ List</span>
+        </div>
+        <span class="pin" style="top:38%;left:30%"></span>
+        <span class="pin" style="top:46%;left:62%"></span>
+        <span class="pin" style="top:30%;left:72%"></span>
+        <div class="sheet">
+          <span class="grab"></span>
+          <span class="lbl">14 results · drag up for list</span>
+          <div class="row"><span><span class="t">Dr. Okafor</span><br><span class="sub">1.2 km · next: Thu 10:30</span></span><span class="btn sm">Book</span></div>
+          <div class="row"><span><span class="t">Dr. Weiss</span><br><span class="sub">2.8 km · next: Fri 08:15</span></span><span class="btn sm">Book</span></div>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">2B · Map first</span><label class="pick"><input type="checkbox" id="pick-2b" data-pick="2B Search: map first">Shortlist</label></div>
+        <span class="vdesc">A full-screen map with chips floating on top. Results sit in a drawer you can drag up. The filter icon is next to search.</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 3 SLOT PICKER -->
+<section class="screen" id="slots">
+  <div class="screen-notes">
+    <span class="num">Screen 3 of 6</span>
+    <h2>Slot picker</h2>
+    <ul><li>Week strip</li><li>Time grid</li><li>Unavailable slots greyed</li></ul>
+  </div>
+  <div class="variants">
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body">
+          <div class="appbar"><b>Dr. Okafor</b><span class="sub">Nov 2026</span></div>
+          <div class="week">
+            <span>Mo<b>9</b></span><span>Tu<b>10</b></span><span>We<b>11</b></span><span class="on">Th<b>12</b></span><span>Fr<b>13</b></span><span class="off">Sa<b>14</b></span><span class="off">Su<b>15</b></span>
+          </div>
+          <div class="grid3">
+            <span class="slot x">08:00</span><span class="slot x">08:30</span><span class="slot">09:00</span>
+            <span class="slot x">09:30</span><span class="slot">10:00</span><span class="slot on">10:30</span>
+            <span class="slot">11:00</span><span class="slot x">11:30</span><span class="slot x">13:00</span>
+            <span class="slot">13:30</span><span class="slot">14:00</span><span class="slot x">14:30</span>
+            <span class="slot x">15:00</span><span class="slot">15:30</span><span class="slot">16:00</span>
+          </div>
+          <span class="spacer"></span>
+          <span class="btn">Continue · Thu 10:30</span>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">3A · Dense grid</span><label class="pick"><input type="checkbox" id="pick-3a" data-pick="3A Slots: dense grid">Shortlist</label></div>
+        <span class="vdesc">A three-column time grid shows the whole day at once. Taken slots are greyed and struck through.</span>
+      </figcaption>
+    </figure>
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body">
+          <div class="appbar"><b>Pick a time</b><span class="sub">‹ ›</span></div>
+          <div class="week">
+            <span>Mo<b>9</b></span><span>Tu<b>10</b></span><span>We<b>11</b></span><span class="on">Th<b>12</b></span><span>Fr<b>13</b></span><span class="off">Sa<b>14</b></span><span class="off">Su<b>15</b></span>
+          </div>
+          <span class="lbl">Morning · 2 free</span>
+          <div class="grid3" style="grid-template-columns:1fr 1fr">
+            <span class="slot x">08:00</span><span class="slot">09:00</span>
+            <span class="slot x">09:30</span><span class="slot on">10:30</span>
+          </div>
+          <span class="lbl">Afternoon · 4 free</span>
+          <div class="grid3" style="grid-template-columns:1fr 1fr">
+            <span class="slot">13:30</span><span class="slot">14:00</span>
+            <span class="slot x">14:30</span><span class="slot">15:30</span>
+          </div>
+          <span class="spacer"></span>
+          <span class="btn">Continue</span>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">3B · Grouped by part of day</span><label class="pick"><input type="checkbox" id="pick-3b" data-pick="3B Slots: grouped by part of day">Shortlist</label></div>
+        <span class="vdesc">Larger tap targets in two columns, grouped by morning and afternoon, with free counts on each group.</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 4 CONFIRM -->
+<section class="screen" id="confirm">
+  <div class="screen-notes">
+    <span class="num">Screen 4 of 6</span>
+    <h2>Confirm</h2>
+    <ul><li>Summary</li><li>Insurance card photo</li><li>Consent checkbox</li></ul>
+  </div>
+  <div class="variants">
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body">
+          <div class="appbar"><b>Confirm booking</b></div>
+          <div class="card">
+            <span class="lbl">Summary</span>
+            <span class="t">Dermatology · Dr. Okafor</span>
+            <span class="sub">Thu 12 Nov 2026 · 10:30–10:50</span>
+            <span class="sub">Lindenhof Clinic, Room 2</span>
+          </div>
+          <span class="lbl">Insurance card</span>
+          <div class="photo">Photo of card · front</div>
+          <span class="sub">Retake photo</span>
+          <div class="check"><span class="box"></span><span>I agree to the clinic sharing my booking details with my insurer.</span></div>
+          <span class="spacer"></span>
+          <span class="btn">Confirm booking</span>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">4A · Single page</span><label class="pick"><input type="checkbox" id="pick-4a" data-pick="4A Confirm: single page">Shortlist</label></div>
+        <span class="vdesc">Everything on one page, with the confirm button pinned to the bottom. It works until you tick the consent box.</span>
+      </figcaption>
+    </figure>
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body">
+          <div class="appbar"><b>Almost done</b><span class="sub">2 of 3</span></div>
+          <div class="step"><span class="dot done">✓</span><span><span class="t">Appointment</span><br><span class="sub">Thu 12 Nov · 10:30 · Dr. Okafor</span></span></div>
+          <div class="step"><span class="dot cur">2</span><span style="flex:1;display:grid;gap:.3rem"><span class="t">Insurance card</span><span class="photo">Tap to take photo</span><span class="sub">Or use the card saved on 14 Oct</span></span></div>
+          <div class="step"><span class="dot">3</span><span><span class="t">Consent</span><br><span class="sub">Share booking details with insurer</span></span></div>
+          <span class="spacer"></span>
+          <span class="btn">Next</span>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">4B · Checklist steps</span><label class="pick"><input type="checkbox" id="pick-4b" data-pick="4B Confirm: checklist steps">Shortlist</label></div>
+        <span class="vdesc">Three steps you finish in order. Done steps collapse into one summary line, which lets people reuse a saved card.</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 5 SUCCESS -->
+<section class="screen" id="success">
+  <div class="screen-notes">
+    <span class="num">Screen 5 of 6</span>
+    <h2>Success</h2>
+    <ul><li>Confirmation code <span class="mono">BK-2026-0042</span></li><li>Add to calendar</li></ul>
+  </div>
+  <div class="variants">
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body center" style="display:grid;align-content:center;gap:.6rem">
+          <span class="big-ok">✓</span>
+          <b style="font:700 1rem/1.1 var(--f-display)">You're booked</b>
+          <span class="sub">Thu 12 Nov · 10:30 · Dr. Okafor</span>
+          <span class="lbl">Confirmation code</span>
+          <span class="code">BK-2026-0042</span>
+          <span class="btn" style="width:100%">Add to calendar</span>
+          <span class="btn ghost" style="width:100%">Back to home</span>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">5A · Centered</span><label class="pick"><input type="checkbox" id="pick-5a" data-pick="5A Success: centered">Shortlist</label></div>
+        <span class="vdesc">A big check mark and the code in the middle of the screen. One calendar button picks the right calendar app for the device.</span>
+      </figcaption>
+    </figure>
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body">
+          <div class="appbar"><b>Booking confirmed</b><span class="sub">✕</span></div>
+          <div class="ticket">
+            <div class="top"><span class="lbl">Confirmation code</span><span class="code">BK-2026-0042</span></div>
+            <div class="perf"></div>
+            <div class="bot">
+              <span class="t">Dermatology · Dr. Okafor</span>
+              <span class="sub">Thu 12 Nov 2026 · 10:30</span>
+              <span class="sub">Lindenhof Clinic, Room 2</span>
+              <span class="sub">Bring: insurance card</span>
+            </div>
+          </div>
+          <span class="lbl">Add to calendar</span>
+          <div class="grid3" style="grid-template-columns:1fr 1fr 1fr">
+            <span class="slot">Apple</span><span class="slot">Google</span><span class="slot">Outlook</span>
+          </div>
+          <span class="spacer"></span>
+          <span class="btn ghost">Done</span>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">5B · Ticket</span><label class="pick"><input type="checkbox" id="pick-5b" data-pick="5B Success: ticket">Shortlist</label></div>
+        <span class="vdesc">The code sits at the top of a ticket-style card with the visit details. Each calendar app gets its own button.</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 6 ERROR -->
+<section class="screen" id="error">
+  <div class="screen-notes">
+    <span class="num">Screen 6 of 6</span>
+    <h2>Error: slot taken</h2>
+    <ul><li>Slot was taken in the meantime</li><li>Suggest the next three slots</li></ul>
+  </div>
+  <div class="variants">
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body">
+          <div class="appbar"><b>Choose another time</b></div>
+          <div class="alert">
+            <span class="t">Thu 10:30 was just booked by someone else</span>
+            <span>Your details are saved. Pick one of the next free times below.</span>
+          </div>
+          <span class="lbl">Next free with Dr. Okafor</span>
+          <div class="card"><div class="row" style="padding:0;border:0"><span><span class="t">Thu 12 Nov · 11:00</span><br><span class="sub">30 min later</span></span><span class="btn sm">Book</span></div></div>
+          <div class="card"><div class="row" style="padding:0;border:0"><span><span class="t">Thu 12 Nov · 13:30</span><br><span class="sub">Same day</span></span><span class="btn sm">Book</span></div></div>
+          <div class="card"><div class="row" style="padding:0;border:0"><span><span class="t">Fri 13 Nov · 09:00</span><br><span class="sub">Next day</span></span><span class="btn sm">Book</span></div></div>
+          <span class="spacer"></span>
+          <span class="btn ghost">See all times</span>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">6A · Full page</span><label class="pick"><input type="checkbox" id="pick-6a" data-pick="6A Error: full page">Shortlist</label></div>
+        <span class="vdesc">A dedicated page with a clear explanation and three times you can book in one tap.</span>
+      </figcaption>
+    </figure>
+    <figure class="variant" style="margin:0">
+      <div class="phone" aria-hidden="true"><div class="scr">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="body">
+          <div class="appbar"><b>Dr. Okafor</b><span class="sub">Nov 2026</span></div>
+          <div class="week">
+            <span>Mo<b>9</b></span><span>Tu<b>10</b></span><span>We<b>11</b></span><span class="on">Th<b>12</b></span><span>Fr<b>13</b></span><span class="off">Sa<b>14</b></span><span class="off">Su<b>15</b></span>
+          </div>
+          <div class="grid3">
+            <span class="slot x">08:00</span><span class="slot x">08:30</span><span class="slot x">09:00</span>
+            <span class="slot x">09:30</span><span class="slot x">10:00</span><span class="slot x">10:30</span>
+          </div>
+        </div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <span class="grab"></span>
+          <div class="alert"><span class="t">10:30 is no longer free</span><span>Someone booked it while you were confirming.</span></div>
+          <span class="lbl">Closest free times</span>
+          <div class="grid3"><span class="slot on">Thu 11:00</span><span class="slot">Thu 13:30</span><span class="slot">Fri 09:00</span></div>
+          <span class="btn">Book Thu 11:00</span>
+        </div>
+      </div></div>
+      <figcaption>
+        <div class="vhead"><span class="vtag">6B · Sheet over picker</span><label class="pick"><input type="checkbox" id="pick-6b" data-pick="6B Error: sheet over picker">Shortlist</label></div>
+        <span class="vdesc">A bottom sheet opens over the slot picker, so people stay where they were. The closest time is already selected.</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+</main>
+
+<section class="next">
+  <span class="eyebrow">For the review</span>
+  <h2>Picking two directions</h2>
+  <ol>
+    <li>The A variants keep each screen self-contained, with large single actions. The B variants spread actions across lists and sheets and keep people in context.</li>
+    <li>You can mix directions per screen. Some pairs work better together, such as 3B with 6B, where the error sheet sits over the grouped picker.</li>
+    <li>Questions to settle in the room: Is map-first search worth the extra build cost? Can a saved insurance card skip the photo step?</li>
+  </ol>
+</section>
+
+</div>
+<script>
+(function () {
+  var KEY = "booking-layouts-picks";
+  var boxes = Array.prototype.slice.call(document.querySelectorAll("input[data-pick]"));
+  var tray = document.getElementById("picks");
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { return []; } }
+  function save(ids) { try { localStorage.setItem(KEY, JSON.stringify(ids)); } catch (e) {} }
+  function render() {
+    var picked = boxes.filter(function (b) { return b.checked; });
+    tray.textContent = "";
+    if (!picked.length) {
+      var h = document.createElement("span"); h.className = "hint";
+      h.textContent = "Nothing picked yet. Use Shortlist under any variant.";
+      tray.appendChild(h); return;
+    }
+    picked.forEach(function (b) {
+      var c = document.createElement("span"); c.className = "chip-pick"; c.textContent = b.dataset.pick; tray.appendChild(c);
+    });
+  }
+  var stored = load();
+  boxes.forEach(function (b) {
+    b.checked = stored.indexOf(b.id) !== -1;
+    b.addEventListener("change", function () {
+      save(boxes.filter(function (x) { return x.checked; }).map(function (x) { return x.id; }));
+      render();
+    });
+  });
+  document.getElementById("clear-picks").addEventListener("click", function () {
+    boxes.forEach(function (b) { b.checked = false; }); save([]); render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

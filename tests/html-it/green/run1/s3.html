@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="de" data-variant="ivory">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Der Release-Train</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+
+/* ---------- Page components ---------- */
+.stepper { counter-reset: step; list-style: none; padding: 0; }
+.stepper > li { counter-increment: step; position: relative; padding-left: 2.6rem; margin-bottom: 1.2rem; }
+.stepper > li::before { content: counter(step); position: absolute; left: 0; top: .1rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line); font-weight: 600; }
+.stepper > li h3 { margin-top: 0; }
+svg.diagram { width: 100%; min-width: 520px; height: auto; color: var(--muted); font: 13px var(--sans); display: block; }
+svg.diagram text { fill: var(--fg); text-anchor: middle; }
+svg.diagram text.lane { text-anchor: start; font-weight: 600; }
+svg.diagram text.small { fill: var(--muted); font-size: 12px; }
+svg.diagram .trunk { stroke: var(--fg); stroke-width: 3; }
+svg.diagram .rel { stroke: var(--accent); stroke-width: 3; }
+svg.diagram .hot { stroke: var(--bad); stroke-width: 3; }
+svg.diagram .branch { stroke: currentColor; stroke-width: 2; }
+svg.diagram .merge { stroke: var(--ok); stroke-width: 2; stroke-dasharray: 5 4; }
+svg.diagram .span { stroke: var(--line); stroke-width: 1.5; }
+svg.diagram .dot { fill: var(--surface); stroke: var(--fg); stroke-width: 2; }
+svg.diagram .hotdot { stroke: var(--bad); }
+svg.diagram .gate rect { fill: var(--ok-bg); stroke: var(--ok); stroke-width: 2; }
+figcaption { color: var(--muted); font-size: .9rem; margin-top: .4rem; }
+caption { text-align: left; padding-bottom: .4rem; }
+details { border: 1px solid var(--line); border-radius: var(--radius); padding: .5rem .8rem; background: var(--surface); }
+details summary { cursor: pointer; font-weight: 600; }
+details p { margin: .5rem 0 0; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Team-Notiz · Einführung für neue Teammitglieder</span>
+  <button type="button" id="theme-toggle" aria-label="Farbschema wechseln">Darstellung: System</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="Auf dieser Seite"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Der Release-Train</h1>
+    <p class="lede">Releases folgen einem festen Vier-Wochen-Takt: Nach der QA-Freigabe wird von <code>master</code> ein Release-Branch abgezweigt, Fehler in diesem Release werden in Hotfix-Branches vom Release-Branch behoben, und jeder Hotfix wird anschließend nach <code>master</code> zurückgeführt. Für die tägliche Arbeit heißt das: neue Arbeit auf <code>master</code>, Korrekturen für ein laufendes Release als Hotfix-Branch vom Release-Branch, und nach jedem Hotfix der Merge-back.</p>
+    <p class="meta">Stand 3. November 2026. Aktueller Release-Branch: <a class="ref" data-ref="R26.11" href="#ref-R26.11"><span class="ref-id">R26.11</span> Release-Branch vom 2. November 2026</a>.</p>
+
+    <h2 id="kurz">Die Kurzantwort</h2>
+    <p>Ein <dfn data-gloss="Fester Rhythmus, in dem Releases unabhängig vom Stand einzelner Features in gleichen Abständen abgezweigt werden.">Release-Train</dfn> fährt nach Fahrplan, nicht nach Fertigstellung einzelner Features. Alle vier Wochen wird ein <dfn data-gloss="Branch, der zum Zeitpunkt des Cuts von master abgezweigt wird und nur noch Korrekturen für genau dieses Release aufnimmt.">Release-Branch</dfn> von <dfn data-gloss="Hauptentwicklungszweig des Repositorys; hier entsteht die laufende Entwicklung.">master</dfn> erstellt; dieser Moment heißt <dfn data-gloss="Das Abzweigen eines neuen Release-Branches von master. Ab dem Cut nimmt der Release-Branch keine neuen Features mehr auf.">Cut</dfn>. Was zum Cut nicht auf <code>master</code> ist, fährt mit dem nächsten Zug. Der Vorteil: Releases werden planbar, und niemand muss ein Release für ein halb fertiges Feature aufhalten.</p>
+
+    <h2 id="modell">Das Branch-Modell</h2>
+    <figure>
+      <div class="table-wrap">
+      <svg class="diagram" viewBox="0 0 660 230" role="img" aria-labelledby="d1t d1d">
+        <title id="d1t">Branch-Modell des Release-Trains</title>
+        <desc id="d1d">Auf master liegt vor dem Cut die QA-Freigabe. Beim Cut zweigt der Release-Branch ab. Vom Release-Branch zweigt ein Hotfix-Branch ab, der in den Release-Branch zurückfließt; danach wird der Hotfix per Merge-back nach master zurückgeführt. Vier Wochen nach dem Cut folgt der nächste Cut.</desc>
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <!-- master -->
+        <text class="lane" x="10" y="45">master</text>
+        <line class="trunk" x1="80" y1="50" x2="640" y2="50" marker-end="url(#arr)"/>
+        <!-- QA gate -->
+        <g class="gate"><rect x="140" y="36" width="16" height="28" rx="2"/></g>
+        <text x="148" y="24">QA-Freigabe</text>
+        <!-- cut -->
+        <circle class="dot" cx="200" cy="50" r="6"/>
+        <text x="200" y="80" class="small">Cut</text>
+        <path class="branch" d="M200,50 C215,95 225,125 250,130" fill="none"/>
+        <!-- release line -->
+        <text class="lane" x="10" y="135">Release</text>
+        <line class="rel" x1="250" y1="130" x2="640" y2="130"/>
+        <circle class="dot" cx="270" cy="130" r="5"/>
+        <!-- hotfix -->
+        <text class="lane" x="10" y="205">Hotfix</text>
+        <path class="branch" d="M320,130 C330,170 340,195 360,200" fill="none"/>
+        <line class="hot" x1="360" y1="200" x2="430" y2="200"/>
+        <circle class="dot hotdot" cx="395" cy="200" r="5"/>
+        <path class="branch" d="M430,200 C450,195 460,170 470,134" fill="none" marker-end="url(#arr)"/>
+        <circle class="dot" cx="475" cy="130" r="5"/>
+        <text x="475" y="160" class="small">neue 4. Stelle</text>
+        <!-- merge back -->
+        <path class="merge" d="M482,124 C500,95 510,70 525,56" fill="none" marker-end="url(#arr)"/>
+        <text x="548" y="100" class="small">Merge-back</text>
+        <!-- next cut -->
+        <circle class="dot" cx="600" cy="50" r="6"/>
+        <text x="600" y="24">nächster Cut</text>
+        <text x="400" y="24" class="small">4 Wochen</text>
+        <line class="span" x1="208" y1="18" x2="592" y2="18" marker-start="url(#arr)" marker-end="url(#arr)"/>
+      </svg>
+      </div>
+      <figcaption>Ein Zyklus: QA-Freigabe, Cut, Hotfix auf dem Release-Branch, Merge-back nach <code>master</code>, nächster Cut nach vier Wochen.</figcaption>
+    </figure>
+    <p>Die obere Linie ist <code>master</code>, auf der die laufende Entwicklung stattfindet. Kurz vor dem Cut steht die <dfn data-gloss="Bestätigung der Qualitätssicherung, dass der Stand auf master für ein Release geeignet ist. Ohne sie findet kein Cut statt.">QA-Freigabe</dfn>: Die Qualitätssicherung (Quality Assurance, QA) bestätigt, dass der Stand releasefähig ist, und erst danach wird der Release-Branch abgezweigt. Auf dem Release-Branch landen ab dann nur noch Korrekturen. Jede Korrektur entsteht in einem eigenen <dfn data-gloss="Kurzlebiger Branch, der vom Release-Branch abgezweigt wird, um einen Fehler in genau diesem Release zu beheben.">Hotfix-Branch</dfn>, der vom Release-Branch abzweigt und wieder in ihn zurückfließt. Damit derselbe Fehler im nächsten Release nicht wieder auftaucht, wird der Hotfix danach per <dfn data-gloss="Rückführung einer Korrektur aus der Release-Linie nach master, damit spätere Releases sie ebenfalls enthalten.">Merge-back</dfn> nach <code>master</code> übernommen.</p>
+
+    <h2 id="zyklus">Ein Zyklus Schritt für Schritt</h2>
+    <ol class="stepper">
+      <li><h3>Entwicklung auf master</h3><p>Features und Änderungen werden auf <code>master</code> integriert. Was bis zum Cut nicht dort ist, kommt erst mit dem nächsten Release.</p></li>
+      <li><h3>QA-Freigabe vor dem Cut</h3><p>Die Qualitätssicherung prüft den Stand auf <code>master</code> und gibt ihn frei. Die Freigabe ist ein Gate: Ohne sie wird kein Release-Branch erstellt.</p></li>
+      <li><h3>Cut des Release-Branches</h3><p>Alle vier Wochen wird der Release-Branch von <code>master</code> abgezweigt. Der jüngste Cut war <a class="ref" data-ref="R26.11" href="#ref-R26.11"><span class="ref-id">R26.11</span> Release-Branch vom 2. November 2026</a>. Rechnerisch fällt der nächste Cut auf den 30. November 2026; verbindlich ist der Plan des Release-Managers.</p></li>
+      <li><h3>Hotfixes auf dem Release-Branch</h3><p>Ein Fehler im laufenden Release wird in einem Hotfix-Branch behoben, der vom Release-Branch abzweigt, nicht von <code>master</code>. So enthält der Fix nur die Korrektur und keine neuen, noch nicht freigegebenen Features.</p></li>
+      <li><h3>Merge-back nach jedem Hotfix</h3><p>Nach jedem einzelnen Hotfix wird die Korrektur nach <code>master</code> zurückgeführt, nicht gesammelt am Ende des Zyklus. Sonst fehlt der Fix im nächsten Release-Branch, und der Fehler kehrt zurück.</p></li>
+    </ol>
+
+    <h2 id="versionen">Versionsnummern lesen</h2>
+    <p>Versionsnummern haben vier Stellen: <code>Major.Minor.Patch.Hotfix</code>. Die vierte Stelle zählt die Hotfixes, sodass sich an der Nummer ablesen lässt, ob ein Stand eine Korrektur aus einem Hotfix-Branch enthält.</p>
+    <div class="table-wrap"><table>
+      <caption class="meta">Beispielnummer <code>8.4.0.1</code> aus der Beschreibung des Prozesses, zerlegt</caption>
+      <thead><tr><th scope="col">Stelle</th><th scope="col">Name</th><th scope="col">Wert im Beispiel</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Major</td><td><code>8</code></td></tr>
+        <tr><td>2</td><td>Minor</td><td><code>4</code></td></tr>
+        <tr><td>3</td><td>Patch</td><td><code>0</code></td></tr>
+        <tr><td>4</td><td>Hotfix</td><td><code>1</code></td></tr>
+      </tbody>
+    </table></div>
+    <p>Ein weiterer Hotfix auf demselben Release-Branch würde die vierte Stelle erhöhen, also aus dem Beispiel <code>8.4.0.2</code> machen. Welche der ersten drei Stellen sich bei einem regulären Release ändert, ist in der Quelle nicht festgehalten (siehe <a href="#offen">Offene Punkte</a>).</p>
+
+    <h2 id="rollen">Wer ist verantwortlich</h2>
+    <p>Für den Release-Train ist der <dfn data-gloss="Person, die für einen Monat den Release-Train verantwortet: Cut, Hotfixes und Merge-backs.">Release-Manager</dfn> zuständig. Die Rolle rotiert monatlich, sodass jedes Teammitglied den Ablauf früher oder später selbst verantwortet. Wer gerade Release-Manager ist, steht nicht in dieser Notiz; das sollte vor dem ersten Hotfix im Team erfragt werden.</p>
+
+    <h2 id="fehler">Typische Fehler</h2>
+    <ul>
+      <li>Hotfix-Branch von <code>master</code> statt vom Release-Branch abzweigen: Der Fix zieht dann unfreigegebene Änderungen ins Release.</li>
+      <li>Merge-back vergessen: Der nächste Release-Branch enthält den Fix nicht, der Fehler tritt erneut auf.</li>
+      <li>Ein Feature nach dem Cut noch in den Release-Branch bringen: Der Release-Branch nimmt nur Korrekturen auf; das Feature fährt mit dem nächsten Zug.</li>
+    </ul>
+
+    <h2 id="selbsttest">Selbsttest</h2>
+    <details><summary>Im Release fällt ein Fehler auf. Von welchem Branch wird der Hotfix-Branch abgezweigt?</summary><p>Vom Release-Branch, nicht von <code>master</code>. Nach dem Hotfix folgt der Merge-back nach <code>master</code>.</p></details>
+    <details><summary>Was bedeutet die letzte Stelle in <code>8.4.0.1</code>?</summary><p>Sie zählt die Hotfixes: Dieser Stand enthält einen Hotfix.</p></details>
+    <details><summary>Ein Feature wird einen Tag nach dem Cut fertig. Wann wird es ausgeliefert?</summary><p>Mit dem nächsten Release-Branch, also beim nächsten Cut vier Wochen später.</p></details>
+
+    <h2 id="offen">Offene Punkte</h2>
+    <aside class="callout" data-kind="note"><p>Die Beschreibung des Prozesses beantwortet folgende Fragen nicht. Bis sie geklärt sind, ist der aktuelle Release-Manager die Ansprechperson.</p></aside>
+    <ul>
+      <li>Wer aktuell Release-Manager ist und wann die Rolle wechselt.</li>
+      <li>Wer die QA-Freigabe erteilt und wo sie dokumentiert wird.</li>
+      <li>Welche der Stellen Major, Minor oder Patch sich bei einem regulären Release erhöht.</li>
+      <li>Ob der Merge-back aus dem Hotfix-Branch oder aus dem Release-Branch nach <code>master</code> erfolgt.</li>
+      <li>Nach welchem Schema Release-Namen wie <a class="ref" data-ref="R26.11" href="#ref-R26.11"><span class="ref-id">R26.11</span> Release-Branch vom 2. November 2026</a> vergeben werden.</li>
+    </ul>
+
+    <h2 id="references">Referenzen</h2>
+    <ol class="references">
+      <li id="ref-R26.11"><b>R26.11</b> <span class="ref-summary">Der Release-Branch, der am 2. November 2026 von master abgezweigt wurde; zum Stand dieser Notiz der aktuelle Release-Branch.</span> Quelle: Beschreibung des Release-Trains für neue Teammitglieder (Team-Notiz).</li>
+    </ol>
+
+    <h2 id="glossary">Glossar</h2>
+    <dl class="glossary">
+      <dt id="gloss-cut">Cut</dt><dd>Das Abzweigen eines neuen Release-Branches von <code>master</code>, alle vier Wochen. Ab dem Cut nimmt der Release-Branch keine neuen Features mehr auf.</dd>
+      <dt id="gloss-hotfix">Hotfix-Branch</dt><dd>Kurzlebiger Branch, der vom Release-Branch abgezweigt wird, um einen Fehler in genau diesem Release zu beheben.</dd>
+      <dt id="gloss-master">master</dt><dd>Hauptentwicklungszweig des Repositorys; hier entsteht die laufende Entwicklung.</dd>
+      <dt id="gloss-mergeback">Merge-back</dt><dd>Rückführung einer Korrektur aus der Release-Linie nach <code>master</code>, nach jedem Hotfix, damit spätere Releases sie ebenfalls enthalten.</dd>
+      <dt id="gloss-qa">QA-Freigabe</dt><dd>Bestätigung der Qualitätssicherung (Quality Assurance, QA), dass der Stand auf <code>master</code> releasefähig ist. Ohne sie findet kein Cut statt.</dd>
+      <dt id="gloss-releasebranch">Release-Branch</dt><dd>Branch, der beim Cut von <code>master</code> abgezweigt wird und danach nur noch Korrekturen für dieses Release aufnimmt.</dd>
+      <dt id="gloss-rm">Release-Manager</dt><dd>Person, die für einen Monat den Release-Train verantwortet; die Rolle rotiert monatlich.</dd>
+      <dt id="gloss-train">Release-Train</dt><dd>Fester Rhythmus, in dem Releases unabhängig vom Stand einzelner Features in gleichen Abständen, hier alle vier Wochen, abgezweigt werden.</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Erstellt mit dem html-it-Skill. Öffnet offline; kein Netzwerkzugriff nötig.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Darstellung: ' + ({system:'System',light:'Hell',dark:'Dunkel'}[mode] || mode);
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Im bereitgestellten Material nicht gefunden.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Kopieren';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Kopiert'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Markiert'; }
+      setTimeout(() => (b.textContent = 'Kopieren'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+</body>
+</html>

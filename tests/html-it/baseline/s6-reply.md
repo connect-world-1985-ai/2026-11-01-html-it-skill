@@ -1,0 +1,1 @@
+I didn't use the image tool. ... Images: no generated images. Generated images often get text labels wrong ... So I drew the flow and the event log in HTML/CSS ... The only outside resource is Google Fonts, with system fonts as fallback. s6-images.md was not created, since I generated no images.

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PR 418 Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single reading column; verdict band first, then findings by severity, then reference notes. */
+:root {
+  --bg: #f7f8fa; --surface: #ffffff; --fg: #1b2230; --muted: #5a6475; --line: #dde1e8;
+  --accent: #2f5bd3;
+  --high: #c0362c; --high-bg: #fbe9e7; --med: #a4610a; --med-bg: #fdf1df; --low: #4f6b88; --low-bg: #e9eef4;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12161d; --surface: #1a1f28; --fg: #e4e8ef; --muted: #9aa4b4; --line: #2c3340;
+  --accent: #7d9ef0;
+  --high: #f08a80; --high-bg: #3a1e1c; --med: #e6b062; --med-bg: #362a17; --low: #9db4cd; --low-bg: #1f2a36;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a1f28; --fg: #e4e8ef; --muted: #9aa4b4; --line: #2c3340;
+  --accent: #7d9ef0;
+  --high: #f08a80; --high-bg: #3a1e1c; --med: #e6b062; --med-bg: #362a17; --low: #9db4cd; --low-bg: #1f2a36;
+  color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--sans); }
+main { max-width: 44rem; margin: 0 auto; display: grid; gap: 1.75rem;
+  padding-block: 2rem 3rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-size: 1.6rem; line-height: 1.2; margin: 0; text-wrap: balance; }
+h2 { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 .6rem; font-weight: 600; }
+.eyebrow { font: 500 .8rem var(--mono); color: var(--muted); margin: 0 0 .3rem; }
+code, .id { font-family: var(--mono); font-size: .88em; }
+code { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 0 .3em; overflow-wrap: anywhere; }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--high); border-radius: 6px; padding: 1rem 1.1rem; display: grid; gap: .6rem; }
+.verdict p { margin: 0; }
+.verdict .call { font-size: 1.15rem; font-weight: 600; }
+.meta { display: flex; flex-wrap: wrap; gap: .4rem 1.5rem; color: var(--muted); font-size: .9rem; }
+.meta b { color: var(--fg); font-weight: 600; }
+.findings { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.finding { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: .8rem 1rem; display: grid; grid-template-columns: 4.5rem 1fr; gap: .25rem 1rem; }
+.finding > div { min-width: 0; }
+.finding .id { font-weight: 500; }
+.sev { display: inline-block; margin-top: .3rem; font: 600 .7rem var(--sans); text-transform: uppercase; letter-spacing: .06em; padding: .1rem .45rem; border-radius: 999px; }
+.sev.high { color: var(--high); background: var(--high-bg); }
+.sev.med { color: var(--med); background: var(--med-bg); }
+.sev.low { color: var(--low); background: var(--low-bg); }
+.finding p { margin: 0; }
+.finding .ref { color: var(--muted); font-size: .9rem; margin-top: .2rem; }
+.blocks { color: var(--high); font-weight: 600; font-size: .85rem; }
+dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1rem; }
+dt { font-family: var(--mono); font-size: .88rem; font-weight: 500; }
+dd { margin: 0; color: var(--muted); min-width: 0; }
+.date { font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) {
+  .finding { grid-template-columns: 1fr; }
+  dl { grid-template-columns: 1fr; gap: .1rem; } dd { margin-bottom: .5rem; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">PR 418 · code review</p>
+    <h1>Session refresh: changes requested</h1>
+  </header>
+
+  <section class="verdict" aria-label="Verdict">
+    <p class="call">Request changes. F001 blocks merge.</p>
+    <div class="meta">
+      <span>Owner <b>Lena</b></span>
+      <span>Due <b class="date">2026-11-07</b></span>
+      <span>3 findings: 1 high, 1 medium, 1 low</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Findings</h2>
+    <ol class="findings">
+      <li class="finding">
+        <div><span class="id">F001</span><br><span class="sev high">High</span></div>
+        <div>
+          <p>The refresh token is stored in <code>localStorage</code>. <span class="blocks">Blocks merge.</span></p>
+          <p class="ref"><code>auth/session.ts:88</code>. Fix per SEC-12 (no tokens in web storage).</p>
+        </div>
+      </li>
+      <li class="finding">
+        <div><span class="id">F002</span><br><span class="sev med">Medium</span></div>
+        <div>
+          <p>The retry loop has no backoff.</p>
+          <p class="ref">Same pattern as INC-2291, the login outage on <span class="date">2026-09-14</span> caused by retry storms.</p>
+        </div>
+      </li>
+      <li class="finding">
+        <div><span class="id">F003</span><br><span class="sev low">Low</span></div>
+        <div>
+          <p>A log line leaks the user's email.</p>
+          <p class="ref"><code>auth/session.ts:131</code></p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>References</h2>
+    <dl>
+      <dt>F001–F003</dt><dd>Row numbers in the findings table in <code>review-notes.md</code>. That file is not attached here.</dd>
+      <dt>SEC-12</dt><dd>Team security rule: no tokens in web storage.</dd>
+      <dt>INC-2291</dt><dd>Login outage on <span class="date">2026-09-14</span>, caused by retry storms.</dd>
+    </dl>
+  </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BUG-3188 Handoff</title>
+<meta name="description" content="Handoff for BUG-3188: Safari 18 users see 'Session expired' right after logging in to the patient portal. What was ruled out, the current hypothesis, the next step and the log.">
+<style>
+:root {
+  --bg: #f7f7f5; --surface: #ffffff; --text: #1d1d1b; --muted: #5f5f5a;
+  --border: #e2e1dc; --accent: #2f5fb3; --accent-soft: #e8eef9;
+  --warn: #8a5a00; --warn-soft: #fbf1dc; --ok: #2e6b3a; --ok-soft: #e4f2e6;
+  --code-bg: #f1f0ec;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161615; --surface: #1f1f1d; --text: #ecebe6; --muted: #a3a29b;
+    --border: #34332f; --accent: #8fb0ef; --accent-soft: #22304a;
+    --warn: #e9b955; --warn-soft: #3a2f17; --ok: #8fd19c; --ok-soft: #1d3322;
+    --code-bg: #262624;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161615; --surface: #1f1f1d; --text: #ecebe6; --muted: #a3a29b;
+  --border: #34332f; --accent: #8fb0ef; --accent-soft: #22304a;
+  --warn: #e9b955; --warn-soft: #3a2f17; --ok: #8fd19c; --ok-soft: #1d3322;
+  --code-bg: #262624;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+header .id { font: 600 13px var(--mono); color: var(--accent); letter-spacing: .02em; }
+h1 { font-size: 26px; line-height: 1.25; margin: 4px 0 12px; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 32px 0 10px; }
+p { margin: 0 0 10px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.meta li { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; }
+.meta strong { font-weight: 600; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.next { border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 14px 16px; }
+.next p:last-child { margin: 0; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.fact .k { font-size: 13px; color: var(--muted); }
+.fact .v { font-size: 18px; font-weight: 600; }
+ul.ruled { list-style: none; margin: 0; padding: 0; }
+ul.ruled li { padding: 10px 0; border-top: 1px solid var(--border); }
+ul.ruled li:first-child { border-top: 0; padding-top: 0; }
+.tag { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 4px; padding: 1px 6px; margin-right: 6px; background: var(--ok-soft); color: var(--ok); }
+.hyp { border-left: 4px solid var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 14px 16px; }
+code { font-family: var(--mono); font-size: .9em; background: var(--code-bg); border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.log { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; }
+.log pre { margin: 0; padding: 12px 14px; font: 13px/1.6 var(--mono); white-space: pre; }
+.log .w { color: var(--warn); font-weight: 600; }
+.log .gap { display: block; color: var(--muted); font-style: italic; padding: 4px 0; border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); margin: 4px 0; white-space: normal; }
+.note { font-size: 14px; color: var(--muted); margin-top: 8px; }
+dl.contacts { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; }
+dl.contacts dt { font-weight: 600; }
+dl.contacts dd { margin: 0; }
+@media (max-width: 480px) { dl.contacts { grid-template-columns: 1fr; } dl.contacts dd { margin-bottom: 8px; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="id">BUG-3188 · handoff</div>
+    <h1>Patient portal shows “Session expired” right after login</h1>
+    <ul class="meta">
+      <li><strong>Written</strong> 2026-11-03</li>
+      <li><strong>Author away</strong> 2026-11-04 – 2026-11-06</li>
+      <li><strong>Since</strong> release 8.4.0.0</li>
+    </ul>
+  </header>
+
+  <h2>Next step</h2>
+  <div class="next">
+    <p>Deploy branch <code>bugfix/BUG-3188-partitioned-cookie</code> (commit <code>e19b07f</code>) to staging and test again with Safari.</p>
+    <p class="note">You need staging access first. Request it with ticket <strong>OPS-77</strong>.</p>
+  </div>
+
+  <h2>Symptom</h2>
+  <div class="facts">
+    <div class="card fact"><div class="k">Affected logins</div><div class="v">about 2 %</div></div>
+    <div class="card fact"><div class="k">Browser</div><div class="v">Safari 18 only</div><div class="k">with “Prevent cross-site tracking” on. Chrome is fine.</div></div>
+    <div class="card fact"><div class="k">Staging repro rate</div><div class="v">4 in 10</div></div>
+  </div>
+
+  <h2>Current hypothesis</h2>
+  <div class="hyp">
+    <p>The <code>SameSite=None</code> session cookie has no <code>Partitioned</code> attribute, so Safari drops it after the redirect back from the identity provider.</p>
+  </div>
+
+  <h2>Ruled out</h2>
+  <div class="card">
+    <ul class="ruled">
+      <li><span class="tag">ruled out</span><strong>Server clock skew.</strong> NTP checked on all nodes.</li>
+      <li><span class="tag">ruled out</span><strong>Token lifetime.</strong> Unchanged since 8.3.</li>
+      <li><span class="tag">ruled out</span><strong>Load balancer stickiness.</strong> Same result with a single node.</li>
+    </ul>
+  </div>
+
+  <h2>Terminal log</h2>
+  <div class="log" role="region" aria-label="Terminal log" tabindex="0"><pre>2026-11-03T16:41:07Z <span class="w">WARN</span>  SessionFilter - no session cookie on /portal/home (ua=Safari/18.1)
+2026-11-03T16:41:07Z INFO  AuthRedirect - redirect to /login?expired=1
+<span class="gap">26 more lines of the same two messages, between 16:41:07Z and 16:44:52Z (not included in the handoff)</span>2026-11-03T16:44:52Z <span class="w">WARN</span>  SessionFilter - no session cookie on /portal/home (ua=Safari/18.1)
+2026-11-03T16:44:52Z INFO  AuthRedirect - redirect to /login?expired=1</pre></div>
+  <p class="note">These are the last 30 lines, but only the first two and last two came with the handoff. The middle 26 were summarized and are not shown here. To see the full sequence, pull it from staging again.</p>
+
+  <h2>Contacts</h2>
+  <div class="card">
+    <dl class="contacts">
+      <dt>Identity provider config</dt><dd>Jonas (owner)</dd>
+      <dt>Staging access</dt><dd>Ticket OPS-77</dd>
+    </dl>
+  </div>
+</main>
+</body>
+</html>

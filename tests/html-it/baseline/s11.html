@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Booking Request Walkthrough</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column; the flow and code blocks run a little wider than the prose, gotchas sit as numbered notes keyed to code lines. */
+:root {
+  --bg: #f6f8f9;
+  --surface: #ffffff;
+  --fg: #1b2530;
+  --muted: #5a6875;
+  --line: #d7dee4;
+  --accent: #0f6e8c;
+  --warn: #9a5b00;
+  --warn-bg: #fff5e3;
+  --code-bg: #f0f4f6;
+  --hl-kw: #8a2f8f;
+  --hl-type: #0f6e8c;
+  --hl-str: #2f7a3a;
+  --hl-fn: #7a4a00;
+  --hl-cm: #6b7883;
+  --font-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --step-0: 1.0625rem;
+  --step-1: 1.25rem;
+  --step-2: 1.6rem;
+  --step-3: 2.1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11171c; --surface: #172028; --fg: #e3e9ee; --muted: #9aa8b4; --line: #2b3742;
+    --accent: #5cc3e0; --warn: #f0b45a; --warn-bg: #2a2114; --code-bg: #0c1216;
+    --hl-kw: #e29ce6; --hl-type: #5cc3e0; --hl-str: #8fd49a; --hl-fn: #f0c27a; --hl-cm: #7f8d99;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11171c; --surface: #172028; --fg: #e3e9ee; --muted: #9aa8b4; --line: #2b3742;
+  --accent: #5cc3e0; --warn: #f0b45a; --warn-bg: #2a2114; --code-bg: #0c1216;
+  --hl-kw: #e29ce6; --hl-type: #5cc3e0; --hl-str: #8fd49a; --hl-fn: #f0c27a; --hl-cm: #7f8d99;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 var(--step-0)/1.6 var(--font-body);
+}
+.wrap {
+  max-width: 54rem;
+  margin: 0 auto;
+  padding-block: 2.5rem 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 2.75rem;
+}
+.prose { max-width: 40rem; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: var(--step-3); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: var(--step-2); font-weight: 600; }
+p { margin: 0; }
+section { display: grid; gap: 1rem; min-width: 0; }
+.eyebrow {
+  font: 600 0.78rem/1 var(--font-mono);
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent);
+}
+header { display: grid; gap: 0.9rem; }
+.lede { color: var(--muted); font-size: var(--step-1); line-height: 1.5; }
+code, .id {
+  font-family: var(--font-mono); font-size: 0.88em;
+  background: var(--code-bg); border: 1px solid var(--line);
+  padding: 0.05em 0.35em; border-radius: 4px; overflow-wrap: anywhere;
+}
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Flow */
+.diagram {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+  padding: 1.25rem; overflow-x: auto; min-height: 4rem;
+}
+.diagram svg { display: block; margin: 0 auto; max-width: none; }
+.diagram-status { color: var(--muted); font-size: 0.95rem; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; counter-reset: step; }
+.steps li {
+  counter-increment: step;
+  display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 0.75rem; align-items: baseline;
+}
+.steps li::before {
+  content: counter(step);
+  font: 600 0.85rem/1 var(--font-mono); color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 50%;
+  width: 1.7rem; height: 1.7rem; display: grid; place-items: center;
+}
+.steps .what { color: var(--muted); }
+
+/* Code */
+.code-meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; color: var(--muted); font-size: 0.95rem; }
+.code-block {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+  overflow-x: auto; min-width: 0;
+}
+.code-block pre { margin: 0; padding: 1rem 0; font: 400 0.9rem/1.65 var(--font-mono); }
+.code-block code { background: none; border: 0; padding: 0; font-size: inherit; display: block; }
+.ln { display: block; padding: 0 1.25rem 0 0; white-space: pre; }
+.ln::before {
+  content: attr(data-n);
+  display: inline-block; width: 3rem; padding-right: 1rem; text-align: right;
+  color: var(--hl-cm); font-variant-numeric: tabular-nums; user-select: none;
+}
+.ln.mark { background: color-mix(in srgb, var(--warn) 14%, transparent); box-shadow: inset 3px 0 0 var(--warn); }
+.hljs-keyword, .hljs-built_in, .hljs-literal { color: var(--hl-kw); font-weight: 600; }
+.hljs-type, .hljs-title.class_ { color: var(--hl-type); }
+.hljs-string { color: var(--hl-str); }
+.hljs-title.function_, .hljs-function .hljs-title { color: var(--hl-fn); }
+.hljs-comment { color: var(--hl-cm); font-style: italic; }
+
+.notes { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.notes li { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: 0.75rem; }
+.notes .lines { font: 600 0.82rem/1.9 var(--font-mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* Gotchas */
+.gotchas { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
+.gotchas li {
+  background: var(--warn-bg); border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+  border-radius: 8px; padding: 1rem 1.15rem; display: grid; gap: 0.35rem; min-width: 0;
+}
+.gotchas .rule { font-weight: 600; }
+.gotchas .ref { color: var(--muted); font-size: 0.95rem; }
+footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+@media (max-width: 480px) {
+  .notes li { grid-template-columns: 1fr; gap: 0.1rem; }
+  .ln::before { width: 2.2rem; padding-right: 0.7rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <header>
+    <span class="eyebrow">Booking team onboarding</span>
+    <h1>How a booking request flows through the code</h1>
+    <p class="lede prose">A walkthrough for Priya, who joins the booking team next week. It follows one <code>POST /bookings</code> from the HTTP layer to the SMS reminder.</p>
+  </header>
+
+  <section aria-labelledby="flow-h">
+    <span class="eyebrow">The path</span>
+    <h2 id="flow-h">Request flow</h2>
+    <div class="diagram" id="flow-diagram" role="img" aria-label="Flow diagram: BookingResource, BookingService.book, SlotLock.acquire, BookingRepository.save, BookingEventPublisher.publish, sms-service. A taken slot becomes HTTP 409 via ExceptionMappers.">
+      <p class="diagram-status" id="flow-status">Loading diagram. The same flow is listed step by step below.</p>
+    </div>
+    <ol class="steps">
+      <li><span><code>BookingResource.java</code> <span class="what">receives <code>POST /bookings</code>.</span></span></li>
+      <li><span><code>BookingService.book()</code> <span class="what">runs the booking.</span></span></li>
+      <li><span><code>SlotLock.acquire(slotId)</code> <span class="what">takes a Redis lock on the slot with a 30 s TTL.</span></span></li>
+      <li><span><code>BookingRepository.save()</code> <span class="what">writes the booking.</span></span></li>
+      <li><span><code>BookingEventPublisher.publish(BookingCreated)</code> <span class="what">announces it.</span></span></li>
+      <li><span><code>sms-service</code> <span class="what">schedules the reminder.</span></span></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="code-h">
+    <span class="eyebrow">Key code</span>
+    <h2 id="code-h">Inside <code>BookingService.book()</code></h2>
+    <div class="code-meta">
+      <span><code>BookingService.java</code></span>
+      <span>commit <span class="id">7c41e9a</span> on <span class="id">master</span></span>
+      <span>Snapshot. The file may have changed since.</span>
+    </div>
+    <div class="code-block">
+<pre><code class="language-java" id="book-code">public Booking book(BookingRequest req) {
+    try (SlotLock lock = slotLock.acquire(req.slotId())) {
+        Slot slot = slots.findAvailable(req.slotId())
+            .orElseThrow(() -&gt; new SlotTakenException(req.slotId()));
+        Booking booking = repository.save(Booking.from(req, slot));
+        events.publish(new BookingCreated(booking.id()));
+        return booking;
+    }
+}</code></pre>
+    </div>
+    <ul class="notes">
+      <li><span class="lines">L2</span><span>The try-with-resources block takes the Redis slot lock and releases it when the block exits. The lock has a 30 s TTL. See gotcha 1.</span></li>
+      <li><span class="lines">L3–4</span><span>If the slot is no longer available, <code>SlotTakenException</code> is thrown. The client gets HTTP 409. See gotcha 2.</span></li>
+      <li><span class="lines">L5</span><span><code>BookingRepository.save()</code> persists the booking while the lock is still held.</span></li>
+      <li><span class="lines">L6</span><span><code>BookingCreated</code> is published. <code>sms-service</code> schedules the reminder from this event.</span></li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="gotchas-h">
+    <span class="eyebrow">Before you change this code</span>
+    <h2 id="gotchas-h">Gotchas</h2>
+    <ol class="gotchas">
+      <li>
+        <span class="rule">1. The lock TTL must be longer than the DB timeout.</span>
+        <span class="ref">Decision record: <span class="id">ADR-011</span> "Redis slot locks".</span>
+      </li>
+      <li>
+        <span class="rule">2. <code>SlotTakenException</code> becomes HTTP 409.</span>
+        <span class="ref">The mapping lives in <code>ExceptionMappers.java</code>.</span>
+      </li>
+      <li>
+        <span class="rule">3. Never call <code>book()</code> inside another transaction.</span>
+        <span class="ref">Doing so caused the double bookings in <span class="id">BUG-3120</span> (2026-06).</span>
+      </li>
+    </ol>
+  </section>
+
+  <footer>Code shown as of commit <span class="id">7c41e9a</span>. Check <code>BookingService.java</code> on <span class="id">master</span> for the current version.</footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script>
+(function () {
+  // Code: highlight, then split into numbered lines (lines 2-4 marked as gotcha lines).
+  var codeEl = document.getElementById("book-code");
+  try {
+    if (window.hljs) {
+      codeEl.innerHTML = hljs.highlight(codeEl.textContent, { language: "java" }).value;
+    }
+  } catch (e) { /* plain code stays readable */ }
+  var marked = { 2: true, 3: true, 4: true };
+  codeEl.innerHTML = codeEl.innerHTML.split("\n").map(function (line, i) {
+    var n = i + 1;
+    return '<span class="ln' + (marked[n] ? " mark" : "") + '" data-n="' + n + '">' + (line || " ") + "</span>";
+  }).join("");
+
+  // Diagram: render with Mermaid using the page's own tokens, re-render on theme change.
+  var src = [
+    "flowchart LR",
+    '  A["BookingResource<br/>POST /bookings"] --> B["BookingService<br/>.book()"]',
+    '  B --> C["SlotLock.acquire(slotId)<br/>Redis lock, 30 s TTL"]',
+    '  C --> D["BookingRepository<br/>.save()"]',
+    '  D --> E["BookingEventPublisher<br/>.publish(BookingCreated)"]',
+    '  E --> F["sms-service<br/>schedules reminder"]',
+    '  C -. "slot taken" .-> X["ExceptionMappers<br/>HTTP 409"]'
+  ].join("\n");
+  var box = document.getElementById("flow-diagram");
+  var count = 0;
+  function tok(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function draw() {
+    if (!window.mermaid) {
+      document.getElementById("flow-status").textContent = "The diagram could not load. The numbered steps below show the same flow.";
+      return;
+    }
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "strict",
+      theme: "base",
+      fontFamily: tok("--font-mono"),
+      themeVariables: {
+        background: tok("--surface"),
+        primaryColor: tok("--code-bg"),
+        primaryBorderColor: tok("--accent"),
+        primaryTextColor: tok("--fg"),
+        lineColor: tok("--muted"),
+        textColor: tok("--fg"),
+        edgeLabelBackground: tok("--surface"),
+        fontSize: "14px"
+      },
+      flowchart: { curve: "basis", htmlLabels: true }
+    });
+    count += 1;
+    mermaid.render("flow-svg-" + count, src).then(function (out) {
+      box.innerHTML = out.svg;
+    }).catch(function () {
+      box.innerHTML = '<p class="diagram-status">The diagram could not render. The numbered steps below show the same flow.</p>';
+    });
+  }
+  draw();
+  try {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+    new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

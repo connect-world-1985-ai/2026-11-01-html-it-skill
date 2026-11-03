@@ -1,0 +1,1 @@
+I built the INC-2307 postmortem page ... the chat log underneath with its wording unchanged ... The log is at the bottom, labelled verbatim (CET) ... Page order: header with incident ID, severity (SEV-2), "Blameless" tag; summary box; action-item table (AI-1 to AI-3); root cause; went well/badly; chat log. It uses no scripts.

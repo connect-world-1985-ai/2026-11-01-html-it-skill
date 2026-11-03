@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en" data-variant="ivory">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Your first week</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+/* ---------- Page: first-week checklist ---------- */
+.callout[data-kind="warn"] p:last-child, .callout p:last-child { margin-bottom: 0; }
+.week { margin: 1.5rem 0 .5rem; }
+.week svg.track { display: block; max-width: 34rem; }
+svg.track { width: 100%; height: auto; font: 13px var(--sans); color: var(--muted); }
+svg.track .rail { stroke: var(--line); stroke-width: 6; stroke-linecap: round; }
+svg.track .fill { stroke: var(--accent); stroke-width: 6; stroke-linecap: round; transition: all .4s ease; }
+svg.track .node circle { fill: var(--surface); stroke: var(--line); stroke-width: 2; transition: fill .3s ease, stroke .3s ease; }
+svg.track .node.part circle { stroke: var(--accent); }
+svg.track .node.done circle { fill: var(--ok-bg); stroke: var(--ok); }
+svg.track .node .count { fill: var(--fg); text-anchor: middle; font-weight: 600; font-variant-numeric: tabular-nums; }
+svg.track .node .tick { fill: none; stroke: var(--ok); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; display: none; }
+svg.track .node.done .tick { display: inline; }
+svg.track .node.done .count { display: none; }
+svg.track .day { fill: var(--fg); text-anchor: middle; font-weight: 600; }
+svg.track .what { fill: var(--muted); text-anchor: middle; }
+svg.track .flag { fill: var(--accent-ink); text-anchor: middle; font-size: 12px; }
+.overall { font-size: 1.05rem; }
+.overall strong { font-variant-numeric: tabular-nums; }
+
+.stepper { counter-reset: step; list-style: none; padding: 0; }
+.stepper > li { counter-increment: step; position: relative; padding-left: 2.6rem; margin-bottom: 2rem; }
+.stepper > li::before { content: counter(step); position: absolute; left: 0; top: .1rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line); font-weight: 600; }
+.stepper > li.done::before { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+.stepper > li > h3 { margin-top: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .7rem; }
+.stepper > li > h3 .pill { font-family: var(--sans); font-weight: 600; }
+
+ul.tasks { list-style: none; padding: 0; margin: 0; }
+ul.tasks > li { border-top: 1px solid var(--line); padding: .7rem 0; }
+ul.tasks > li:last-child { border-bottom: 1px solid var(--line); }
+ul.tasks label { display: flex; gap: .7rem; align-items: flex-start; cursor: pointer; font-weight: 600; }
+ul.tasks input[type=checkbox] { width: 1.15rem; height: 1.15rem; margin: .25rem 0 0; accent-color: var(--ok); flex: none; }
+ul.tasks .why { margin: .25rem 0 0 1.85rem; color: var(--muted); }
+ul.tasks li.checked label span { text-decoration: line-through; text-decoration-color: var(--muted); color: var(--muted); }
+
+.who { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .8rem; margin-bottom: 1rem; }
+.who label { display: grid; gap: .2rem; font-size: .9rem; color: var(--muted); }
+.who input { font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .35rem .5rem; }
+.actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.actions button { font: inherit; font-size: .9rem; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .8rem; cursor: pointer; }
+pre.message { white-space: pre-wrap; padding-top: 2.2rem; }
+.glossary dt { font-weight: 600; margin-top: .6rem; }
+.glossary dd { margin: 0 0 .4rem; }
+@media print {
+  .who, .actions { display: none !important; }
+  svg.track .fill { display: none; }
+  ul.tasks li.checked label span { text-decoration: none; color: #000; }
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Backend onboarding</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Your first week as a backend engineer</h1>
+    <p class="lede">By the end of your first week you have shipped your first pull request and shown it to the team in the Friday sync. The eleven tasks below get you there, day by day: tick each one as you finish it, and send the progress message at the bottom of the page to your buddy so they can see where you are.</p>
+
+    <aside class="callout" data-kind="warn" id="limit">
+      <p><strong>Your ticks stay in this browser.</strong> This page is a file, so it cannot share anything with other people: your buddy does not see your ticks, and opening the file on another computer starts empty. To keep your buddy up to date, copy the <a href="#send">progress message</a> into your Teams chat with them, for example at the end of each day.</p>
+    </aside>
+
+    <h2 id="week">Your week at a glance</h2>
+    <figure class="week">
+      <svg class="track" viewBox="-12 0 444 130" role="img" aria-labelledby="track-t">
+        <title id="track-t">The week in four stages: Day 1 set up, Day 2 build and test, Day 3 choose your work, Days 4 and 5 ship and demo. Each stage fills in as its tasks are ticked.</title>
+        <!-- rail from x=45 to x=375 (330 px); the fill line's end is 45 + 330 x (tasks done / 11) -->
+        <line class="rail" x1="45" y1="50" x2="375" y2="50"/>
+        <line class="fill" id="track-fill" x1="45" y1="50" x2="45" y2="50"/>
+        <g class="node" data-node="1"><circle cx="45" cy="50" r="20"/><text class="count" x="45" y="55">0/4</text><path class="tick" d="M36,50 L43,57 L55,43"/></g>
+        <g class="node" data-node="2"><circle cx="155" cy="50" r="20"/><text class="count" x="155" y="55">0/3</text><path class="tick" d="M146,50 L153,57 L165,43"/></g>
+        <g class="node" data-node="3"><circle cx="265" cy="50" r="20"/><text class="count" x="265" y="55">0/2</text><path class="tick" d="M256,50 L263,57 L275,43"/></g>
+        <g class="node" data-node="4"><circle cx="375" cy="50" r="20"/><text class="count" x="375" y="55">0/2</text><path class="tick" d="M366,50 L373,57 L385,43"/></g>
+        <text class="flag" x="400" y="18" style="text-anchor: end">Friday sync demo</text>
+        <text class="day" x="45" y="96">Day 1</text><text class="what" x="45" y="114">Set up</text>
+        <text class="day" x="155" y="96">Day 2</text><text class="what" x="155" y="114">Build and test</text>
+        <text class="day" x="265" y="96">Day 3</text><text class="what" x="265" y="114">Choose work</text>
+        <text class="day" x="375" y="96">Days 4 and 5</text><text class="what" x="375" y="114">Ship and demo</text>
+      </svg>
+      <figcaption class="overall" aria-live="polite"><strong id="overall-count">0 of 11</strong> tasks done. <span id="overall-next">Next: get your laptop.</span></figcaption>
+    </figure>
+    <p>Each day builds on the one before: you need working accounts and the <dfn data-gloss="A private network connection to the company's internal systems from your laptop.">virtual private network (VPN)</dfn> to build the code, a working build to understand an issue, and an issue to ship a pull request. If a day runs long, carry the open tasks into the next day rather than skipping ahead.</p>
+
+    <h2 id="days">Day by day</h2>
+    <ol class="stepper" id="stepper">
+      <li data-day="1">
+        <h3 id="day-1">Day 1: get set up <span class="pill" data-day-pill="1">Not started</span></h3>
+        <ul class="tasks">
+          <li><label><input type="checkbox" data-task="laptop" data-day="1"> <span>Get your laptop</span></label>
+            <p class="why">Everything else this week runs on it.</p></li>
+          <li><label><input type="checkbox" data-task="vpn" data-day="1"> <span>Connect to the VPN</span></label>
+            <p class="why">The VPN lets your laptop reach the team's internal systems; set it up before the accounts so you can check that each one works.</p></li>
+          <li><label><input type="checkbox" data-task="accounts" data-day="1"> <span>Sign in to Jira, Bitbucket and Teams</span></label>
+            <p class="why">Jira is the issue tracker, Bitbucket hosts the code and its pull requests, and Teams is for chat and calls. Done means you can sign in to all three.</p></li>
+          <li><label><input type="checkbox" data-task="onb01" data-day="1"> <span>Read <a class="ref" data-ref="ONB-01" href="#ref-ONB-01"><span class="ref-id">ONB-01</span> "How we work"</a></span></label>
+            <p class="why">The team's onboarding document on how the team works. Where it is stored is not given here; ask your buddy for the link.</p></li>
+        </ul>
+      </li>
+      <li data-day="2">
+        <h3 id="day-2">Day 2: build and test the core project <span class="pill" data-day-pill="2">Not started</span></h3>
+        <ul class="tasks">
+          <li><label><input type="checkbox" data-task="build" data-day="2"> <span>Build the core project on your laptop</span></label>
+            <p class="why">A local build is how you will test your own changes from Day 3 on. Build instructions are not part of this checklist; your buddy can point you to them.</p></li>
+          <li><label><input type="checkbox" data-task="itests" data-day="2"> <span>Run the integration tests</span></label>
+            <p class="why">The <dfn data-gloss="Tests that run the service together with the systems it depends on, rather than one class or function on its own.">integration tests</dfn> need <dfn data-gloss="A tool that runs software in isolated containers; here it starts what the integration tests depend on.">Docker</dfn>, so install it and make sure it is running first. Done means the tests run to the end on your laptop.</p></li>
+          <li><label><input type="checkbox" data-task="pair" data-day="2"> <span>Pair with your buddy</span></label>
+            <p class="why">Working on the code together with your <dfn data-gloss="The teammate who accompanies you through your first week and should be kept up to date on your progress.">buddy</dfn> is the fastest way to learn how the project fits together, and the right moment to ask about anything the build or the tests left unclear.</p></li>
+        </ul>
+      </li>
+      <li data-day="3">
+        <h3 id="day-3">Day 3: choose your first piece of work <span class="pill" data-day-pill="3">Not started</span></h3>
+        <ul class="tasks">
+          <li><label><input type="checkbox" data-task="issue" data-day="3"> <span>Pick a "good first issue"</span></label>
+            <p class="why">A <dfn data-gloss="An issue the team has marked as small and well suited to someone new to the code.">good first issue</dfn> is small enough to ship by the end of the week. Choose one you can finish by Day 5; your buddy can help you judge the size.</p></li>
+          <li><label><input type="checkbox" data-task="adr007" data-day="3"> <span>Read <a class="ref" data-ref="ADR-007" href="#ref-ADR-007"><span class="ref-id">ADR-007</span> why we use event sourcing</a></span></label>
+            <p class="why">This <dfn data-gloss="A short document that records one architecture decision, the reasons for it and its consequences.">architecture decision record (ADR)</dfn> explains why the system uses <dfn data-gloss="Storing every change to the data as an event in a log, and deriving the current state from those events, instead of keeping only the latest state.">event sourcing</dfn>. Reading it before you change code helps your first change fit the way the system stores data.</p></li>
+        </ul>
+      </li>
+      <li data-day="4">
+        <h3 id="day-4">Days 4 and 5: ship and demo <span class="pill" data-day-pill="4">Not started</span></h3>
+        <ul class="tasks">
+          <li><label><input type="checkbox" data-task="pr" data-day="4"> <span>Ship your first pull request</span></label>
+            <p class="why">Open a <dfn data-gloss="A request in Bitbucket to merge your change into the main code, where teammates review it first.">pull request</dfn> in Bitbucket for your good first issue and see it through review.</p></li>
+          <li><label><input type="checkbox" data-task="demo" data-day="4"> <span>Demo it in the Friday sync</span></label>
+            <p class="why">Show the team what you changed and why in the <dfn data-gloss="The team's Friday meeting, where new joiners demo their first pull request. Time and place are not given in this checklist.">Friday sync</dfn>. A few minutes is enough: the issue, your change, and how you tested it.</p></li>
+        </ul>
+      </li>
+    </ol>
+
+    <h2 id="send">Send your progress to your buddy</h2>
+    <p>The message below updates as you tick tasks. Press Copy and paste it into your Teams chat with your buddy. Names are optional and, like the ticks, are saved only in this browser.</p>
+    <div class="who">
+      <label>Your name <input type="text" id="name-you" autocomplete="name" placeholder="for example Alex"></label>
+      <label>Your buddy's name <input type="text" id="name-buddy" placeholder="for example Sam"></label>
+    </div>
+    <pre class="message" aria-live="polite"><code id="message">First-week progress: 0 of 11 tasks done.
+Day 1, get set up: not started
+Day 2, build and test: not started
+Day 3, choose work: not started
+Days 4 and 5, ship and demo: not started
+Next: get your laptop.</code></pre>
+    <div class="actions">
+      <button type="button" id="reset">Clear all ticks</button>
+      <span class="meta" id="save-state">Ticks are saved only in this browser.</span>
+    </div>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-ONB-01"><b>ONB-01</b> <span class="ref-summary">The team's onboarding document "How we work", to read on Day 1.</span> Source: the backend first-week checklist. Its location and author are not given there; ask your buddy for the link.</li>
+      <li id="ref-ADR-007"><b>ADR-007</b> <span class="ref-summary">The architecture decision record that explains why the team uses event sourcing, to read on Day 3.</span> Source: the backend first-week checklist, which describes it as "why we use event sourcing". Its location is not given there.</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt id="gloss-adr">Architecture decision record (ADR)</dt>
+      <dd>A short document that records one architecture decision, the reasons for it and its consequences.</dd>
+      <dt id="gloss-buddy">Buddy</dt>
+      <dd>The teammate who accompanies you through your first week and should be kept up to date on your progress.</dd>
+      <dt id="gloss-docker">Docker</dt>
+      <dd>A tool that runs software in isolated containers; the integration tests need it.</dd>
+      <dt id="gloss-es">Event sourcing</dt>
+      <dd>Storing every change to the data as an event in a log, and deriving the current state from those events, instead of keeping only the latest state. <a class="ref" data-ref="ADR-007" href="#ref-ADR-007"><span class="ref-id">ADR-007</span> why we use event sourcing</a> explains the team's reasons.</dd>
+      <dt id="gloss-sync">Friday sync</dt>
+      <dd>The team's Friday meeting, where new joiners demo their first pull request. Time and place are not given in the checklist.</dd>
+      <dt id="gloss-gfi">Good first issue</dt>
+      <dd>An issue the team has marked as small and well suited to someone new to the code.</dd>
+      <dt id="gloss-it">Integration tests</dt>
+      <dd>Tests that run the service together with the systems it depends on, rather than one class or function on its own.</dd>
+      <dt id="gloss-pr">Pull request</dt>
+      <dd>A request in Bitbucket to merge your change into the main code, where teammates review it first.</dd>
+      <dt id="gloss-vpn">Virtual private network (VPN)</dt>
+      <dd>A private network connection to the company's internal systems from your laptop.</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill. Opens offline; no network access needed. Ticks and names are saved only in the browser that ticked them.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  // First-week checklist: ticks and names are kept per reader in localStorage when it is available.
+  const KEY = 'html-it-backend-first-week';
+  const boxes = [...document.querySelectorAll('input[data-task]')];
+  const you = document.getElementById('name-you'), buddy = document.getElementById('name-buddy');
+  const saveState = document.getElementById('save-state');
+  const stages = { 1: 'Day 1, get set up', 2: 'Day 2, build and test', 3: 'Day 3, choose work', 4: 'Days 4 and 5, ship and demo' };
+  const label = (b) => b.closest('label').querySelector('span').textContent.trim().replace(/\s+/g, ' ');
+  const lower = (s) => s.charAt(0).toLowerCase() + s.slice(1);
+
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { return {}; } };
+  const save = () => {
+    const data = { done: boxes.filter((b) => b.checked).map((b) => b.dataset.task), you: you.value, buddy: buddy.value };
+    try { localStorage.setItem(KEY, JSON.stringify(data)); saveState.textContent = 'Ticks are saved only in this browser.'; }
+    catch { saveState.textContent = 'This browser does not allow saving: ticks are lost when the page closes.'; }
+  };
+
+  const render = () => {
+    const total = boxes.length, done = boxes.filter((b) => b.checked).length;
+    const lines = [];
+    Object.keys(stages).forEach((d) => {
+      const mine = boxes.filter((b) => b.dataset.day === d), n = mine.filter((b) => b.checked).length;
+      const state = n === 0 ? 'none' : n === mine.length ? 'done' : 'part';
+      const pill = document.querySelector('[data-day-pill="' + d + '"]');
+      pill.textContent = state === 'done' ? 'Done' : state === 'part' ? n + ' of ' + mine.length + ' done' : 'Not started';
+      if (state === 'done') pill.dataset.state = 'ok'; else if (state === 'part') pill.dataset.state = 'warn'; else delete pill.dataset.state;
+      document.querySelector('.stepper > li[data-day="' + d + '"]').classList.toggle('done', state === 'done');
+      const node = document.querySelector('.node[data-node="' + d + '"]');
+      node.classList.toggle('done', state === 'done'); node.classList.toggle('part', state === 'part');
+      node.querySelector('.count').textContent = n + '/' + mine.length;
+      const open = mine.filter((b) => !b.checked).map(label);
+      lines.push(stages[d] + ': ' + (state === 'done' ? 'done' : state === 'none' ? 'not started' : n + ' of ' + mine.length + ' done, open: ' + open.join('; ')));
+    });
+    boxes.forEach((b) => b.closest('li').classList.toggle('checked', b.checked));
+    // Rail is 330 px long, starting at x = 45.
+    document.getElementById('track-fill').setAttribute('x2', String(45 + 330 * done / total));
+    const next = boxes.find((b) => !b.checked);
+    const nextText = next ? 'Next: ' + lower(label(next)) + '.' : 'All tasks done. Welcome to the team.';
+    document.getElementById('overall-count').textContent = done + ' of ' + total;
+    document.getElementById('overall-next').textContent = nextText;
+    const who = you.value.trim(), bud = buddy.value.trim();
+    const head = (bud ? 'Hi ' + bud + '. ' : '') + 'First-week progress' + (who ? ' for ' + who : '') + ': ' + done + ' of ' + total + ' tasks done.';
+    document.getElementById('message').textContent = [head, ...lines, nextText].join('\n');
+  };
+
+  const data = load();
+  boxes.forEach((b) => { b.checked = (data.done || []).includes(b.dataset.task); b.addEventListener('change', () => { render(); save(); }); });
+  you.value = data.you || ''; buddy.value = data.buddy || '';
+  [you, buddy].forEach((i) => i.addEventListener('input', () => { render(); save(); }));
+  document.getElementById('reset').addEventListener('click', () => {
+    if (!confirm('Clear all ticks on this page?')) return;
+    boxes.forEach((b) => (b.checked = false)); render(); save();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

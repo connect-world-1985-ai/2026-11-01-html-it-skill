@@ -1,0 +1,1 @@
+Flow: a Mermaid diagram ... Code: highlight.js colouring ... CDN libraries: I did what was asked and loaded both from a CDN, pinned to exact versions (highlight.js 11.9.0, Mermaid 10.9.1). If a script doesn't load, the page still reads ... Links: the source has no web addresses for ADR-011, BUG-3120, the commit or the files, so they appear as plain IDs.

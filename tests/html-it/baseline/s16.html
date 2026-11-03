@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Password Reset Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<style>
+/* Layout: portal top bar, one centered auth card per screen, prototype controls kept outside the card, moderator drawer bottom-right. */
+:root {
+  --bg: #eef2f1;
+  --surface: #ffffff;
+  --ink: #17242a;
+  --muted: #55666d;
+  --line: #cfd9d8;
+  --accent: #1f6b5c;
+  --accent-ink: #ffffff;
+  --accent-soft: #e1efeb;
+  --ok: #1d7a43;
+  --bad: #b3261e;
+  --warn-soft: #fdf1e3;
+  --warn-ink: #8a4b0c;
+  --proto: #6b4fa3;
+  --proto-soft: #f1ecfa;
+  --mod-bg: #1c2629;
+  --mod-ink: #e8eeee;
+  --mod-muted: #9fb0b3;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111a1c; --surface: #182427; --ink: #e5eded; --muted: #9db0b2; --line: #2e3f42;
+    --accent: #5fb8a3; --accent-ink: #0c1a17; --accent-soft: #1d3530;
+    --ok: #6cc98f; --bad: #f08a80; --warn-soft: #3a2a17; --warn-ink: #f2c08a;
+    --proto: #b9a2e8; --proto-soft: #2a2238;
+    --mod-bg: #0b1112; --mod-ink: #e8eeee; --mod-muted: #8fa1a4;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111a1c; --surface: #182427; --ink: #e5eded; --muted: #9db0b2; --line: #2e3f42;
+  --accent: #5fb8a3; --accent-ink: #0c1a17; --accent-soft: #1d3530;
+  --ok: #6cc98f; --bad: #f08a80; --warn-soft: #3a2a17; --warn-ink: #f2c08a;
+  --proto: #b9a2e8; --proto-soft: #2a2238;
+  --mod-bg: #0b1112; --mod-ink: #e8eeee; --mod-muted: #8fa1a4;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 400 15px/1.5 var(--font-body);
+  min-height: 100vh;
+}
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  padding-block: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.topbar-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.mark {
+  width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: var(--accent-ink);
+  display: grid; place-items: center; font-weight: 700; font-size: 18px; flex: none;
+}
+.brand { font-family: var(--font-display); font-weight: 600; font-size: 19px; letter-spacing: -0.01em; }
+.topbar .help { margin-left: auto; color: var(--muted); font-size: 13px; }
+
+main {
+  padding-block: 48px 120px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; justify-items: center; gap: 16px;
+}
+.card {
+  width: 100%; max-width: 420px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 32px 28px; display: grid; gap: 20px;
+  box-shadow: 0 1px 2px rgba(10, 30, 30, .06), 0 8px 24px rgba(10, 30, 30, .06);
+}
+.screen { display: grid; gap: 20px; }
+h1 {
+  font-family: var(--font-display); font-weight: 600; font-size: 26px; line-height: 1.2;
+  margin: 0; text-wrap: balance; letter-spacing: -0.01em;
+}
+p { margin: 0; }
+.lead { color: var(--muted); }
+.stack { display: grid; gap: 14px; }
+.field { display: grid; gap: 6px; }
+label { font-weight: 600; font-size: 14px; }
+.input {
+  width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); font-size: 15px;
+}
+.input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+.input[aria-invalid="true"] { border-color: var(--bad); }
+.hint { font-size: 13px; color: var(--muted); }
+.error { font-size: 13px; color: var(--bad); }
+.btn {
+  display: inline-flex; justify-content: center; align-items: center; gap: 8px;
+  padding: 11px 16px; border-radius: 8px; border: 1px solid transparent;
+  font-weight: 600; cursor: pointer; width: 100%;
+}
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { filter: brightness(1.07); }
+.btn-secondary { background: transparent; border-color: var(--line); color: var(--ink); }
+.btn-secondary:hover { background: var(--accent-soft); }
+.btn:disabled { opacity: .5; cursor: not-allowed; filter: none; }
+.link {
+  background: none; border: 0; padding: 0; color: var(--accent); font-weight: 600;
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.row-between { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.back { justify-self: start; font-size: 14px; }
+.icon-badge {
+  width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent-soft); color: var(--accent);
+}
+.icon-badge.warn { background: var(--warn-soft); color: var(--warn-ink); }
+.icon-badge svg { width: 24px; height: 24px; }
+.email-chip { font-weight: 600; color: var(--ink); word-break: break-all; }
+.countdown { font-variant-numeric: tabular-nums; }
+
+.rules { list-style: none; margin: 0; padding: 12px 14px; display: grid; gap: 8px;
+  border: 1px solid var(--line); border-radius: 8px; font-size: 14px; }
+.rules li { display: flex; gap: 10px; align-items: flex-start; color: var(--muted); }
+.rules .dot { flex: none; width: 18px; height: 18px; margin-top: 1px; border-radius: 50%;
+  border: 1.5px solid var(--line); display: grid; place-items: center; }
+.rules .dot svg { width: 12px; height: 12px; display: none; }
+.rules li.pass { color: var(--ok); }
+.rules li.pass .dot { background: var(--ok); border-color: var(--ok); color: var(--surface); }
+.rules li.pass .dot .i-ok { display: block; }
+.rules li.fail { color: var(--bad); }
+.rules li.fail .dot { border-color: var(--bad); color: var(--bad); }
+.rules li.fail .dot .i-x { display: block; }
+.pw-wrap { position: relative; }
+.pw-wrap .input { padding-right: 64px; }
+.pw-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 13px; }
+
+/* Prototype-only affordance, styled so testers can tell it is not part of the portal */
+.proto {
+  width: 100%; max-width: 420px; border: 1.5px dashed var(--proto); border-radius: 10px;
+  background: var(--proto-soft); padding: 12px 14px; display: grid; gap: 8px; font-size: 13px;
+}
+.proto-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--proto); }
+.proto-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.proto-btn {
+  border: 1px solid var(--proto); color: var(--proto); background: var(--surface);
+  border-radius: 6px; padding: 6px 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+
+/* Moderator drawer */
+.mod-toggle {
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: var(--mod-bg); color: var(--mod-ink); border: 0; border-radius: 999px;
+  padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; opacity: .55; z-index: 20;
+}
+.mod-toggle:hover, .mod-toggle[aria-expanded="true"] { opacity: 1; }
+.mod {
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  width: min(340px, calc(100vw - 32px)); max-height: calc(100vh - 100px); overflow: auto;
+  background: var(--mod-bg); color: var(--mod-ink); border-radius: 12px; padding: 16px;
+  display: grid; gap: 14px; z-index: 20; font-size: 13px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .3);
+}
+.mod h2 { margin: 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--mod-muted); }
+.mod-steps { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.mod-steps button {
+  width: 100%; text-align: left; background: transparent; color: var(--mod-ink);
+  border: 1px solid transparent; border-radius: 6px; padding: 6px 8px; cursor: pointer;
+  display: grid; grid-template-columns: 28px 1fr; gap: 6px; font-size: 13px;
+}
+.mod-steps button:hover { border-color: rgba(255, 255, 255, .18); }
+.mod-steps button[aria-current="step"] { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .25); }
+.mod-steps .n { color: var(--mod-muted); font-variant-numeric: tabular-nums; }
+.mod-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.mod-btn {
+  background: rgba(255, 255, 255, .08); color: var(--mod-ink); border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+}
+.mod-btn.reset { background: var(--mod-ink); color: var(--mod-bg); }
+.mod code { font-family: var(--font-mono); font-size: 12px; }
+.mod ul.prev { margin: 0; padding-left: 18px; color: var(--mod-muted); }
+.mod .note { color: var(--mod-muted); }
+.kbd { font-family: var(--font-mono); border: 1px solid rgba(255, 255, 255, .3); border-radius: 4px; padding: 0 4px; }
+
+@media (max-width: 480px) {
+  main { padding-block: 24px 100px; }
+  .card { padding: 24px 18px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .screen:not([hidden]) { animation: rise .18s ease-out; }
+  @keyframes rise { from { opacity: .6; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="mark" aria-hidden="true">+</div>
+    <div class="brand">Patient Portal</div>
+    <div class="help">Need help? Call the front desk</div>
+  </div>
+</header>
+
+<main>
+  <div class="card" aria-live="polite">
+
+    <!-- 1 Login -->
+    <section class="screen" data-screen="login">
+      <h1>Sign in to your portal</h1>
+      <form class="stack" id="login-form" novalidate>
+        <div class="field">
+          <label for="login-email">Email address</label>
+          <input class="input" id="login-email" type="email" autocomplete="username" value="maria.okafor@example.com">
+        </div>
+        <div class="field">
+          <div class="row-between">
+            <label for="login-password">Password</label>
+            <button type="button" class="link" id="forgot-link" style="font-size:14px">Forgot password?</button>
+          </div>
+          <input class="input" id="login-password" type="password" autocomplete="current-password">
+        </div>
+        <p class="error" id="login-error" hidden>That email and password don't match. Try again, or reset your password.</p>
+        <button class="btn btn-primary" type="submit">Sign in</button>
+      </form>
+    </section>
+
+    <!-- 2 Enter email -->
+    <section class="screen" data-screen="email" hidden>
+      <button type="button" class="link back" data-go="login">Back to sign in</button>
+      <h1>Reset your password</h1>
+      <p class="lead">Enter the email address you use for the portal. We'll send you a link to set a new password.</p>
+      <form class="stack" id="email-form" novalidate>
+        <div class="field">
+          <label for="reset-email">Email address</label>
+          <input class="input" id="reset-email" type="email" autocomplete="email" aria-describedby="reset-email-error">
+          <p class="error" id="reset-email-error" hidden>Enter an email address in the format name@example.com.</p>
+        </div>
+        <button class="btn btn-primary" type="submit">Send reset link</button>
+      </form>
+    </section>
+
+    <!-- 3 Check your inbox (also shown for unknown emails, SEC-31) -->
+    <section class="screen" data-screen="inbox" hidden>
+      <div class="icon-badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" fill="none"/><path d="m3 7 9 6 9-6" fill="none"/></svg>
+      </div>
+      <h1>Check your inbox</h1>
+      <p class="lead">If <span class="email-chip" id="inbox-email">your email address</span> is linked to a portal account, we've sent a link to reset your password. The link works for 30 minutes.</p>
+      <p class="hint">Can't find it? Check your spam or junk folder.</p>
+      <div class="stack">
+        <button class="btn btn-secondary" type="button" id="resend-btn" disabled>Resend email</button>
+        <p class="hint" id="resend-hint">You can resend in <span class="countdown" id="resend-count">60</span> s.</p>
+        <p class="hint" id="resend-done" hidden>We sent another email. Use the newest link.</p>
+      </div>
+      <button type="button" class="link back" data-go="login">Back to sign in</button>
+    </section>
+
+    <!-- 4 Set new password -->
+    <section class="screen" data-screen="newpw" hidden>
+      <h1>Set a new password</h1>
+      <form class="stack" id="pw-form" novalidate>
+        <div class="field">
+          <label for="new-pw">New password</label>
+          <div class="pw-wrap">
+            <input class="input" id="new-pw" type="password" autocomplete="new-password" aria-describedby="pw-rules">
+            <button type="button" class="link pw-toggle" data-toggle="new-pw">Show</button>
+          </div>
+        </div>
+        <ul class="rules" id="pw-rules" aria-label="Password rules">
+          <li data-rule="length"><span class="dot"><svg class="i-ok" viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.5l4.5-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><svg class="i-x" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><span>At least 12 characters <span class="countdown" id="len-count">(0/12)</span></span></li>
+          <li data-rule="history"><span class="dot"><svg class="i-ok" viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.5l4.5-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><svg class="i-x" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><span>Not one of your last 5 passwords</span></li>
+          <li data-rule="match"><span class="dot"><svg class="i-ok" viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.5l4.5-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><svg class="i-x" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span><span>Both passwords match</span></li>
+        </ul>
+        <div class="field">
+          <label for="confirm-pw">Confirm new password</label>
+          <div class="pw-wrap">
+            <input class="input" id="confirm-pw" type="password" autocomplete="new-password">
+            <button type="button" class="link pw-toggle" data-toggle="confirm-pw">Show</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" type="submit" id="pw-submit" disabled>Save new password</button>
+      </form>
+    </section>
+
+    <!-- 5 Success -->
+    <section class="screen" data-screen="success" hidden>
+      <div class="icon-badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17l9-10" fill="none"/></svg>
+      </div>
+      <h1>Your password is updated</h1>
+      <p class="lead">Sign in with your new password.</p>
+      <button class="btn btn-primary" type="button" data-go="login">Back to sign in</button>
+    </section>
+
+    <!-- Error: expired link -->
+    <section class="screen" data-screen="expired" hidden>
+      <div class="icon-badge warn" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" fill="none"/><path d="M12 7v5l3 2" fill="none"/></svg>
+      </div>
+      <h1>This link has expired</h1>
+      <p class="lead">Reset links work for 30 minutes. Send yourself a new one to continue.</p>
+      <button class="btn btn-primary" type="button" id="send-new-btn">Send a new link</button>
+      <button type="button" class="link back" data-go="login">Back to sign in</button>
+    </section>
+  </div>
+
+  <!-- Prototype-only: stands in for the user's email inbox -->
+  <div class="proto" id="proto-inbox" hidden>
+    <span class="proto-label">Prototype only: the reset email</span>
+    <span>In real life the tester would open the link from their email.</span>
+    <div class="proto-actions">
+      <button type="button" class="proto-btn" data-go="newpw">Open the reset link</button>
+      <button type="button" class="proto-btn" data-go="expired">Open it after 30 minutes</button>
+    </div>
+  </div>
+</main>
+
+<button class="mod-toggle" id="mod-toggle" type="button" aria-expanded="false" aria-controls="mod">Moderator (M)</button>
+<aside class="mod" id="mod" hidden aria-label="Moderator controls">
+  <div class="mod-row">
+    <button type="button" class="mod-btn reset" id="mod-reset">Reset to start</button>
+    <button type="button" class="mod-btn" id="mod-skip">Skip 60 s wait</button>
+  </div>
+  <div>
+    <h2>Main flow</h2>
+    <ol class="mod-steps" id="mod-steps">
+      <li><button type="button" data-jump="login"><span class="n">1</span><span>Login with "Forgot password?"</span></button></li>
+      <li><button type="button" data-jump="email"><span class="n">2</span><span>Enter email</span></button></li>
+      <li><button type="button" data-jump="inbox"><span class="n">3</span><span>Check your inbox (Resend after 60 s)</span></button></li>
+      <li><button type="button" data-jump="newpw"><span class="n">4</span><span>Set a new password</span></button></li>
+      <li><button type="button" data-jump="success"><span class="n">5</span><span>Success, back to login</span></button></li>
+    </ol>
+  </div>
+  <div>
+    <h2>Error paths</h2>
+    <ol class="mod-steps">
+      <li><button type="button" data-jump="inbox-unknown"><span class="n">E1</span><span>Unknown email (same as step 3, SEC-31)</span></button></li>
+      <li><button type="button" data-jump="expired"><span class="n">E2</span><span>Expired link (older than 30 min)</span></button></li>
+    </ol>
+  </div>
+  <div class="stack" style="gap:6px">
+    <h2>Last 5 passwords (sample)</h2>
+    <ul class="prev" id="mod-prev"></ul>
+    <p class="note">Typing one of these fails the "last 5" rule.</p>
+  </div>
+  <p class="note">Any email address leads to "Check your inbox", whether or not an account exists. Press <span class="kbd">M</span> to hide this panel.</p>
+</aside>
+
+<script>
+(function () {
+  "use strict";
+  var PREVIOUS = ["Sunflower!2024", "Clinic-Visit-88", "BlueHarbor#2025", "MapleTree2023!!", "Correct-Horse-7"];
+  var RESEND_SECONDS = 60;
+  var screens = document.querySelectorAll("[data-screen]");
+  var protoInbox = document.getElementById("proto-inbox");
+  var state = { screen: "login", email: "", timer: null, left: RESEND_SECONDS };
+
+  function $(id) { return document.getElementById(id); }
+
+  function show(name) {
+    state.screen = name;
+    screens.forEach(function (s) { s.hidden = s.getAttribute("data-screen") !== name; });
+    protoInbox.hidden = name !== "inbox";
+    document.querySelectorAll("#mod [data-jump]").forEach(function (b) {
+      var j = b.getAttribute("data-jump");
+      var cur = j === name && j !== "inbox-unknown";
+      if (cur) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+    });
+    if (name !== "inbox") stopTimer();
+    if (name === "newpw") { $("new-pw").value = ""; $("confirm-pw").value = ""; checkRules(); }
+    var focusEl = document.querySelector('[data-screen="' + name + '"] h1');
+    if (focusEl) { focusEl.setAttribute("tabindex", "-1"); focusEl.focus({ preventScroll: true }); }
+  }
+
+  /* Step 3 and the unknown-email path use exactly the same screen (SEC-31). */
+  function goInbox(email) {
+    state.email = email || state.email || "maria.okafor@example.com";
+    $("inbox-email").textContent = state.email;
+    $("resend-done").hidden = true;
+    startTimer();
+    show("inbox");
+  }
+
+  function startTimer() {
+    stopTimer();
+    state.left = RESEND_SECONDS;
+    renderTimer();
+    state.timer = setInterval(function () {
+      state.left -= 1;
+      renderTimer();
+      if (state.left <= 0) stopTimer();
+    }, 1000);
+  }
+  function stopTimer() { if (state.timer) { clearInterval(state.timer); state.timer = null; } }
+  function renderTimer() {
+    var done = state.left <= 0;
+    $("resend-btn").disabled = !done;
+    $("resend-hint").hidden = done;
+    $("resend-count").textContent = Math.max(state.left, 0);
+  }
+
+  /* Live password checklist */
+  function setRule(name, status) {
+    var li = document.querySelector('[data-rule="' + name + '"]');
+    li.classList.remove("pass", "fail");
+    if (status) li.classList.add(status);
+  }
+  function checkRules() {
+    var pw = $("new-pw").value, cf = $("confirm-pw").value;
+    var lenOk = pw.length >= 12;
+    var histOk = pw.length > 0 && PREVIOUS.indexOf(pw) === -1;
+    var matchOk = cf.length > 0 && pw === cf;
+    $("len-count").textContent = "(" + Math.min(pw.length, 99) + "/12)";
+    setRule("length", pw.length === 0 ? "" : (lenOk ? "pass" : "fail"));
+    setRule("history", pw.length === 0 ? "" : (histOk ? "pass" : "fail"));
+    setRule("match", cf.length === 0 ? "" : (matchOk ? "pass" : "fail"));
+    $("pw-submit").disabled = !(lenOk && histOk && matchOk);
+  }
+
+  function resetAll() {
+    stopTimer();
+    state.email = "";
+    $("login-password").value = "";
+    $("login-error").hidden = true;
+    $("reset-email").value = "";
+    $("reset-email").removeAttribute("aria-invalid");
+    $("reset-email-error").hidden = true;
+    $("new-pw").value = ""; $("confirm-pw").value = "";
+    ["new-pw", "confirm-pw"].forEach(function (id) { $(id).type = "password"; });
+    document.querySelectorAll(".pw-toggle").forEach(function (b) { b.textContent = "Show"; });
+    checkRules();
+    show("login");
+  }
+
+  /* Wiring */
+  $("forgot-link").addEventListener("click", function () {
+    var v = $("login-email").value.trim();
+    if (v && !$("reset-email").value) $("reset-email").value = v;
+    show("email");
+  });
+  $("login-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    $("login-error").hidden = false;
+  });
+  $("email-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var input = $("reset-email"), v = input.value.trim();
+    var valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    input.setAttribute("aria-invalid", valid ? "false" : "true");
+    $("reset-email-error").hidden = valid;
+    if (valid) goInbox(v);
+  });
+  $("resend-btn").addEventListener("click", function () {
+    $("resend-done").hidden = false;
+    startTimer();
+  });
+  $("send-new-btn").addEventListener("click", function () { goInbox(); });
+  $("new-pw").addEventListener("input", checkRules);
+  $("confirm-pw").addEventListener("input", checkRules);
+  $("pw-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!$("pw-submit").disabled) show("success");
+  });
+  document.querySelectorAll(".pw-toggle").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var f = $(b.getAttribute("data-toggle"));
+      var hidden = f.type === "password";
+      f.type = hidden ? "text" : "password";
+      b.textContent = hidden ? "Hide" : "Show";
+    });
+  });
+  document.querySelectorAll("[data-go]").forEach(function (b) {
+    b.addEventListener("click", function () { show(b.getAttribute("data-go")); });
+  });
+
+  /* Moderator */
+  var mod = $("mod"), modToggle = $("mod-toggle");
+  function setMod(open) { mod.hidden = !open; modToggle.setAttribute("aria-expanded", String(open)); }
+  modToggle.addEventListener("click", function () { setMod(mod.hidden); });
+  document.addEventListener("keydown", function (e) {
+    var t = e.target.tagName;
+    if ((e.key === "m" || e.key === "M") && t !== "INPUT" && t !== "TEXTAREA" && !e.metaKey && !e.ctrlKey && !e.altKey) setMod(mod.hidden);
+  });
+  $("mod-reset").addEventListener("click", resetAll);
+  $("mod-skip").addEventListener("click", function () {
+    if (state.screen === "inbox") { state.left = 0; renderTimer(); stopTimer(); }
+  });
+  document.querySelectorAll("#mod [data-jump]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var j = b.getAttribute("data-jump");
+      if (j === "inbox") goInbox(state.email || "maria.okafor@example.com");
+      else if (j === "inbox-unknown") goInbox("no.account@example.com");
+      else if (j === "email") { stopTimer(); show("email"); }
+      else show(j);
+    });
+  });
+  PREVIOUS.forEach(function (p) {
+    var li = document.createElement("li");
+    var c = document.createElement("code"); c.textContent = p; li.appendChild(c);
+    $("mod-prev").appendChild(li);
+  });
+
+  checkRules();
+  show("login");
+  /* Don't steal focus on first load */
+  document.activeElement && document.activeElement.blur && document.activeElement.blur();
+})();
+</script>
+</body>
+</html>

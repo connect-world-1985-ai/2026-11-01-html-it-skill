@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en" data-variant="ivory">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Booking slowdown postmortem</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+/* ---------- Page components ---------- */
+details { border: 1px solid var(--line); border-radius: var(--radius); padding: .5rem .8rem; }
+summary { cursor: pointer; font-weight: 600; }
+.timeline { list-style: none; padding: 0; border-left: 2px solid var(--line); margin-left: .4rem; }
+.timeline li { position: relative; padding: 0 0 1rem 1.2rem; }
+.timeline li::before { content: ""; position: absolute; left: -.45rem; top: .45rem; width: .7rem; height: .7rem; border-radius: 50%; background: var(--accent); }
+.timeline time { font-family: var(--mono); font-size: .85rem; color: var(--muted); }
+.timeline p { margin: .1rem 0 0; }
+svg.diagram { width: 100%; height: auto; color: var(--muted); font: 15px var(--sans); }
+svg.diagram .node rect { fill: var(--surface-2); stroke: var(--line); }
+svg.diagram .node.hot rect { fill: var(--bad-bg); stroke: var(--bad); }
+svg.diagram .node.side rect { fill: var(--warn-bg); stroke: var(--warn); }
+svg.diagram text { fill: var(--fg); text-anchor: middle; font-weight: 600; }
+svg.diagram text.sub { fill: var(--muted); font-weight: 400; font-size: 13px; }
+svg.diagram .edge { stroke: currentColor; stroke-width: 1.5; }
+svg.diagram .edge.dash { stroke-dasharray: 4 3; }
+figcaption { color: var(--muted); font-size: .9rem; }
+table.facts td:nth-child(2) { font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Incident postmortem</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Booking API slowdown on 29 October 2026</h1>
+    <p class="lede">For 29 minutes on 29 October 2026 (09:12 to 09:41 CET), booking was slow or failed: about 1,140 booking attempts failed and no data was lost. The cause was a missing database index: release 8.4.0.0 shipped a new appointment search query whose index migration was planned but left out of the pull request, so every search read the whole table and used up the database connections. Rolling back to 8.3.2.4 ended it. Three actions close the gaps; the index migration is due first, on 5 November 2026.</p>
+    <p class="meta">Blameless postmortem of incident <a class="ref" data-ref="INC-2307" href="#ref-INC-2307"><span class="ref-id">INC-2307</span> booking API slowdown</a>, severity <a class="ref" data-ref="SEV-2" href="#ref-SEV-2"><span class="ref-id">SEV-2</span> severity level 2</a>, written for engineering and product management.</p>
+
+    <div class="table-wrap"><table class="facts">
+      <thead><tr><th scope="col">Measure</th><th scope="col">During the incident</th><th scope="col">Normal</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Duration of slow or failed booking</th><td>29 min (09:12 to 09:41 CET)</td><td>0 min</td></tr>
+        <tr><th scope="row">Failed booking attempts</th><td>about 1,140</td><td>not recorded</td></tr>
+        <tr><th scope="row">Booking API <dfn data-gloss="The response time that 95 % of requests stay under; the slowest 5 % take longer.">p95 latency</dfn></th><td>9.8 s</td><td>0.4 s</td></tr>
+        <tr><th scope="row">Database <dfn data-gloss="A fixed set of open database connections that requests share; when all are in use, new requests wait.">connection pool</dfn> in use</th><td>50 of 50 (100 %)</td><td>not recorded</td></tr>
+        <tr><th scope="row">Data loss</th><td><span class="pill" data-state="ok">None</span></td><td></td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="cause">What happened</h2>
+    <p>The process gap was in how the change reached production, not in any one person's work. The migration plan for the new appointment search included an <dfn data-gloss="A database structure that lets a query find matching rows without reading the whole table.">index</dfn> on <code>slots(practice_id, start_time)</code>, but the <dfn data-gloss="A versioned script that changes the database schema, for example by adding a table or an index.">migration</dfn> file that creates it was not part of <a class="ref" data-ref="PR-402" href="#ref-PR-402"><span class="ref-id">PR 402</span> new appointment search query</a>. Nothing in the pipeline caught the omission: load test <a class="ref" data-ref="LT-12" href="#ref-LT-12"><span class="ref-id">LT-12</span> booking load test</a> does not exercise search, so the slow query never ran under load before release 8.4.0.0 went live.</p>
+
+    <figure>
+      <svg class="diagram" viewBox="0 0 640 460" role="img" aria-labelledby="d1t d1d">
+        <title id="d1t">Cause chain: a missing index migration led to full table scans, an exhausted connection pool and slow or failed bookings</title>
+        <desc id="d1d">Five steps top to bottom. Side note: the load test does not cover search, so the gap was not caught before release.</desc>
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <g class="node hot"><rect x="20" y="10" width="380" height="64" rx="6"/><text x="210" y="36">Index migration missing from PR 402</text><text class="sub" x="210" y="58">planned, but the file was not in the pull request</text></g>
+        <line class="edge" x1="210" y1="74" x2="210" y2="98" marker-end="url(#arr)"/>
+        <g class="node"><rect x="20" y="100" width="380" height="64" rx="6"/><text x="210" y="126">Release 8.4.0.0 ships without the index</text><text class="sub" x="210" y="148">on slots(practice_id, start_time)</text></g>
+        <line class="edge" x1="210" y1="164" x2="210" y2="188" marker-end="url(#arr)"/>
+        <g class="node"><rect x="20" y="190" width="380" height="64" rx="6"/><text x="210" y="216">Each search reads the whole table</text><text class="sub" x="210" y="238">full table scan on each request</text></g>
+        <line class="edge" x1="210" y1="254" x2="210" y2="278" marker-end="url(#arr)"/>
+        <g class="node"><rect x="20" y="280" width="380" height="64" rx="6"/><text x="210" y="306">Database connection pool exhausted</text><text class="sub" x="210" y="328">50 of 50 connections in use</text></g>
+        <line class="edge" x1="210" y1="344" x2="210" y2="368" marker-end="url(#arr)"/>
+        <g class="node hot"><rect x="20" y="370" width="380" height="64" rx="6"/><text x="210" y="396">Booking slow or failing for 29 minutes</text><text class="sub" x="210" y="418">p95 9.8 s instead of 0.4 s; about 1,140 failed attempts</text></g>
+        <g class="node side"><rect x="440" y="100" width="185" height="110" rx="6"/><text x="532" y="130">Load test has</text><text x="532" y="150">no search load</text><text class="sub" x="532" y="176">so the slow query was</text><text class="sub" x="532" y="194">not caught before release</text></g>
+        <line class="edge dash" x1="440" y1="140" x2="402" y2="140" marker-end="url(#arr)"/>
+      </svg>
+      <figcaption>How a missing migration file turned into slow bookings. The side box is the second gap: load test <a class="ref" data-ref="LT-12" href="#ref-LT-12"><span class="ref-id">LT-12</span> booking load test</a> did not cover search.</figcaption>
+    </figure>
+
+    <p>Without the index, the database has to read every row of the <code>slots</code> table to answer each appointment search, which is called a <dfn data-gloss="Reading every row of a table to answer a query, because no index narrows the search.">full table scan</dfn>. Each scan holds a database connection far longer than a normal query. With searches arriving all the time, all 50 connections in the pool were soon busy, and every other booking request, not only search, had to wait for one. That is why the whole booking API slowed down and some bookings failed.</p>
+
+    <h2 id="timeline">Timeline</h2>
+    <p>All times are on 29 October 2026, Central European Time (CET).</p>
+    <ol class="timeline">
+      <li><time datetime="2026-10-29T09:12+01:00">09:12 CET</time> <p>An alert fires: booking API p95 latency is 9.8 s, against 0.4 s normally.</p></li>
+      <li><time datetime="2026-10-29T09:15+01:00">09:15 CET</time> <p>Tomasz, the <dfn data-gloss="The engineer assigned to respond to alerts during a given period.">on-call</dfn> engineer, acknowledges the alert.</p></li>
+      <li><time datetime="2026-10-29T09:21+01:00">09:21 CET</time> <p>Dashboards show the database connection pool at 100 %: all 50 connections in use.</p></li>
+      <li><time datetime="2026-10-29T09:34+01:00">09:34 CET</time> <p>A <dfn data-gloss="Returning the production system to the previous release.">rollback</dfn> from release 8.4.0.0 to 8.3.2.4 starts, following runbook <a class="ref" data-ref="RB-04" href="#ref-RB-04"><span class="ref-id">RB-04</span> rollback runbook</a>.</p></li>
+      <li><time datetime="2026-10-29T09:41+01:00">09:41 CET</time> <p>Latency is back to normal. The impact ends after 29 minutes.</p></li>
+      <li><time datetime="2026-10-29T10:05+01:00">10:05 CET</time> <p>Root cause found: the new appointment search query from <a class="ref" data-ref="PR-402" href="#ref-PR-402"><span class="ref-id">PR 402</span> new appointment search query</a> has no index on <code>slots(practice_id, start_time)</code>, so every request does a full table scan.</p></li>
+    </ol>
+
+    <h2 id="went-well">What went well</h2>
+    <ul>
+      <li>The alert fired within 2 minutes, so the on-call engineer knew about the problem almost at once.</li>
+      <li>Rollback runbook <a class="ref" data-ref="RB-04" href="#ref-RB-04"><span class="ref-id">RB-04</span> rollback runbook</a> worked exactly as written; the rollback took 7 minutes from start (09:34 CET) to normal latency (09:41 CET).</li>
+    </ul>
+
+    <h2 id="went-badly">What went badly</h2>
+    <ul>
+      <li>Load test <a class="ref" data-ref="LT-12" href="#ref-LT-12"><span class="ref-id">LT-12</span> booking load test</a> does not cover search, so a slow search query can reach production without being seen under load.</li>
+      <li>The index was in the migration plan, but the migration file was missing from <a class="ref" data-ref="PR-402" href="#ref-PR-402"><span class="ref-id">PR 402</span> new appointment search query</a>. Neither review nor any automated check noticed that the plan and the pull request did not match.</li>
+    </ul>
+
+    <h2 id="actions">Actions</h2>
+    <p>Each action closes one of the gaps above. The first fixes the missing index so the new search can ship again; the other two make sure the same kind of gap is caught before release next time.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">Action</th><th scope="col">What it fixes</th><th scope="col">Owner</th><th scope="col">Due</th></tr></thead>
+      <tbody>
+        <tr><td><a class="ref" data-ref="AI-1" href="#ref-AI-1"><span class="ref-id">AI-1</span> add the index migration</a></td><td>Creates the missing index on <code>slots(practice_id, start_time)</code>.</td><td>Priya</td><td>2026-11-05</td></tr>
+        <tr><td><a class="ref" data-ref="AI-2" href="#ref-AI-2"><span class="ref-id">AI-2</span> add search load to the load test</a></td><td>Extends <a class="ref" data-ref="LT-12" href="#ref-LT-12"><span class="ref-id">LT-12</span> booking load test</a> with search requests, so slow search queries show up before release.</td><td>Tomasz</td><td>2026-11-14</td></tr>
+        <tr><td><a class="ref" data-ref="AI-3" href="#ref-AI-3"><span class="ref-id">AI-3</span> CI check for full table scans</a></td><td>A <dfn data-gloss="Continuous integration: the automated build and checks that run on every pull request.">CI</dfn> check that fails when a <dfn data-gloss="The database's description of how it will run a query, for example whether it uses an index or scans the table.">query plan</dfn> shows a full table scan on a table with more than 100,000 rows.</td><td>Lena</td><td>2026-11-28</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-INC-2307"><b>INC-2307</b> <span class="ref-summary">The incident key for this booking API slowdown on 29 October 2026.</span> Source: postmortem input. The incident tracker's address was not provided.</li>
+      <li id="ref-SEV-2"><b>SEV-2</b> <span class="ref-summary">The severity level given to this incident: level 2 on the team's incident severity scale.</span> Source: postmortem input. The definitions of the scale were not in the provided material.</li>
+      <li id="ref-PR-402"><b>PR 402</b> <span class="ref-summary">The pull request that added the new appointment search query, shipped in release 8.4.0.0 without its index migration.</span> Source: postmortem input. The repository address was not provided.</li>
+      <li id="ref-RB-04"><b>RB-04</b> <span class="ref-summary">The team's rollback runbook, used to return production from release 8.4.0.0 to 8.3.2.4.</span> Source: postmortem input.</li>
+      <li id="ref-LT-12"><b>LT-12</b> <span class="ref-summary">The team's load test; it does not cover search today. Action AI-2 extends it.</span> Source: postmortem input.</li>
+      <li id="ref-AI-1"><b>AI-1</b> <span class="ref-summary">Action item: add the index migration for slots(practice_id, start_time). Owner Priya, due 2026-11-05.</span> Source: postmortem input.</li>
+      <li id="ref-AI-2"><b>AI-2</b> <span class="ref-summary">Action item: extend load test LT-12 with search load. Owner Tomasz, due 2026-11-14.</span> Source: postmortem input.</li>
+      <li id="ref-AI-3"><b>AI-3</b> <span class="ref-summary">Action item: a CI check that fails when a query plan shows a full scan on a table with more than 100,000 rows. Owner Lena, due 2026-11-28.</span> Source: postmortem input.</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt id="gloss-blameless">Blameless postmortem</dt><dd>A review of an incident that looks for gaps in process and tooling, not for a person to blame.</dd>
+      <dt id="gloss-ci">CI (continuous integration)</dt><dd>The automated build and checks that run on every pull request.</dd>
+      <dt id="gloss-pool">Connection pool</dt><dd>A fixed set of open database connections that requests share; when all are in use, new requests wait.</dd>
+      <dt id="gloss-scan">Full table scan</dt><dd>Reading every row of a table to answer a query, because no index narrows the search.</dd>
+      <dt id="gloss-index">Index</dt><dd>A database structure that lets a query find matching rows without reading the whole table.</dd>
+      <dt id="gloss-migration">Migration</dt><dd>A versioned script that changes the database schema, for example by adding a table or an index.</dd>
+      <dt id="gloss-oncall">On-call engineer</dt><dd>The engineer assigned to respond to alerts during a given period.</dd>
+      <dt id="gloss-p95">p95 latency</dt><dd>The response time that 95 % of requests stay under; the slowest 5 % take longer.</dd>
+      <dt id="gloss-plan">Query plan</dt><dd>The database's description of how it will run a query, for example whether it uses an index or scans the table.</dd>
+      <dt id="gloss-rollback">Rollback</dt><dd>Returning the production system to the previous release.</dd>
+    </dl>
+
+    <h2 id="appendix">Appendix: chat log excerpt</h2>
+    <p>The incident chat excerpt as recorded, unedited. Times are CET on 29 October 2026.</p>
+    <details><summary>Incident chat log excerpt (6 lines)</summary>
+<pre><code>09:12 alert: booking API p95 latency 9.8 s (normal 0.4 s)
+09:15 Tomasz (on call) acknowledges
+09:21 dashboards show the DB connection pool at 100 % (max 50)
+09:34 rollback from release 8.4.0.0 to 8.3.2.4 started
+09:41 latency back to normal
+10:05 root cause found: the new appointment search query from PR 402 has no index on slots(practice_id, start_time), so every request does a full table scan</code></pre>
+    </details>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill. Opens offline; no network access needed.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+</body>
+</html>

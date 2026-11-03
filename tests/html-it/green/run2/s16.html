@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en" data-variant="graphite">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Password reset prototype</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+
+/* ---------- Page: password reset prototype ---------- */
+.callout p:last-child { margin-bottom: 0; }
+.tasks li { margin-bottom: .35rem; }
+
+/* Device frame around the product screens */
+.device { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; margin-bottom: 1rem; }
+.device-bar { display: flex; align-items: center; gap: .6rem; background: var(--surface-2); border-bottom: 1px solid var(--line); padding: .45rem .8rem; font-size: .8rem; color: var(--muted); }
+.device-bar .dots { display: inline-flex; gap: .3rem; }
+.device-bar .dots i { width: .6rem; height: .6rem; border-radius: 50%; background: var(--line); display: inline-block; }
+.device-bar .addr { flex: 1; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: .1rem .7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.portal-head { display: flex; align-items: center; gap: .6rem; padding: .7rem 1.1rem; border-bottom: 1px solid var(--line); font-weight: 600; }
+.portal-head svg { width: 1.4rem; height: 1.4rem; color: var(--accent); }
+
+/* Product screens */
+.proto [data-screen] { padding: 1.6rem 1.1rem 2.2rem; max-width: 27rem; margin: 0 auto; }
+.proto:not(.js) [data-screen] + [data-screen] { border-top: 1px dashed var(--line); }
+.scr-label { display: block; font-size: .78rem; color: var(--muted); margin-bottom: .6rem; }
+.proto.js .scr-label { display: none; }
+.scr-title { font-size: 1.35rem; font-weight: 600; line-height: 1.25; margin: 0 0 .5rem; }
+.scr-title:focus { outline: none; }
+.scr-text { color: var(--muted); }
+.field { display: grid; gap: .25rem; margin-bottom: .9rem; font-size: .92rem; }
+.field input { font: inherit; font-size: 1rem; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: .55rem .7rem; width: 100%; }
+.field input:focus-visible { border-color: var(--accent); }
+.btn { font: inherit; font-weight: 600; border-radius: 6px; padding: .6rem 1rem; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); width: 100%; }
+.btn.secondary { background: var(--surface); color: var(--accent-ink); border-color: var(--line); }
+.btn:disabled { cursor: not-allowed; background: var(--surface-2); color: var(--muted); border-color: var(--line); }
+.linkbtn { font: inherit; background: none; border: 0; padding: 0; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; font-size: .92rem; }
+.stack > * + * { margin-top: .7rem; }
+.msg { font-size: .9rem; padding: .5rem .7rem; border-radius: 6px; background: var(--surface-2); }
+.msg[data-kind="ok"] { background: var(--ok-bg); color: var(--ok); }
+.msg[hidden] { display: none; }
+.big-sign { width: 3rem; height: 3rem; margin-bottom: .6rem; }
+.big-sign.ok { color: var(--ok); } .big-sign.warn { color: var(--warn); } .big-sign.mail { color: var(--accent); }
+.rules { list-style: none; padding: 0; margin: 0 0 1rem; font-size: .92rem; }
+.rules li { display: flex; gap: .5rem; align-items: baseline; padding: .15rem 0; color: var(--muted); }
+.rules li .mark { width: 1.1rem; text-align: center; font-weight: 700; }
+.rules li.met { color: var(--ok); }
+.rules li.miss { color: var(--bad); }
+
+/* Prototype-only hotspots: clearly not part of the product */
+.sim { border: 1px dashed var(--warn); background: var(--warn-bg); border-radius: 6px; padding: .6rem .7rem; margin-top: 1.4rem; font-size: .88rem; }
+.sim p { margin: 0 0 .5rem; color: var(--warn); font-weight: 600; }
+.sim button { font: inherit; font-size: .88rem; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .3rem .6rem; cursor: pointer; margin: 0 .3rem .3rem 0; }
+
+/* Moderator controls */
+.moderator { border: 1px dashed var(--line); padding: .8rem 1rem; border-radius: var(--radius); color: var(--muted); font-size: .9rem; background: var(--surface-2); }
+.moderator h3 { margin: 0 0 .5rem; font-size: 1rem; color: var(--fg); }
+.mod-row { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: center; margin-bottom: .6rem; }
+.moderator button, .moderator select, .notes-tools button { font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .3rem .7rem; cursor: pointer; }
+.moderator label { display: inline-flex; gap: .4rem; align-items: center; }
+.moderator .now { color: var(--fg); font-weight: 600; }
+.moderator[hidden] { display: none; }
+body.tester .topbar, body.tester nav.toc, body.tester footer.page-foot, body.tester main > :not(.proto-area), body.tester .proto-area > :not(.device):not(.moderator) { display: none; }
+body.tester .page { grid-template-columns: minmax(0, 1fr); }
+body.tester .page > main { max-width: 52rem; margin: 1rem auto 0; }
+body.tester .moderator { position: sticky; bottom: .5rem; }
+
+/* Flow diagram */
+.flow-wrap { overflow-x: auto; margin-bottom: 1rem; }
+svg.diagram { width: 100%; min-width: 640px; height: auto; color: var(--muted); font: 13px var(--sans); }
+svg.diagram .node rect { fill: var(--surface-2); stroke: var(--line); }
+svg.diagram .node.hot rect { fill: var(--bad-bg); stroke: var(--bad); }
+svg.diagram .node.alt rect { fill: var(--warn-bg); stroke: var(--warn); }
+svg.diagram text { fill: var(--fg); text-anchor: middle; }
+svg.diagram text.lbl { fill: var(--muted); font-size: 12px; text-anchor: start; }
+svg.diagram text.lbl.mid { text-anchor: middle; }
+svg.diagram .edge { stroke: currentColor; stroke-width: 1.5; fill: none; }
+
+/* Notes */
+.notes-box { display: grid; gap: .5rem; }
+.notes-box textarea { font: inherit; font-size: .95rem; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .7rem; min-height: 9rem; width: 100%; resize: vertical; }
+.notes-tools { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; font-size: .9rem; color: var(--muted); }
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media print {
+  .proto [data-screen] { display: block !important; break-inside: avoid; }
+  .proto [data-screen] + [data-screen] { border-top: 1px dashed #999; }
+  .proto .scr-label { display: block !important; }
+  .moderator, .notes-tools, .sim button { display: none !important; }
+  body.tester main > *, body.tester .proto-area > * { display: block !important; }
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Patient portal, password reset prototype</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Password reset prototype</h1>
+    <p class="lede">This is the clickable prototype of the new password reset flow in the patient portal, built for the usability test on Thursday 2026-11-06. Testers go from the "Forgot password?" link on the login screen to the success screen in five steps; the moderator uses the controls below the prototype to reset to the start or jump to any screen, including the expired-link error. No email is sent and no account is checked: every screen is simulated in this file.</p>
+    <p class="meta">Prepared 3 November 2026 for the patient portal team and the test moderator. <span class="pill" data-state="warn">To be confirmed</span> The test date is given as Thursday 2026-11-06, but 6 November 2026 is a Friday; check which day is meant.</p>
+
+    <h2 id="what-to-try">What to try</h2>
+    <p>Open this file in a browser on the test laptop. It works offline. Give the tester the task below and let them click through without help. Before each new tester, press <b>Reset to start</b>; to hide this text and show only the prototype, press <b>Tester view</b>.</p>
+    <ol class="tasks">
+      <li>"You have forgotten your password for the patient portal. Set a new one."</li>
+      <li>Optional second task, started by the moderator with <b>Jump to: Link expired</b>: "You open the reset email after a long lunch break. Get a working link."</li>
+    </ol>
+    <aside class="callout" data-kind="warn">
+      <p><strong>What is not real.</strong> No email leaves this page and no account exists behind it. Any email address leads to the "Check your inbox" screen, exactly as the real portal must behave. Opening the reset link is simulated with yellow, dashed "Prototype only" buttons on that screen. The portal cannot know earlier passwords here, so the rule "not one of the last 5" is met unless the moderator switches it off in the controls.</p>
+    </aside>
+
+    <section class="proto-area" aria-labelledby="prototype">
+    <h2 id="prototype">The prototype</h2>
+    <div class="device">
+      <div class="device-bar" aria-hidden="true"><span class="dots"><i></i><i></i><i></i></span><span class="addr" id="proto-addr">patient portal, sign in</span></div>
+      <div class="portal-head">
+        <svg viewBox="0 0 24 24" role="img" aria-labelledby="logo-t"><title id="logo-t">Patient portal logo: a cross in a rounded square</title><rect x="2" y="2" width="20" height="20" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v10M7 12h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <span>Patient portal</span>
+      </div>
+      <div class="proto">
+
+        <section data-screen="login" aria-label="Step 1: Sign in">
+          <span class="scr-label">Step 1 of 5: Sign in</span>
+          <p class="scr-title" role="heading" aria-level="3" tabindex="-1">Sign in</p>
+          <div class="field"><label for="login-email">Email address</label><input id="login-email" type="email" autocomplete="off"></div>
+          <div class="field"><label for="login-pw">Password</label><input id="login-pw" type="password" autocomplete="off"></div>
+          <div class="row"><span></span><button type="button" class="linkbtn" data-go="email">Forgot password?</button></div>
+          <div class="stack">
+            <button type="button" class="btn" id="login-submit">Sign in</button>
+            <p class="msg" id="login-msg" hidden>Signing in is not part of this test. Use "Forgot password?" instead.</p>
+          </div>
+        </section>
+
+        <section data-screen="email" aria-label="Step 2: Enter email">
+          <span class="scr-label">Step 2 of 5: Enter email</span>
+          <p class="scr-title" role="heading" aria-level="3" tabindex="-1">Reset your password</p>
+          <p class="scr-text">Enter the email address you use for the patient portal. We will send you a link to set a new password.</p>
+          <form id="email-form" action="#screen-inbox" novalidate>
+            <div class="field"><label for="reset-email">Email address</label><input id="reset-email" type="email" required autocomplete="off" placeholder="name@example.com"></div>
+            <p class="msg" id="email-msg" hidden>Enter an email address, for example name@example.com.</p>
+            <div class="stack">
+              <button type="submit" class="btn">Send reset link</button>
+              <button type="button" class="btn secondary" data-go="login">Back to sign in</button>
+            </div>
+          </form>
+        </section>
+
+        <section data-screen="inbox" aria-label="Step 3: Check your inbox">
+          <span class="scr-label">Step 3 of 5: Check your inbox (also shown for an unknown email address)</span>
+          <svg class="big-sign mail" viewBox="0 0 48 48" role="img" aria-labelledby="mail-t"><title id="mail-t">Envelope</title><rect x="5" y="11" width="38" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M7 14l17 13 17-13" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>
+          <p class="scr-title" role="heading" aria-level="3" tabindex="-1">Check your inbox</p>
+          <p class="scr-text">If <b id="inbox-email">this email address</b> belongs to a patient portal account, we have sent it a link to set a new password. The link works for 30 minutes.</p>
+          <div class="stack">
+            <p class="scr-text" id="resend-wait" aria-live="polite">You can resend the link in 60 s.</p>
+            <button type="button" class="btn secondary" id="resend" disabled>Resend</button>
+            <p class="msg" data-kind="ok" id="resend-msg" hidden>A new link has been sent.</p>
+            <button type="button" class="btn secondary" data-go="login">Back to sign in</button>
+          </div>
+          <div class="sim">
+            <p>Prototype only: what happens in the tester's mailbox</p>
+            <button type="button" data-go="newpw">Open the reset link</button>
+            <button type="button" data-go="expired">Open the link after more than 30 minutes</button>
+          </div>
+        </section>
+
+        <section data-screen="newpw" aria-label="Step 4: Set a new password">
+          <span class="scr-label">Step 4 of 5: Set a new password</span>
+          <p class="scr-title" role="heading" aria-level="3" tabindex="-1">Set a new password</p>
+          <div class="field"><label for="new-pw">New password</label><input id="new-pw" type="password" autocomplete="new-password" aria-describedby="pw-rules"></div>
+          <div class="row"><label><input type="checkbox" id="show-pw"> Show password</label></div>
+          <ul class="rules" id="pw-rules" aria-live="polite">
+            <li data-rule="len"><span class="mark" aria-hidden="true">&#9675;</span><span>At least 12 characters <span class="sr state">not met yet</span></span></li>
+            <li data-rule="hist"><span class="mark" aria-hidden="true">&#9675;</span><span>Not one of your last 5 passwords <span class="sr state">not met yet</span></span></li>
+          </ul>
+          <div class="stack">
+            <button type="button" class="btn" id="save-pw" disabled>Save new password</button>
+          </div>
+        </section>
+
+        <section data-screen="done" aria-label="Step 5: Success">
+          <span class="scr-label">Step 5 of 5: Success</span>
+          <svg class="big-sign ok" viewBox="0 0 48 48" role="img" aria-labelledby="ok-t"><title id="ok-t">Check mark in a circle</title><circle cx="24" cy="24" r="19" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M15 25l6 6 12-13" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <p class="scr-title" role="heading" aria-level="3" tabindex="-1">Your password has been changed</p>
+          <p class="scr-text">Sign in with your new password.</p>
+          <button type="button" class="btn" data-go="login">Back to sign in</button>
+        </section>
+
+        <section data-screen="expired" aria-label="Error: Link expired">
+          <span class="scr-label">Error path: the reset link is older than 30 minutes</span>
+          <svg class="big-sign warn" viewBox="0 0 48 48" role="img" aria-labelledby="exp-t"><title id="exp-t">Clock</title><circle cx="24" cy="24" r="19" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M24 13v12l8 5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          <p class="scr-title" role="heading" aria-level="3" tabindex="-1">This link has expired</p>
+          <p class="scr-text">Reset links work for 30 minutes. Send yourself a new one.</p>
+          <div class="stack">
+            <button type="button" class="btn" data-go="inbox">Send a new link</button>
+            <button type="button" class="btn secondary" data-go="login">Back to sign in</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <aside class="moderator" aria-labelledby="mod-h" hidden>
+      <h3 id="mod-h">Moderator controls</h3>
+      <div class="mod-row">
+        <span>Now showing: <span class="now" id="mod-now">Step 1: Sign in</span></span>
+      </div>
+      <div class="mod-row">
+        <button type="button" id="proto-reset">Reset to start</button>
+        <label>Jump to
+          <select id="proto-jump">
+            <option value="login">Step 1: Sign in</option>
+            <option value="email">Step 2: Enter email</option>
+            <option value="inbox">Step 3: Check your inbox</option>
+            <option value="newpw">Step 4: Set a new password</option>
+            <option value="done">Step 5: Success</option>
+            <option value="expired">Error: Link expired</option>
+          </select>
+        </label>
+        <button type="button" id="skip-wait">Skip the 60 s wait</button>
+        <button type="button" id="tester-view" aria-pressed="false">Tester view</button>
+      </div>
+      <div class="mod-row">
+        <label><input type="checkbox" id="sim-history"> Treat the new password as one of the last 5</label>
+      </div>
+      <p style="margin:0">Each screen also has its own link: add <code>#screen-inbox</code>, <code>#screen-expired</code> and so on to the file's address. An unknown email address has no screen of its own; it shows step 3.</p>
+    </aside>
+    </section>
+
+    <h2 id="flow">How the flow works</h2>
+    <div class="flow-wrap">
+      <figure style="margin:0">
+        <svg class="diagram" viewBox="0 0 750 260" role="img" aria-labelledby="flow-t">
+          <title id="flow-t">Password reset flow: sign in, enter email, check your inbox, set a new password, success and back to sign in; an unknown email shows the same inbox screen; a link older than 30 minutes leads to the expired screen, which sends a new link</title>
+          <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+          <path class="edge" d="M670,40 V18 H70 V38" marker-end="url(#arr)"/>
+          <text class="lbl mid" x="370" y="13">Back to sign in</text>
+          <g class="node"><rect x="10" y="40" width="120" height="50" rx="6"/><text x="70" y="62">1 Sign in</text><text x="70" y="79" class="lbl mid">Forgot password?</text></g>
+          <line class="edge" x1="130" y1="65" x2="158" y2="65" marker-end="url(#arr)"/>
+          <g class="node"><rect x="160" y="40" width="120" height="50" rx="6"/><text x="220" y="62">2 Enter email</text><text x="220" y="79" class="lbl mid">any address</text></g>
+          <line class="edge" x1="280" y1="65" x2="308" y2="65" marker-end="url(#arr)"/>
+          <g class="node"><rect x="310" y="40" width="120" height="50" rx="6"/><text x="370" y="62">3 Check inbox</text><text x="370" y="79" class="lbl mid">Resend after 60 s</text></g>
+          <line class="edge" x1="430" y1="65" x2="458" y2="65" marker-end="url(#arr)"/>
+          <g class="node"><rect x="460" y="40" width="120" height="50" rx="6"/><text x="520" y="62">4 New password</text><text x="520" y="79" class="lbl mid">live rule checklist</text></g>
+          <line class="edge" x1="580" y1="65" x2="608" y2="65" marker-end="url(#arr)"/>
+          <g class="node"><rect x="610" y="40" width="120" height="50" rx="6"/><text x="670" y="69">5 Success</text></g>
+
+          <line class="edge" x1="220" y1="90" x2="220" y2="168" marker-end="url(#arr)"/>
+          <text class="lbl" x="228" y="132">not registered</text>
+          <g class="node alt"><rect x="160" y="170" width="120" height="50" rx="6"/><text x="220" y="200">Unknown email</text></g>
+          <path class="edge" d="M280,195 H345 V92" marker-end="url(#arr)"/>
+          <text class="lbl" x="232" y="240">same screen as step 3 (rule SEC-31)</text>
+
+          <line class="edge" x1="420" y1="90" x2="490" y2="168" marker-end="url(#arr)"/>
+          <text class="lbl" x="470" y="128">link older than 30 min</text>
+          <g class="node hot"><rect x="460" y="170" width="120" height="50" rx="6"/><text x="520" y="200">Link expired</text></g>
+          <path class="edge" d="M460,210 H395 V92" marker-end="url(#arr)"/>
+          <text class="lbl" x="590" y="200">Send a new link</text>
+          <text class="lbl" x="590" y="216">returns to step 3</text>
+        </svg>
+      </figure>
+    </div>
+    <p>The happy path has five screens. The login screen's "Forgot password?" link opens the email form; sending it always leads to "Check your inbox", where the Resend button stays disabled for 60 seconds so that people do not trigger a burst of emails. The link in the email opens the new-password screen, whose checklist turns each rule green as the person types. Saving leads to the success screen and back to sign in.</p>
+    <p>Two paths leave the happy path. An email address with no account shows the same "Check your inbox" screen, word for word, because of <a class="ref" data-ref="SEC-31" href="#ref-SEC-31"><span class="ref-id">SEC-31</span> never reveal whether an account exists</a>: a different message would let anyone test which addresses have a portal account, which is called <dfn data-gloss="Finding out which accounts exist by watching how a system answers, for example a different message for known and unknown email addresses.">account enumeration</dfn>. A link opened more than 30 minutes after it was sent shows "This link has expired" with a button that sends a new link and returns to step 3.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Rule</th><th>Value</th><th>Where the tester meets it</th></tr></thead>
+        <tbody>
+          <tr><td>Resend delay</td><td>60 s</td><td>Step 3: Resend is disabled with a countdown, then enabled</td></tr>
+          <tr><td>Minimum password length</td><td>12 characters</td><td>Step 4: first line of the live checklist</td></tr>
+          <tr><td>Password history</td><td>not one of the last 5</td><td>Step 4: second line; simulated by the moderator switch</td></tr>
+          <tr><td>Link lifetime</td><td>30 minutes</td><td>Error screen "This link has expired"</td></tr>
+          <tr><td>Unknown email</td><td>same screen as step 3</td><td>Step 3, no difference visible (<a class="ref" data-ref="SEC-31" href="#ref-SEC-31"><span class="ref-id">SEC-31</span> no account enumeration</a>)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="notes">Session notes</h2>
+    <p>Write observations here during the session. <b>Add screen and time</b> puts the current screen and the laptop's clock time in front of the cursor. The notes are kept only in this browser on this laptop; they are not shared with anyone. After each session, press <b>Copy notes</b> and paste them into the team channel or the test protocol.</p>
+    <div class="notes-box">
+      <label for="notes-text" class="sr">Session notes</label>
+      <textarea id="notes-text" placeholder="Tester 1: hesitated on step 3, looked for the Resend button..."></textarea>
+      <div class="notes-tools">
+        <button type="button" id="notes-stamp">Add screen and time</button>
+        <button type="button" id="notes-copy">Copy notes</button>
+        <button type="button" id="notes-clear">Clear notes</button>
+        <span id="notes-status" aria-live="polite"></span>
+      </div>
+    </div>
+
+    <h2 id="open-points">Open points</h2>
+    <ul>
+      <li><span class="pill" data-state="warn">To be confirmed</span> The test date: the source says "Thursday 2026-11-06", but 6 November 2026 is a Friday. Thursday would be 5 November 2026.</li>
+      <li><span class="pill" data-state="info">Draft</span> The wording on the screens ("If this email address belongs to a patient portal account...") is draft copy written for the prototype; the source gives only the screen names and the "This link has expired" message.</li>
+      <li><span class="pill" data-state="info">Draft</span> The source does not say whether the new-password screen asks for the password twice. The prototype has one field with a "Show password" option.</li>
+    </ul>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-SEC-31"><b>SEC-31</b> <span class="ref-summary">Security rule: never reveal whether an account exists. For password reset this means an unknown email address gets the same "Check your inbox" screen as a known one.</span> Source: the brief for this prototype. Ticket or document link not given.</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt id="gloss-enumeration">Account enumeration</dt>
+      <dd>Finding out which accounts exist by watching how a system answers, for example a different message for known and unknown email addresses.</dd>
+      <dt id="gloss-moderator">Moderator</dt>
+      <dd>The person who runs the usability test: gives the tasks, resets the prototype between testers and takes notes, without helping the tester.</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill. Opens offline; no network access needed. Session notes stay in this browser only.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  // Prototype: screens as states, plain JavaScript. Without JS every screen shows in order.
+  const $ = (id) => document.getElementById(id);
+  const proto = document.querySelector('.proto');
+  proto.classList.add('js');
+  const mod = document.querySelector('.moderator'); mod.hidden = false;
+  const screens = [...proto.querySelectorAll('[data-screen]')];
+  const ids = screens.map((s) => s.dataset.screen), first = 'login';
+  const jump = $('proto-jump');
+  const names = Object.fromEntries([...jump.options].map((o) => [o.value, o.textContent]));
+  const addr = { login: 'sign in', email: 'reset password', inbox: 'reset password, email sent',
+    newpw: 'reset password, new password', done: 'reset password, done', expired: 'reset password, link expired' };
+  let current = first, timer = null, remaining = 0;
+
+  // Resend countdown on "Check your inbox"
+  const tick = () => {
+    $('resend').disabled = remaining > 0;
+    $('resend-wait').textContent = remaining > 0
+      ? 'You can resend the link in ' + remaining + ' s.'
+      : 'No email yet? You can send the link again.';
+  };
+  const stopWait = () => { clearInterval(timer); timer = null; };
+  const startWait = () => {
+    stopWait(); remaining = 60; tick();
+    timer = setInterval(() => { remaining -= 1; tick(); if (remaining <= 0) stopWait(); }, 1000);
+  };
+
+  const show = (id, quiet) => {
+    if (!ids.includes(id)) id = first;
+    current = id;
+    screens.forEach((s) => s.classList.toggle('on', s.dataset.screen === id));
+    jump.value = id; $('mod-now').textContent = names[id];
+    $('proto-addr').textContent = 'patient portal, ' + addr[id];
+    $('resend-msg').hidden = true; $('login-msg').hidden = true;
+    if (id === 'inbox') startWait(); else stopWait();
+    if (id === 'newpw') checkRules();
+    if (!quiet) {
+      history.replaceState(null, '', '#screen-' + id);
+      screens[ids.indexOf(id)].querySelector('.scr-title')?.focus({ preventScroll: true });
+    }
+  };
+
+  proto.addEventListener('click', (e) => {
+    const go = e.target.closest('[data-go]');
+    if (go) show(go.dataset.go);
+  });
+  $('login-submit').addEventListener('click', () => { $('login-msg').hidden = false; });
+
+  // Step 2: any well-formed address leads to step 3 (no account check, rule SEC-31).
+  $('email-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = $('reset-email'), value = input.value.trim();
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    $('email-msg').hidden = ok;
+    if (!ok) { input.focus(); return; }
+    $('inbox-email').textContent = value;
+    show('inbox');
+  });
+  $('resend').addEventListener('click', () => { startWait(); $('resend-msg').hidden = false; });
+
+  // Step 4: live rule checklist
+  const pw = $('new-pw'), hist = $('sim-history');
+  const setRule = (name, state) => {
+    const li = proto.querySelector('[data-rule="' + name + '"]');
+    li.classList.toggle('met', state === 'met'); li.classList.toggle('miss', state === 'miss');
+    li.querySelector('.mark').textContent = state === 'met' ? '✓' : state === 'miss' ? '✗' : '○';
+    li.querySelector('.state').textContent = state === 'met' ? 'met' : state === 'miss' ? 'not met' : 'not met yet';
+  };
+  function checkRules() {
+    const v = pw.value;
+    const lenOk = v.length >= 12;
+    const histOk = v.length > 0 && !hist.checked;
+    setRule('len', lenOk ? 'met' : 'open');
+    setRule('hist', v.length === 0 ? 'open' : histOk ? 'met' : 'miss');
+    $('save-pw').disabled = !(lenOk && histOk);
+  }
+  pw.addEventListener('input', checkRules);
+  hist.addEventListener('change', checkRules);
+  $('show-pw').addEventListener('change', (e) => { pw.type = e.target.checked ? 'text' : 'password'; });
+  $('save-pw').addEventListener('click', () => { if (!$('save-pw').disabled) show('done'); });
+
+  // Moderator controls
+  jump.addEventListener('change', () => show(jump.value));
+  $('skip-wait').addEventListener('click', () => { if (current !== 'inbox') show('inbox'); stopWait(); remaining = 0; tick(); });
+  $('proto-reset').addEventListener('click', () => {
+    proto.querySelectorAll('input').forEach((i) => { if (i.type === 'checkbox') i.checked = false; else i.value = ''; });
+    pw.type = 'password'; hist.checked = false;
+    $('inbox-email').textContent = 'this email address'; $('email-msg').hidden = true;
+    checkRules(); show(first);
+    document.querySelector('.device').scrollIntoView({ block: 'start' });
+  });
+  const tv = $('tester-view');
+  tv.addEventListener('click', () => {
+    const on = !document.body.classList.contains('tester');
+    document.body.classList.toggle('tester', on); tv.setAttribute('aria-pressed', on);
+    tv.textContent = on ? 'Show the whole page' : 'Tester view';
+    document.querySelector('.device').scrollIntoView({ block: 'start' });
+  });
+
+  const fromHash = () => location.hash.startsWith('#screen-') ? location.hash.slice(8) : null;
+  window.addEventListener('hashchange', () => { const h = fromHash(); if (h && ids.includes(h) && h !== current) show(h, true); });
+  const h = fromHash();
+  show(h && ids.includes(h) ? h : first, true);
+  checkRules();
+
+  // Session notes: saved only in this browser.
+  const notes = $('notes-text'), status = $('notes-status'), KEY = 'html-it-pw-reset-notes';
+  try { notes.value = localStorage.getItem(KEY) || ''; } catch {}
+  const save = () => {
+    try { localStorage.setItem(KEY, notes.value); status.textContent = 'Saved in this browser.'; }
+    catch { status.textContent = 'This browser does not allow saving; copy the notes before closing.'; }
+  };
+  notes.addEventListener('input', save);
+  $('notes-stamp').addEventListener('click', () => {
+    const t = new Date().toTimeString().slice(0, 5);
+    const stamp = '[' + t + ', ' + names[current] + '] ';
+    const at = notes.selectionStart ?? notes.value.length;
+    const before = notes.value.slice(0, at), pre = before && !before.endsWith('\n') ? '\n' : '';
+    notes.value = before + pre + stamp + notes.value.slice(at);
+    notes.focus(); const pos = (before + pre + stamp).length; notes.setSelectionRange(pos, pos); save();
+  });
+  $('notes-copy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(notes.value); status.textContent = 'Copied.'; }
+    catch { notes.select(); status.textContent = 'Selected; press Ctrl+C to copy.'; }
+  });
+  $('notes-clear').addEventListener('click', () => {
+    if (notes.value && !confirm('Clear all notes in this browser?')) return;
+    notes.value = ''; save();
+  });
+})();
+</script>
+</body>
+</html>

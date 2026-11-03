@@ -1,0 +1,1 @@
+... Mid-fi wireframes inside phone frames ... Picks are saved only in the viewer's own browser, and the page says so. ... Fonts and libraries: Google Fonts only, with plain CSS and a little JS. ... One row per screen: the notes from the sketch on the left, then the A and B phone wireframes side by side.

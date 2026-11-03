@@ -1,0 +1,1 @@
+I did not use React or Tailwind from a CDN, which the request asked for. ... The page is one self-contained HTML file with plain CSS and JS. ... The only outside request is Google Fonts, and the page falls back to system fonts without it. ... No real email: testers continue from step 3 using a dashed "Prototype only" box.

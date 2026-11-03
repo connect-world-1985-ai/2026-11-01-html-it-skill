@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unser Release-Train</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Einführung für neue Teammitglieder: Release-Branches, Hotfixes, Versionsnummern und QA-Gate.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: eine Lesespalte, oben das Gleisbild (Branch-Diagramm), darunter Ablauf, Versionsschema, Rollen, offene Punkte */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #1b2230;
+  --muted: #5a6475;
+  --line: #d9dde5;
+  --accent: #1f5fbf;      /* master / Hauptgleis */
+  --release: #0f8a6a;     /* Release-Branch */
+  --hotfix: #c0462b;      /* Hotfix */
+  --gate: #8a5a00;        /* QA-Gate */
+  --gate-bg: #fff4dc;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a2029; --fg: #e6e9ef; --muted: #9aa4b5; --line: #2c3442;
+    --accent: #6ea4ff; --release: #3fcfa4; --hotfix: #ff8a6e; --gate: #f1c069; --gate-bg: #2c2414;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --fg: #e6e9ef; --muted: #9aa4b5; --line: #2c3442;
+  --accent: #6ea4ff; --release: #3fcfa4; --hotfix: #ff8a6e; --gate: #f1c069; --gate-bg: #2c2414;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 1.0625rem/1.6 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 2.5rem 4rem;
+}
+main { max-width: 46rem; margin: 0 auto; display: grid; gap: 3rem; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 2.75rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.5rem; font-weight: 600; }
+p { margin: 0; max-width: 65ch; }
+section { display: grid; gap: 1rem; min-width: 0; }
+.eyebrow { font: 600 0.75rem/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+header { display: grid; gap: 0.9rem; }
+.lead { font-size: 1.2rem; color: var(--muted); }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+code { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 0.05em 0.35em; }
+
+.facts { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin: 0; padding: 0; list-style: none; font-size: 0.95rem; }
+.facts li { display: flex; gap: 0.4rem; align-items: baseline; }
+.facts dt, .facts .k { color: var(--muted); }
+.facts .v { font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem; overflow-x: auto; }
+.diagram svg { display: block; width: 100%; min-width: 560px; height: auto; }
+.diagram svg text { font-family: var(--font-mono); font-size: 12px; fill: var(--fg); }
+.diagram svg .lbl-muted { fill: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; font-size: 0.875rem; color: var(--muted); margin-top: 0.75rem; }
+.legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.sw { width: 1.4rem; height: 4px; border-radius: 2px; display: inline-block; }
+
+ol.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: step; }
+ol.steps li { counter-increment: step; display: grid; grid-template-columns: 2.25rem 1fr; gap: 0 0.9rem; padding-block: 1rem; border-top: 1px solid var(--line); }
+ol.steps li:last-child { border-bottom: 1px solid var(--line); }
+ol.steps li::before { content: counter(step); font: 600 1rem/1.6 var(--font-mono); color: var(--muted); }
+ol.steps li > div { min-width: 0; display: grid; gap: 0.25rem; }
+ol.steps strong { font-weight: 600; }
+.tag { display: inline-block; font: 600 0.7rem/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; padding: 0.3em 0.55em; border-radius: 4px; vertical-align: 0.15em; margin-left: 0.4rem; }
+.tag.gate { color: var(--gate); background: var(--gate-bg); }
+
+.version { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.25rem; font-family: var(--font-mono); }
+.version .part { display: grid; justify-items: center; gap: 0.35rem; }
+.version .num { font-size: clamp(2.25rem, 9vw, 3.5rem); font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.version .dot { font-size: clamp(2.25rem, 9vw, 3.5rem); line-height: 1; color: var(--muted); padding-bottom: 1.6rem; }
+.version .name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.version .part.hf .num { color: var(--hotfix); }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+th, td { text-align: left; padding: 0.55rem 0.75rem 0.55rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+td.mono { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.open { background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; padding: 1.1rem 1.25rem; display: grid; gap: 0.6rem; }
+.open ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.4rem; }
+footer { font-size: 0.875rem; color: var(--muted); }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <span class="eyebrow">Onboarding · Release-Prozess</span>
+  <h1>Unser Release-Train</h1>
+  <p class="lead">Alle vier Wochen fährt ein Release vom <code>master</code> ab. Was danach noch repariert werden muss, läuft als Hotfix auf dem Release-Branch und wird sofort zurück in den <code>master</code> gemergt.</p>
+  <ul class="facts" aria-label="Eckdaten">
+    <li><span class="k">Takt</span><span class="v">4 Wochen</span></li>
+    <li><span class="k">Letzter Cut</span><span class="v">R26.11 · 02.11.2026</span></li>
+    <li><span class="k">Nächster Cut</span><span class="v">30.11.2026</span></li>
+    <li><span class="k">Release-Manager</span><span class="v">rotiert monatlich</span></li>
+  </ul>
+</header>
+
+<section aria-labelledby="h-bild">
+  <h2 id="h-bild">Das Gleisbild</h2>
+  <p>Der <code>master</code> ist das Hauptgleis, auf dem die laufende Entwicklung passiert. Zum Cut zweigt ein Release-Branch ab. Hotfixes zweigen vom Release-Branch ab, nicht vom <code>master</code>.</p>
+  <figure class="diagram" style="margin:0">
+    <svg viewBox="0 0 640 250" role="img" aria-labelledby="svg-t svg-d">
+      <title id="svg-t">Branch-Modell des Release-Trains</title>
+      <desc id="svg-d">Der master läuft durchgehend. Nach dem QA-Sign-off wird am 2. November 2026 der Release-Branch R26.11 abgeschnitten. Von ihm zweigt ein Hotfix-Branch ab, der zurück in den Release-Branch und per Merge-back in den master fließt. Der nächste Cut folgt vier Wochen später.</desc>
+      <!-- master -->
+      <line x1="20" y1="50" x2="620" y2="50" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>
+      <text x="20" y="30">master</text>
+      <!-- QA gate before cut -->
+      <rect x="92" y="34" width="32" height="32" rx="4" fill="var(--gate-bg)" stroke="var(--gate)" stroke-width="2"/>
+      <text x="108" y="54" text-anchor="middle" style="fill:var(--gate);font-size:10px;font-weight:600">QA</text>
+      <text x="108" y="88" text-anchor="middle" class="lbl-muted" style="font-size:11px">Sign-off</text>
+      <!-- cut -->
+      <circle cx="150" cy="50" r="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/>
+      <text x="150" y="30" text-anchor="middle">Cut 02.11.</text>
+      <!-- release branch -->
+      <path d="M150 50 C 175 50, 175 140, 200 140 L 600 140" fill="none" stroke="var(--release)" stroke-width="4" stroke-linecap="round"/>
+      <text x="210" y="128" style="fill:var(--release);font-weight:600">release/R26.11</text>
+      <circle cx="230" cy="140" r="6" fill="var(--release)"/>
+      <text x="230" y="162" text-anchor="middle" class="lbl-muted">8.4.0.0</text>
+      <!-- hotfix branch -->
+      <path d="M300 140 C 320 140, 320 210, 340 210 L 380 210 C 400 210, 400 140, 420 140" fill="none" stroke="var(--hotfix)" stroke-width="3" stroke-dasharray="0" stroke-linecap="round"/>
+      <text x="360" y="232" text-anchor="middle" style="fill:var(--hotfix)">hotfix</text>
+      <circle cx="300" cy="140" r="5" fill="var(--surface)" stroke="var(--hotfix)" stroke-width="2.5"/>
+      <circle cx="420" cy="140" r="6" fill="var(--hotfix)"/>
+      <text x="420" y="162" text-anchor="middle" style="fill:var(--hotfix)">8.4.0.1</text>
+      <!-- merge-back -->
+      <path d="M420 140 C 450 140, 450 50, 480 50" fill="none" stroke="var(--hotfix)" stroke-width="2.5" stroke-dasharray="6 5"/>
+      <circle cx="480" cy="50" r="6" fill="var(--surface)" stroke="var(--hotfix)" stroke-width="2.5"/>
+      <text x="480" y="30" text-anchor="middle" style="fill:var(--hotfix)">Merge-back</text>
+      <!-- next gate + cut -->
+      <rect x="538" y="34" width="32" height="32" rx="4" fill="var(--gate-bg)" stroke="var(--gate)" stroke-width="2"/>
+      <text x="554" y="54" text-anchor="middle" style="fill:var(--gate);font-size:10px;font-weight:600">QA</text>
+      <circle cx="596" cy="50" r="7" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/>
+      <text x="596" y="88" text-anchor="middle" class="lbl-muted" style="font-size:11px">Cut 30.11.</text>
+    </svg>
+    <figcaption class="legend">
+      <span><i class="sw" style="background:var(--accent)"></i>master</span>
+      <span><i class="sw" style="background:var(--release)"></i>Release-Branch</span>
+      <span><i class="sw" style="background:var(--hotfix)"></i>Hotfix und Merge-back</span>
+      <span>Versionsnummern im Bild sind Beispiele.</span>
+    </figcaption>
+  </figure>
+</section>
+
+<section aria-labelledby="h-ablauf">
+  <h2 id="h-ablauf">Ein Zyklus Schritt für Schritt</h2>
+  <ol class="steps">
+    <li><div><strong>Entwicklung auf <code>master</code></strong><p>Neue Features und Fixes landen wie gewohnt im <code>master</code>.</p></div></li>
+    <li><div><strong>QA-Sign-off <span class="tag gate">Gate</span></strong><p>Vor dem Cut gibt QA den Stand frei. Ohne Sign-off wird kein Release-Branch geschnitten.</p></div></li>
+    <li><div><strong>Cut des Release-Branches</strong><p>Alle 4 Wochen wird vom <code>master</code> ein Release-Branch abgeschnitten. Zuletzt war das R26.11 am 02.11.2026. Ab jetzt ist dieser Branch der Stand, der ausgeliefert wird.</p></div></li>
+    <li><div><strong>Hotfix vom Release-Branch</strong><p>Muss im Release etwas repariert werden, zweigt der Hotfix-Branch vom Release-Branch ab, nicht vom <code>master</code>. So kommt keine unfertige Entwicklung mit ins Release. Jeder Hotfix erhöht die letzte Stelle der Version.</p></div></li>
+    <li><div><strong>Merge-back nach jedem Hotfix</strong><p>Nach jedem Hotfix wird der Fix zurück in den <code>master</code> gemergt. Sonst taucht der Fehler im nächsten Release wieder auf.</p></div></li>
+  </ol>
+</section>
+
+<section aria-labelledby="h-version">
+  <h2 id="h-version">Versionsnummern lesen</h2>
+  <p>Versionen haben vier Stellen: <span class="mono">major.minor.patch.hotfix</span>.</p>
+  <div class="version" aria-label="Beispielversion 8.4.0.1">
+    <div class="part"><span class="num">8</span><span class="name">major</span></div>
+    <span class="dot" aria-hidden="true">.</span>
+    <div class="part"><span class="num">4</span><span class="name">minor</span></div>
+    <span class="dot" aria-hidden="true">.</span>
+    <div class="part"><span class="num">0</span><span class="name">patch</span></div>
+    <span class="dot" aria-hidden="true">.</span>
+    <div class="part hf"><span class="num">1</span><span class="name">hotfix</span></div>
+  </div>
+  <p><span class="mono">8.4.0.1</span> ist also Major 8, Minor 4, Patch 0 mit dem ersten Hotfix. Release-Branches heißen zusätzlich nach dem Schema <span class="mono">R26.11</span>.</p>
+</section>
+
+<section aria-labelledby="h-rollen">
+  <h2 id="h-rollen">Wer ist zuständig?</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Rolle</th><th scope="col">Aufgabe im Train</th></tr></thead>
+      <tbody>
+        <tr><td>Release-Manager</td><td>Verantwortet den Release. Die Rolle rotiert monatlich im Team.</td></tr>
+        <tr><td>QA</td><td>Gibt vor jedem Cut den Stand frei (Sign-off-Gate).</td></tr>
+        <tr><td>Alle Entwickler</td><td>Hotfixes vom Release-Branch abzweigen und nach jedem Hotfix den Merge-back in den <code>master</code> sicherstellen.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Wer diesen Monat Release-Manager ist, steht im Team-Kalender.</p>
+</section>
+
+<section aria-labelledby="h-offen">
+  <div class="open">
+    <h2 id="h-offen" style="font-size:1.15rem">Noch zu klären</h2>
+    <ul>
+      <li>Wie heißt der Release vom 30.11.2026? Bei einem 4-Wochen-Takt passt das Schema <span class="mono">R26.11</span> (Jahr.Monat) nicht dauerhaft, da es 13 Cuts pro Jahr gibt.</li>
+      <li>Welche Versionsnummer gehört zu R26.11? Die Zuordnung im Diagramm (<span class="mono">8.4.0.0</span>) ist nur ein Beispiel.</li>
+      <li>Wann zählen Major, Minor und Patch hoch?</li>
+    </ul>
+  </div>
+</section>
+
+<footer>Stand: 03.11.2026</footer>
+</main>
+</body>
+</html>

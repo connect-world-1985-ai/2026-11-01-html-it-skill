@@ -1,0 +1,359 @@
+<title>Sprint 46 Retro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column. Meta strip, two retro lists side by side, then the dot-vote board as the main block. */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --ink: #18202e;
+  --muted: #5a6475;
+  --line: #dde1e8;
+  --accent: #2a4fd6;       /* marker blue */
+  --dot: #f2b705;          /* dot-sticker yellow */
+  --dot-ink: #3a2c00;
+  --good: #1f7a4d;
+  --warn: #a8540d;
+  --bar-bg: #e8ebf1;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151d; --surface: #181e29; --ink: #e6e9ef; --muted: #9aa3b3; --line: #2a3242;
+    --accent: #7d9bff; --dot: #f5c431; --dot-ink: #2a2000; --good: #5fcf96; --warn: #f0a35e; --bar-bg: #232b3a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151d; --surface: #181e29; --ink: #e6e9ef; --muted: #9aa3b3; --line: #2a3242;
+  --accent: #7d9bff; --dot: #f5c431; --dot-ink: #2a2000; --good: #5fcf96; --warn: #f0a35e; --bar-bg: #232b3a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 820px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 64px;
+  display: grid; gap: 36px;
+}
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.1; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.3rem; font-weight: 600; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); margin: 0;
+}
+header { display: grid; gap: 12px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0; padding: 0; list-style: none; color: var(--muted); font-size: 0.9rem; }
+.meta b { color: var(--ink); font-weight: 600; }
+code, .ref { font-family: var(--font-mono); font-size: 0.86em; }
+.ref {
+  border-bottom: 1px dotted var(--muted); cursor: help;
+}
+
+.lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px; }
+.lists section { min-width: 0; display: grid; gap: 10px; align-content: start; }
+.lists h2 { display: flex; align-items: center; gap: 10px; }
+.lists h2::before { content: ""; width: 10px; height: 10px; border-radius: 2px; background: var(--tone); }
+.good { --tone: var(--good); }
+.improve { --tone: var(--warn); }
+.lists ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.lists li { padding: 10px 0 10px 14px; border-left: 2px solid var(--line); }
+.lists li small { display: block; color: var(--muted); font-size: 0.82rem; }
+
+.vote { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 24px clamp(16px, 4vw, 28px); display: grid; gap: 20px; }
+.vote-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; }
+.vote-head p { margin: 0; color: var(--muted); max-width: 60ch; }
+.status {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  font-size: 0.86rem;
+}
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.pill.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--good); }
+.pill.closed { border-color: var(--warn); color: var(--warn); }
+.pill.mine { background: var(--dot); border-color: var(--dot); color: var(--dot-ink); font-weight: 600; }
+
+.ideas { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.idea {
+  display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: 6px 14px; align-items: center;
+  padding: 14px 0; border-top: 1px solid var(--line);
+}
+.idea:first-child { border-top: 0; }
+.num { font-family: var(--font-mono); color: var(--muted); font-size: 0.9rem; }
+.idea-text { min-width: 0; font-weight: 500; }
+.bar-row { grid-column: 2 / 4; display: flex; align-items: center; gap: 12px; }
+.bar { flex: 1; height: 8px; border-radius: 4px; background: var(--bar-bg); overflow: hidden; }
+.bar span { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 4px; transition: width .4s ease; }
+.count { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.85rem; color: var(--muted); min-width: 5.5em; text-align: right; }
+.count b { color: var(--ink); font-weight: 500; }
+
+.dot-btn {
+  font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 14px 7px 10px; border-radius: 999px;
+  background: transparent; color: var(--ink); border: 1.5px solid var(--line);
+}
+.dot-btn::before {
+  content: ""; width: 14px; height: 14px; border-radius: 50%;
+  border: 2px dashed var(--muted);
+}
+.dot-btn[aria-pressed="true"] { background: var(--dot); border-color: var(--dot); color: var(--dot-ink); }
+.dot-btn[aria-pressed="true"]::before { border: 0; background: var(--dot-ink); opacity: .85; }
+.dot-btn:hover:not(:disabled) { border-color: var(--accent); }
+.dot-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dot-btn:disabled { cursor: not-allowed; opacity: .5; }
+
+.note { margin: 0; font-size: 0.86rem; color: var(--muted); }
+.note.err { color: var(--warn); }
+footer { color: var(--muted); font-size: 0.82rem; }
+
+@media (max-width: 480px) {
+  .idea { grid-template-columns: 1.6rem minmax(0, 1fr); }
+  .idea .dot-btn { grid-column: 2; justify-self: start; }
+  .bar-row { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .bar span { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Booking team &middot; Retrospective</p>
+    <h1>Sprint 46 Retro</h1>
+    <ul class="meta">
+      <li>Sprint <b>20 Oct &ndash; 31 Oct 2026</b></li>
+      <li><b>6</b> people</li>
+      <li>Vote by <b>Thu 6 Nov 2026</b></li>
+    </ul>
+  </header>
+
+  <div class="lists">
+    <section class="good" aria-labelledby="h-good">
+      <h2 id="h-good">Went well</h2>
+      <ul>
+        <li>Pairing on <span class="ref" title="Booking search pagination">KT-948</span><small>Booking search pagination</small></li>
+        <li>Release <code>8.4.0.0</code> shipped on time</li>
+        <li>The new on-call runbook <span class="ref" title="Rollback runbook">RB-04</span><small>Rollback runbook</small></li>
+      </ul>
+    </section>
+    <section class="improve" aria-labelledby="h-improve">
+      <h2 id="h-improve">To improve</h2>
+      <ul>
+        <li>Flaky integration suite<small>22 flaky tests</small></li>
+        <li>Slow code reviews<small>Median review wait 1.8 days</small></li>
+        <li>Too many meetings on Wednesdays</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="vote" aria-labelledby="h-vote">
+    <div class="vote-head">
+      <h2 id="h-vote">Vote on the action ideas</h2>
+      <p>You have 2 dots. Put each on a different idea. You can move them until the end of Thursday 6 November.</p>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+    <ol class="ideas" id="ideas"></ol>
+    <p class="note" id="note"></p>
+  </section>
+
+  <footer>Totals update live for everyone with the page open. The page shows how many people voted, not who voted for what.</footer>
+</div>
+
+<script>
+(function () {
+  var IDEAS = [
+    { id: "quarantine", text: "Quarantine flaky tests automatically." },
+    { id: "review-rotation", text: "Review rotation with a 24-hour target." },
+    { id: "no-meeting-wed", text: "Meeting-free Wednesday afternoons." },
+    { id: "retro-3wk", text: "Hold the retro every 3 weeks instead of every 2." }
+  ];
+  var VALID = {}; IDEAS.forEach(function (i) { VALID[i.id] = true; });
+  var MAX_DOTS = 2, TEAM = 6;
+  var CLOSES = new Date(2026, 10, 6, 23, 59, 59); // end of Thu 6 Nov, viewer local time
+
+  var state = {
+    mode: "loading",   // loading | live | stale | offline | none
+    votes: {},         // viewerId -> picks[]
+    myId: null,
+    canVote: false,
+    readOnlyReason: "",
+    error: ""
+  };
+  var db = null, votesCol = null;
+  var pendingPicks = null, writing = false;
+
+  function cleanPicks(p) {
+    if (!Array.isArray(p)) return [];
+    var out = [];
+    p.forEach(function (x) { if (typeof x === "string" && VALID[x] && out.indexOf(x) < 0 && out.length < MAX_DOTS) out.push(x); });
+    return out;
+  }
+  function isClosed() { return Date.now() > CLOSES.getTime(); }
+  function myPicks() {
+    if (pendingPicks) return pendingPicks;
+    return (state.myId && state.votes[state.myId]) || [];
+  }
+
+  // Build idea rows once.
+  var list = document.getElementById("ideas");
+  var rows = {};
+  IDEAS.forEach(function (idea, n) {
+    var li = document.createElement("li"); li.className = "idea";
+    var num = document.createElement("span"); num.className = "num"; num.textContent = String(n + 1);
+    var txt = document.createElement("span"); txt.className = "idea-text"; txt.textContent = idea.text;
+    var btn = document.createElement("button"); btn.type = "button"; btn.className = "dot-btn"; btn.id = "dot-" + idea.id;
+    btn.setAttribute("aria-pressed", "false"); btn.textContent = "Add dot"; btn.disabled = true;
+    btn.addEventListener("click", function () { toggle(idea.id); });
+    var barRow = document.createElement("div"); barRow.className = "bar-row";
+    var bar = document.createElement("div"); bar.className = "bar"; var fill = document.createElement("span"); bar.appendChild(fill);
+    var count = document.createElement("span"); count.className = "count";
+    barRow.appendChild(bar); barRow.appendChild(count);
+    li.appendChild(num); li.appendChild(txt); li.appendChild(btn); li.appendChild(barRow);
+    list.appendChild(li);
+    rows[idea.id] = { btn: btn, fill: fill, count: count };
+  });
+
+  function render() {
+    var totals = {}, voters = 0, dots = 0;
+    IDEAS.forEach(function (i) { totals[i.id] = 0; });
+    var all = Object.assign({}, state.votes);
+    if (state.myId && pendingPicks) all[state.myId] = pendingPicks;
+    Object.keys(all).forEach(function (k) {
+      var p = all[k]; if (p.length) voters++;
+      p.forEach(function (id) { totals[id]++; dots++; });
+    });
+    var max = Math.max(1, TEAM);
+    var mine = myPicks(), closed = isClosed();
+    var showTotals = state.mode === "live" || state.mode === "stale";
+    var top = Math.max.apply(null, IDEAS.map(function (i) { return totals[i.id]; }));
+
+    IDEAS.forEach(function (i) {
+      var r = rows[i.id], on = mine.indexOf(i.id) >= 0;
+      r.btn.setAttribute("aria-pressed", on ? "true" : "false");
+      r.btn.textContent = on ? "Your dot" : "Add dot";
+      r.btn.disabled = !state.canVote || closed || (!on && mine.length >= MAX_DOTS);
+      r.btn.setAttribute("aria-label", (on ? "Remove your dot from idea " : "Add a dot to idea ") + (IDEAS.indexOf(i) + 1));
+      var t = totals[i.id];
+      r.fill.style.width = showTotals ? (t / max * 100) + "%" : "0%";
+      r.count.innerHTML = "";
+      if (showTotals) {
+        var b = document.createElement("b"); b.textContent = String(t);
+        r.count.appendChild(b); r.count.appendChild(document.createTextNode(t === 1 ? " dot" : " dots"));
+        if (t > 0 && t === top) r.count.title = "Leading"; else r.count.title = "";
+      } else {
+        r.count.textContent = "–";
+      }
+    });
+
+    var st = document.getElementById("status"); st.innerHTML = "";
+    function pill(cls, text) { var s = document.createElement("span"); s.className = "pill " + cls; s.textContent = text; st.appendChild(s); }
+    if (state.mode === "live") pill("live", "Live totals");
+    if (state.mode === "stale") pill("", "Totals may be out of date");
+    if (state.mode === "loading") pill("", "Loading votes…");
+    if (showTotals) {
+      pill("", voters + " of " + TEAM + " voted");
+      pill("", dots + " of " + (TEAM * MAX_DOTS) + " dots placed");
+    }
+    if (state.canVote && !closed) pill("mine", (MAX_DOTS - mine.length) + (MAX_DOTS - mine.length === 1 ? " dot left" : " dots left"));
+    pill(closed ? "closed" : "", closed ? "Voting closed" : "Closes end of Thu 6 Nov");
+
+    var note = document.getElementById("note");
+    note.className = "note" + (state.error ? " err" : "");
+    note.textContent = state.error || state.readOnlyReason;
+  }
+
+  function toggle(id) {
+    if (!state.canVote || isClosed()) return;
+    var cur = myPicks().slice(), at = cur.indexOf(id);
+    if (at >= 0) cur.splice(at, 1);
+    else if (cur.length < MAX_DOTS) cur.push(id);
+    else return;
+    pendingPicks = cur; state.error = "";
+    render(); flush();
+  }
+
+  function flush() {
+    if (writing || !pendingPicks) return;
+    writing = true;
+    var picks = pendingPicks;
+    votesCol.doc(state.myId).set({ picks: picks, updatedAt: new Date().toISOString() }).then(function () {
+      state.votes[state.myId] = picks;
+      if (pendingPicks === picks) pendingPicks = null;
+    }, function (e) {
+      pendingPicks = null;
+      var code = e && e.code;
+      if (code === "invalid_argument" || code === "not_granted") {
+        state.canVote = false;
+        state.readOnlyReason = "You can see the totals but not vote. Ask the page owner to share it with you as a Contributor.";
+      } else if (code === "revoked") {
+        state.canVote = false; state.readOnlyReason = "";
+      } else {
+        state.error = "Your vote didn't save. Check your connection and click again.";
+      }
+    }).then(function () { writing = false; render(); if (pendingPicks) flush(); });
+  }
+
+  function noVoting(msg) {
+    state.mode = "none"; state.canVote = false; state.readOnlyReason = msg; render();
+  }
+
+  render();
+  setInterval(render, 60000); // flips the page to closed after the deadline; no writes
+
+  if (!window.claude || typeof window.claude.use !== "function") {
+    noVoting("Voting works on the published page. Open the shared link to vote and see the totals.");
+    return;
+  }
+
+  Promise.all([window.claude.use("db"), window.claude.use("user")]).then(function (res) {
+    db = res[0]; var user = res[1];
+    if (!db) { noVoting("Sign in to see the totals and vote."); return; }
+    votesCol = db.collection("votes");
+    var idP = user ? user.id() : Promise.resolve(null);
+    var canP = user ? user.can("data.write") : Promise.resolve(null);
+    Promise.all([idP, canP]).then(function (r) {
+      state.myId = r[0] || null;
+      var can = r[1];
+      if (!state.myId) { state.canVote = false; state.readOnlyReason = "Sign in to vote."; }
+      else if (can === false) { state.canVote = false; state.readOnlyReason = "You can see the totals but not vote. Ask the page owner to share it with you as a Contributor."; }
+      else state.canVote = true;
+      render();
+    });
+
+    var timer = setTimeout(function () {
+      if (state.mode === "loading") { state.mode = "offline"; state.error = "The vote totals can't be reached yet. They'll appear when the connection comes back."; render(); }
+      else if (state.mode === "live") { state.mode = "stale"; render(); }
+    }, 10000);
+
+    votesCol.onSnapshot(function (snap) {
+      var v = {};
+      snap.docs.forEach(function (d) { if (d.exists) { var p = cleanPicks((d.data() || {}).picks); v[d.id] = p; } });
+      state.votes = v;
+      if (!snap.metadata.fromCache) {
+        clearTimeout(timer); state.mode = "live";
+        if (state.error && state.error.indexOf("can't be reached") === 0) state.error = "";
+      } else if (state.mode === "loading" || state.mode === "offline") {
+        state.mode = "stale";
+      }
+      render();
+    }, function () {
+      clearTimeout(timer);
+      state.mode = "offline"; state.canVote = false;
+      state.error = "Live totals stopped updating. Reload the page to reconnect.";
+      render();
+    });
+  });
+})();
+</script>
