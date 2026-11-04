@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en" data-variant="ivory">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Can One HTML File Do It All?</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+/* ---------- Page: research verdict ---------- */
+.callout { margin-bottom: var(--space); }
+.callout p { margin: 0; }
+table.kinds th[scope="row"] { color: var(--fg); font-weight: 600; white-space: nowrap; }
+table.kinds td:nth-child(2) { white-space: nowrap; }
+@media (max-width: 640px) { table.kinds th[scope="row"] { white-space: normal; } }
+svg.diagram { width: 100%; height: auto; color: var(--muted); font: 13px var(--sans); }
+svg.diagram.flow { min-width: 540px; }
+svg.diagram .node rect, svg.diagram .node polygon { fill: var(--surface-2); stroke: var(--line); }
+svg.diagram .node.ask polygon { fill: var(--surface); stroke: var(--accent); }
+svg.diagram .node.hot rect { fill: var(--bad-bg); stroke: var(--bad); }
+svg.diagram .node.warn rect { fill: var(--warn-bg); stroke: var(--warn); }
+svg.diagram .node.ok rect { fill: var(--ok-bg); stroke: var(--ok); }
+svg.diagram text { fill: var(--fg); text-anchor: middle; }
+svg.diagram .tag { fill: var(--muted); font-size: 11px; }
+svg.diagram .edge { stroke: currentColor; stroke-width: 1.5; }
+figure { margin-inline: 0; }
+figcaption { color: var(--muted); font-size: .9rem; margin-top: .4rem; }
+.glossary dt { font-weight: 600; margin-top: .6rem; }
+.glossary dd { margin: 0 0 .3rem; }
+.sources li { margin-bottom: .35rem; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Research verdict</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Can one HTML file do it all?</h1>
+    <p class="lede"><strong>Yes, for nearly everything the team shares.</strong> One <dfn data-gloss="An HTML file that carries all of its CSS, JavaScript, fonts and images inside itself, so it needs nothing else to open.">self-contained HTML file</dfn> can hold a review, a plan, an explainer, a deck, a clickable prototype, a board of UI sketches or a small interactive tool. It opens offline in any browser, and it can be attached to a Teams message or an email or stored in SharePoint. It stops being the best answer in four cases: heavy raster media, state that people must share, assets people must keep editing, and live data.</p>
+    <p class="meta">Research verdict for the team, 2026-11-03. Basis: the 20 single-file examples in this repository, the HTML research report, and the html-it skill tests (16 scenarios, each passing in two consecutive runs).</p>
+
+    <aside class="callout" data-kind="decision"><p><strong>The rule we use:</strong> one file by default. Split into a small folder (multi-part) only when the file would pass about 20 MB or when assets must stay editable. For shared state or live data, a file is the wrong tool: share a dated snapshot page and link to the system that holds the live data.</p></aside>
+
+    <h2 id="what-fits">What one file can carry</h2>
+    <p>A browser treats a local HTML file as a full application. Everything below works from a file opened by double-click, with no server and no internet connection:</p>
+    <ul>
+      <li><strong>Documents, reviews, plans and explainers.</strong> Headings, a table of contents, popovers that explain references, collapsed appendices.</li>
+      <li><strong>Decks.</strong> Arrow keys move between slides, a counter shows the position, and printing gives every slide as a page.</li>
+      <li><strong>Clickable multi-screen prototypes.</strong> Each screen is a state in the same file; buttons switch between them.</li>
+      <li><strong>Boards of many UI sketches.</strong> Each sketch runs in its own <dfn data-gloss="An iframe whose whole HTML document is written into its srcdoc attribute. The sketch gets its own styles and scripts, isolated from the page and from the other sketches.">iframe srcdoc</dfn>, so the sketches' styles cannot clash with each other or with the page.</li>
+      <li><strong>Interactive tools, charts and diagrams.</strong> Charts and diagrams are drawn as inline SVG, so they stay sharp, follow the light or dark theme and need no library.</li>
+    </ul>
+
+    <h2 id="kinds">Content kinds, one by one</h2>
+    <p>"Yes" means one file is the right default. "With care" means one file works if the page follows a rule from the html-it skill. "No" means one file cannot do the job alone.</p>
+    <div class="table-wrap"><table class="kinds">
+      <thead><tr><th scope="col">Content</th><th scope="col">One file?</th><th scope="col">How</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Pull request write-up</th><td><span class="pill" data-state="ok">Yes</span></td><td>Summary and reason first, file tree, annotated diff with highlighting written into the HTML, test evidence, risks.</td></tr>
+        <tr><th scope="row">Code review</th><td><span class="pill" data-state="ok">Yes</span></td><td>Verdict first, findings by severity, every finding number as a chip that explains it.</td></tr>
+        <tr><th scope="row">Design proposal</th><td><span class="pill" data-state="ok">Yes</span></td><td>Recommendation first, options side by side in a matrix, the decision and who makes it.</td></tr>
+        <tr><th scope="row">Explainer</th><td><span class="pill" data-state="ok">Yes</span></td><td>Article with a sticky table of contents, SVG diagrams, terms defined at first use, an optional self-check.</td></tr>
+        <tr><th scope="row">Plan</th><td><span class="pill" data-state="ok">Yes</span></td><td>Goal first, a stepper or timeline for real sequences, owners and dates.</td></tr>
+        <tr><th scope="row">Status report</th><td><span class="pill" data-state="ok">Yes</span></td><td>Status pills, a few key numbers, SVG charts drawn to scale. The date says when the numbers were taken.</td></tr>
+        <tr><th scope="row">Incident report</th><td><span class="pill" data-state="ok">Yes</span></td><td>Impact first, a cause chain in SVG, a timeline with time zone, actions; raw logs collapsed.</td></tr>
+        <tr><th scope="row">UI sketch board</th><td><span class="pill" data-state="ok">Yes</span></td><td>Gallery with filters and compare mode, each sketch isolated in an iframe srcdoc.</td></tr>
+        <tr><th scope="row">Clickable prototype</th><td><span class="pill" data-state="ok">Yes</span></td><td>Screens as states in one script, plain JavaScript, no framework from a CDN.</td></tr>
+        <tr><th scope="row">Deck</th><td><span class="pill" data-state="ok">Yes</span></td><td>Deck mode with keys and a counter; recommendation on slide 1 or 2; prints as a document.</td></tr>
+        <tr><th scope="row">Research comparison</th><td><span class="pill" data-state="ok">Yes</span></td><td>Verdict first, comparison matrix, sources as links.</td></tr>
+        <tr><th scope="row">Meeting notes</th><td><span class="pill" data-state="ok">Yes</span></td><td>Decisions and actions first, open questions with owners, a short message ready to paste in the channel.</td></tr>
+        <tr><th scope="row">Small tool</th><td><span class="pill" data-state="warn">With care</span></td><td>Works fully in the file. Anything it remembers stays in one reader's browser, and the page says so.</td></tr>
+        <tr><th scope="row">Large media gallery</th><td><span class="pill" data-state="warn">With care</span></td><td>Compress the media, or split into a hub page plus parts when the total passes about 20 MB.</td></tr>
+        <tr><th scope="row">Collaborative form (votes, sign-ups, comments)</th><td><span class="pill" data-state="bad">No</span></td><td>Needs shared state. The page can build a line to paste in the channel, or point to a poll or form tool.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="limits">Where one file stops being the best answer</h2>
+    <h3 id="limit-media">1. Heavy raster media</h3>
+    <p>Images inside the file are stored as <dfn data-gloss="A way to write binary data, such as an image, as plain text. It makes the data about 33% larger.">base64</dfn> <dfn data-gloss="A URL that carries the file's data itself, for example data:image/png;base64,…, so no separate file or download is needed.">data URIs</dfn>, which makes them about 33% larger. Forty full-size screenshots of about 1.3 MB each are 52 MB as PNG files and about 70 MB inside a page. Typical email attachment limits are about 20 to 25 MB. Video makes this worse.</p>
+    <p><strong>Rule:</strong> past about 20 MB, compress the media, link to it, or use a multi-part folder.</p>
+    <h3 id="limit-state">2. State that must be shared or saved</h3>
+    <p>A page can remember things with <code>localStorage</code>, but that storage lives in one reader's browser on one computer. Votes, comments, sign-up sheets and edits made together need a server or a platform such as SharePoint or Confluence.</p>
+    <p><strong>Rule:</strong> out of scope for the file. The page says so where the reader meets the limit and offers a way that works, for example a vote line to paste in the team channel.</p>
+    <h3 id="limit-assets">3. Assets people must edit separately</h3>
+    <p>Source images, design files and data sets that someone will reuse or keep editing go stale once they are embedded.</p>
+    <p><strong>Rule:</strong> ship them next to the page, in a multi-part folder, and link them by relative path.</p>
+    <h3 id="limit-live">4. Live data</h3>
+    <p>A page that must open offline cannot fetch live data.</p>
+    <p><strong>Rule:</strong> show a snapshot with the date it was taken, and link to the live system.</p>
+
+    <h2 id="decide">How to decide: one file or a folder</h2>
+    <figure>
+      <div class="table-wrap">
+      <svg class="diagram flow" viewBox="0 0 660 330" role="img" aria-labelledby="flow-t flow-d">
+        <title id="flow-t">Decision: single file, multi-part folder, or out of scope</title>
+        <desc id="flow-d">First question: does the content need shared state or live data? If yes, it is out of scope: share a snapshot page and link to the system. If no, second question: will the file pass about 20 MB, or must assets be edited separately? If yes, use a multi-part folder. If no, use a single file, which is the default.</desc>
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <g class="node"><rect x="210" y="8" width="220" height="40" rx="6"/><text x="320" y="33">Content to share</text></g>
+        <line class="edge" x1="320" y1="48" x2="320" y2="66" marker-end="url(#arr)"/>
+        <g class="node ask"><polygon points="320,68 470,113 320,158 170,113"/><text x="320" y="108">Needs shared state</text><text x="320" y="125">or live data?</text></g>
+        <line class="edge" x1="470" y1="113" x2="496" y2="113" marker-end="url(#arr)"/><text class="tag" x="483" y="104">yes</text>
+        <g class="node hot"><rect x="498" y="83" width="156" height="60" rx="6"/><text x="576" y="108">Out of scope:</text><text x="576" y="126">snapshot + link</text></g>
+        <line class="edge" x1="320" y1="158" x2="320" y2="176" marker-end="url(#arr)"/><text class="tag" x="336" y="171">no</text>
+        <g class="node ask"><polygon points="320,178 470,223 320,268 170,223"/><text x="320" y="218">Over ~20 MB, or</text><text x="320" y="235">editable assets?</text></g>
+        <line class="edge" x1="470" y1="223" x2="496" y2="223" marker-end="url(#arr)"/><text class="tag" x="483" y="214">yes</text>
+        <g class="node warn"><rect x="498" y="193" width="156" height="60" rx="6"/><text x="576" y="218">Multi-part folder:</text><text x="576" y="236">index.html + parts</text></g>
+        <line class="edge" x1="320" y1="268" x2="320" y2="284" marker-end="url(#arr)"/><text class="tag" x="336" y="280">no</text>
+        <g class="node ok"><rect x="210" y="286" width="220" height="38" rx="6"/><text x="320" y="310">Single file (default)</text></g>
+      </svg>
+      </div>
+      <figcaption>Two questions decide the shape. Most content answers "no" twice and stays one file.</figcaption>
+    </figure>
+    <p>A <dfn data-gloss="A folder with index.html, a parts/ folder of pages and an assets/ folder, linked by relative paths. Zipped, it is shared like one file and still opens offline.">multi-part</dfn> folder still works offline: an <code>index.html</code> hub, one page per part, the editable originals in <code>assets/</code>, all linked by relative paths. Zipped, it travels like a single attachment.</p>
+
+    <h2 id="offline">Why the page must open offline</h2>
+    <p>A page could load its fonts and libraries from a <dfn data-gloss="Content delivery network: servers that host common files such as JavaScript libraries and fonts so that many sites can load them from one place.">CDN</dfn> when it opens. We decided against it: every html-it page makes zero network requests when it opens. Four reasons:</p>
+    <ol>
+      <li><strong>Reachability in mainland China.</strong> Google Fonts is blocked, and a page that waits for its font stylesheet can hang while loading. jsDelivr has been unreliable since it lost its China ICP licence in late 2021. unpkg is slow or unreliable. cdnjs is usually reachable but sometimes slow. The fast China mirrors BootCDN and Staticfile are run by the entity behind the 2024 polyfill.io supply-chain attack, so we do not trust them.</li>
+      <li><strong>Security.</strong> Every CDN script is third-party code running next to internal content: code, incidents and designs. The polyfill.io attack spread exactly this way.</li>
+      <li><strong>Durability.</strong> A page opened from an old Teams thread a year later still works; CDN addresses and versions can disappear.</li>
+      <li><strong>Proxies.</strong> Corporate proxies may block CDNs.</li>
+    </ol>
+    <p>Size is a smaller problem than it looks, because the agent writing the page does the rendering. Hand-drawn SVG replaces Mermaid (about 3 MB minified). Code highlighting is written into the HTML at build time, which replaces highlight.js. Chart.js (about 200 KB) is inlined only for truly interactive data. A typical page is 30 to 150 KB; the worst case with a heavy library inlined is about 3 MB, which is still fine for Teams or email.</p>
+    <aside class="callout" data-kind="note"><p><strong>When a library is truly needed,</strong> the agent downloads one pinned version while building the page (from cdnjs or the npm registry; npmmirror inside China) and puts it inside the file. The reader's browser never fetches it.</p></aside>
+    <p class="meta">These CDN facts are an assessment from knowledge up to mid-2026, not measurements. Reachability from inside mainland China was not tested.</p>
+
+    <h2 id="skill">How the html-it skill applies this verdict</h2>
+    <ul>
+      <li><strong>Single file by default.</strong> The skill's first hard rule: all CSS, JavaScript, fonts and images inside the file, nothing loaded from the internet.</li>
+      <li><strong>The size gate.</strong> When the estimated size passes about 20 MB, or assets must stay editable, the agent asks "single file with compressed media, or multi-part?" and gives the estimate. In the tests, the 40-screenshot audit (about 70 MB embedded) became a hub plus one page per screen.</li>
+      <li><strong>Honest limits.</strong> When the content needs shared state or live data, the page says what it cannot do and offers a way that works. It never fakes the feature and never publishes the page to a hosting service to get around the limit.</li>
+      <li><strong>The checker enforces the network rule.</strong> <code>scripts/check_html.py</code> fails any page that loads a script, stylesheet, font, image or <code>fetch</code> from the network. It also fails bare references and missing titles, language or alt text.</li>
+    </ul>
+
+    <h2 id="sources">Sources</h2>
+    <ul class="sources">
+      <li><a href="../references/anthropics-html-effectiveness/">references/anthropics-html-effectiveness/</a>: 20 single-file HTML examples (MIT licence), the basis for "one file can carry it".</li>
+      <li><a href="https://github.com/anthropics/html-effectiveness">github.com/anthropics/html-effectiveness</a>: the upstream repository of those examples.</li>
+      <li><a href="https://claude.com/blog/using-claude-code-the-unreasonable-effectiveness-of-html">"Using Claude Code: the unreasonable effectiveness of HTML"</a>: the blog post behind the examples.</li>
+      <li><a href="../references/anthropics-frontend-design/SKILL.md">references/anthropics-frontend-design/SKILL.md</a>: design guidance for distinctive pages.</li>
+      <li><a href="../references/anthropics-web-artifacts-builder/SKILL.md">references/anthropics-web-artifacts-builder/SKILL.md</a>: the React bundle path, for the rare real application.</li>
+      <li><a href="../references/plannotator-effective-html/skills/html/SKILL.md">references/plannotator-effective-html/skills/html/SKILL.md</a>: a router skill that sends each content type to a specialist.</li>
+      <li><a href="report.md">research/report.md</a>: the team's research report (in Chinese) on HTML output for agents.</li>
+    </ul>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt>Self-contained HTML</dt><dd>An HTML file that carries all of its CSS, JavaScript, fonts and images inside itself, so it needs nothing else to open.</dd>
+      <dt>Data URI</dt><dd>A URL that carries the file's data itself (for example <code>data:image/png;base64,…</code>), so no separate file or download is needed.</dd>
+      <dt>Base64</dt><dd>A way to write binary data, such as an image, as plain text. It makes the data about 33% larger.</dd>
+      <dt>iframe srcdoc</dt><dd>An iframe whose whole HTML document is written into its <code>srcdoc</code> attribute. Each sketch gets its own styles and scripts, isolated from the page and the other sketches.</dd>
+      <dt>CDN</dt><dd>Content delivery network: servers that host common files such as JavaScript libraries and fonts so many sites can load them from one place.</dd>
+      <dt>Multi-part</dt><dd>A folder with <code>index.html</code>, a <code>parts/</code> folder of pages and an <code>assets/</code> folder, linked by relative paths. Zipped, it is shared like one file and still opens offline.</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill, 2026-11-03. Opens offline; no network access needed.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+</body>
+</html>

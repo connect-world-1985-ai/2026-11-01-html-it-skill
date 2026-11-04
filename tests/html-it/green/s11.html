@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en" data-variant="graphite">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Booking request flow</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+
+/* ---------- Page components ---------- */
+.tok-k { color: var(--accent-ink); font-weight: 600; }
+.tok-s { color: var(--ok); }
+.tok-c { color: var(--muted); font-style: italic; }
+.tok-n { color: var(--warn); }
+.tok-f { color: var(--fg); text-decoration: underline dotted var(--line); }
+.tok-t { color: var(--fg); font-weight: 600; }
+svg.diagram { width: 100%; height: auto; color: var(--muted); font: 13px var(--sans); display: block; }
+svg.diagram .node rect { fill: var(--surface-2); stroke: var(--line); }
+svg.diagram .node.ext rect { fill: var(--surface); stroke: var(--muted); stroke-dasharray: 4 3; }
+svg.diagram .node.hot rect { fill: var(--warn-bg); stroke: var(--warn); }
+svg.diagram text { fill: var(--fg); text-anchor: middle; }
+svg.diagram text.sub { fill: var(--muted); font-size: 11.5px; }
+svg.diagram text.side { text-anchor: start; fill: var(--muted); font-size: 12px; }
+svg.diagram .edge { stroke: currentColor; stroke-width: 1.5; fill: none; }
+svg.diagram .brace { stroke: var(--warn); stroke-width: 1.5; fill: none; }
+figure { margin-inline: 0; }
+figcaption { color: var(--muted); font-size: .9rem; margin-top: .4rem; }
+.stepper { counter-reset: step; list-style: none; padding: 0; }
+.stepper > li { counter-increment: step; position: relative; padding-left: 2.6rem; margin-bottom: 1.2rem; }
+.stepper > li::before { content: counter(step); position: absolute; left: 0; top: .1rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line); font-weight: 600; }
+.stepper > li h3 { margin-top: 0; }
+.note { border-left: 2px solid var(--accent); padding-left: .7rem; color: var(--muted); font-size: .92rem; }
+.gotchas > li { margin-bottom: .9rem; }
+.glossary dt { font-weight: 600; margin-top: .6rem; }
+.glossary dd { margin: 0 0 .4rem 0; }
+@media print { .stepper > li { display: block !important; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Booking team onboarding</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>How a booking request flows through the code</h1>
+    <p class="lede">A booking request enters the booking API at <code>POST /bookings</code>, takes a short-lived lock on the requested slot, is saved to the database while the lock is held, and then announces itself with a <code>BookingCreated</code> event so that the sms-service can schedule the reminder. The lock is what prevents double bookings, so the three rules at the end of this page are the ones to keep in mind before changing anything on this path.</p>
+    <p class="meta">Prepared 3 November 2026 for Priya, who joins the booking team soon (the source says "next week"; exact start date to be confirmed). The code shown is <code>BookingService.java</code> at <a class="ref" data-ref="7c41e9a" href="#ref-7c41e9a"><span class="ref-id">7c41e9a</span> master commit of BookingService.java</a>.</p>
+
+    <h2 id="flow">The flow at a glance</h2>
+    <p>Six parts take part in every booking. Five live in the booking code base; the last one is a separate service that reacts to the event.</p>
+    <figure>
+      <svg class="diagram" viewBox="0 0 520 456" role="img" aria-labelledby="flow-t flow-d">
+        <title id="flow-t">Booking request flow from the REST endpoint to the SMS reminder</title>
+        <desc id="flow-d">BookingResource receives POST /bookings and calls BookingService.book. The service acquires a Redis slot lock with a 30 second time to live, saves the booking through BookingRepository, publishes a BookingCreated event, and the sms-service schedules the reminder. The lock is held from acquire until the booking has been saved and the event published.</desc>
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <g class="node"><rect x="10" y="10" width="300" height="56" rx="6"/><text x="160" y="34">BookingResource.java</text><text class="sub" x="160" y="53">REST endpoint, POST /bookings</text></g>
+        <line class="edge" x1="160" y1="66" x2="160" y2="84" marker-end="url(#arr)"/>
+        <g class="node"><rect x="10" y="86" width="300" height="56" rx="6"/><text x="160" y="110">BookingService.book()</text><text class="sub" x="160" y="129">orchestrates the booking</text></g>
+        <line class="edge" x1="160" y1="142" x2="160" y2="160" marker-end="url(#arr)"/>
+        <g class="node hot"><rect x="10" y="162" width="300" height="56" rx="6"/><text x="160" y="186">SlotLock.acquire(slotId)</text><text class="sub" x="160" y="205">Redis lock, 30 s time to live</text></g>
+        <line class="edge" x1="160" y1="218" x2="160" y2="236" marker-end="url(#arr)"/>
+        <g class="node"><rect x="10" y="238" width="300" height="56" rx="6"/><text x="160" y="262">BookingRepository.save()</text><text class="sub" x="160" y="281">writes the booking to the database</text></g>
+        <line class="edge" x1="160" y1="294" x2="160" y2="312" marker-end="url(#arr)"/>
+        <g class="node"><rect x="10" y="314" width="300" height="56" rx="6"/><text x="160" y="338">BookingEventPublisher.publish()</text><text class="sub" x="160" y="357">sends the BookingCreated event</text></g>
+        <line class="edge" x1="160" y1="370" x2="160" y2="388" marker-end="url(#arr)"/>
+        <g class="node ext"><rect x="10" y="390" width="300" height="56" rx="6"/><text x="160" y="414">sms-service</text><text class="sub" x="160" y="433">schedules the reminder SMS</text></g>
+        <path class="brace" d="M322,164 h10 v204 h-10"/>
+        <text class="side" x="342" y="252">Lock held here</text>
+        <text class="side" x="342" y="270">(released when the</text>
+        <text class="side" x="342" y="288">try block ends)</text>
+        <text class="side" x="342" y="422">separate service</text>
+      </svg>
+      <figcaption>The lock (amber box and bracket) covers the availability check, the save and the event. The dashed box is a separate service.</figcaption>
+    </figure>
+
+    <h2 id="steps">Step by step</h2>
+    <ol class="stepper">
+      <li><h3>The endpoint receives the request</h3>
+        <p><code>BookingResource.java</code> exposes <code>POST /bookings</code>. It turns the HTTP request into a <code>BookingRequest</code> and hands it to <code>BookingService.book()</code>.</p></li>
+      <li><h3>The service takes over</h3>
+        <p><code>BookingService.book()</code> is the one place that orders the steps below. Everything that must happen for a booking to be valid happens inside this method.</p></li>
+      <li><h3>The slot is locked</h3>
+        <p><code>SlotLock.acquire(slotId)</code> takes a <dfn data-gloss="A short-lived lock stored in Redis that only one booking request can hold for a given slot at a time.">slot lock</dfn> in Redis with a <dfn data-gloss="Time to live: how long Redis keeps the lock before it expires on its own, even if nobody releases it.">time to live (TTL)</dfn> of 30 seconds. While one request holds the lock, no other request can book the same slot. The TTL means a crashed request cannot block the slot for longer than 30 seconds.</p></li>
+      <li><h3>Availability is checked and the booking saved</h3>
+        <p>With the lock held, the service checks that the slot is still free and saves the booking through <code>BookingRepository.save()</code>. If the slot is already taken, it throws <code>SlotTakenException</code> instead.</p></li>
+      <li><h3>The event is published</h3>
+        <p><code>BookingEventPublisher.publish()</code> sends a <code>BookingCreated</code> <dfn data-gloss="A message announcing that something has happened, which other services can react to without the sender knowing about them.">event</dfn> carrying the new booking's ID.</p></li>
+      <li><h3>The sms-service schedules the reminder</h3>
+        <p>The sms-service, a separate service, receives <code>BookingCreated</code> and schedules the reminder SMS.</p></li>
+    </ol>
+
+    <h2 id="code">The key code</h2>
+    <p>This is the whole of <code>book()</code> in <code>BookingService.java</code> at <a class="ref" data-ref="7c41e9a" href="#ref-7c41e9a"><span class="ref-id">7c41e9a</span> master commit</a>. The lock is opened in a <dfn data-gloss="A Java statement, try (resource) { ... }, that closes the resource automatically when the block ends, whether normally or by an exception.">try-with-resources</dfn> block, so it is released automatically when the method returns or throws.</p>
+    <pre aria-label="BookingService.book() in Java"><code><span class="tok-k">public</span> <span class="tok-t">Booking</span> <span class="tok-f">book</span>(<span class="tok-t">BookingRequest</span> req) {
+    <span class="tok-k">try</span> (<span class="tok-t">SlotLock</span> lock = slotLock.<span class="tok-f">acquire</span>(req.<span class="tok-f">slotId</span>())) {
+        <span class="tok-t">Slot</span> slot = slots.<span class="tok-f">findAvailable</span>(req.<span class="tok-f">slotId</span>())
+            .<span class="tok-f">orElseThrow</span>(() -&gt; <span class="tok-k">new</span> <span class="tok-t">SlotTakenException</span>(req.<span class="tok-f">slotId</span>()));
+        <span class="tok-t">Booking</span> booking = repository.<span class="tok-f">save</span>(<span class="tok-t">Booking</span>.<span class="tok-f">from</span>(req, slot));
+        events.<span class="tok-f">publish</span>(<span class="tok-k">new</span> <span class="tok-t">BookingCreated</span>(booking.<span class="tok-f">id</span>()));
+        <span class="tok-k">return</span> booking;
+    }
+}</code></pre>
+    <p class="note">Line 2: the lock is acquired before anything is read, so the availability check on lines 3 and 4 cannot race with another request for the same slot. Line 4: a taken slot ends the method with <code>SlotTakenException</code>, and the lock is still released. Lines 5 and 6: the save and the event both happen while the lock is held.</p>
+
+    <h2 id="gotchas">Three rules to keep</h2>
+    <ol class="gotchas">
+      <li><p><strong>The lock TTL must be longer than the database timeout.</strong> This is recorded in <a class="ref" data-ref="ADR-011" href="#ref-ADR-011"><span class="ref-id">ADR-011</span> Redis slot locks</a>. If a database call could run longer than the 30-second lock, the lock would expire while the first request is still saving, and a second request could book the same slot. The current database timeout is not given in the source; check it before changing either number.</p></li>
+      <li><p><strong><code>SlotTakenException</code> becomes HTTP 409.</strong> <code>ExceptionMappers.java</code> maps it to <dfn data-gloss="The HTTP status code meaning the request conflicts with the current state of the resource; here, the slot is already booked.">409 Conflict</dfn>, so clients see "slot already taken" rather than a server error.</p></li>
+      <li><p><strong>Never call <code>book()</code> inside another transaction.</strong> Doing so caused the double bookings in <a class="ref" data-ref="BUG-3120" href="#ref-BUG-3120"><span class="ref-id">BUG-3120</span> double bookings, June 2026</a>. A likely reason, as far as the code shows: inside an outer <dfn data-gloss="A group of database changes that are committed together or not at all; other requests do not see them until the commit.">transaction</dfn>, the save is not yet committed when the lock is released at the end of <code>book()</code>, so the next request still sees the slot as free. The bug report itself is not included here; read it for the confirmed cause.</p></li>
+    </ol>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-7c41e9a"><b>7c41e9a</b> <span class="ref-summary">The commit on master at which the code excerpt of BookingService.java was taken.</span> The commit message and date are not given in the source.</li>
+      <li id="ref-ADR-011"><b>ADR-011</b> <span class="ref-summary">Architecture decision record "Redis slot locks": the decision behind the Redis slot lock, including the rule that the lock TTL must be longer than the database timeout.</span> Its location in the repository is not given in the source.</li>
+      <li id="ref-BUG-3120"><b>BUG-3120</b> <span class="ref-summary">Bug from June 2026: double bookings caused by calling book() inside another transaction.</span> Its title, tracker link and fix are not given in the source.</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt>Architecture decision record (ADR)</dt><dd>A short document that records one technical decision, its reasons and its consequences.</dd>
+      <dt>Slot lock</dt><dd>A short-lived lock stored in Redis that only one booking request can hold for a given slot at a time.</dd>
+      <dt>Time to live (TTL)</dt><dd>How long Redis keeps the lock before it expires on its own, even if nobody releases it. For slot locks it is 30 seconds.</dd>
+      <dt>Try-with-resources</dt><dd>A Java statement that closes the resource automatically when the block ends, whether normally or by an exception.</dd>
+      <dt>Event</dt><dd>A message announcing that something has happened, here <code>BookingCreated</code>, which other services such as the sms-service react to.</dd>
+      <dt>409 Conflict</dt><dd>The HTTP status code meaning the request conflicts with the current state of the resource; here, the slot is already booked.</dd>
+      <dt>Transaction</dt><dd>A group of database changes that are committed together or not at all; other requests do not see them until the commit.</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill. Opens offline; no network access needed.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+</body>
+</html>

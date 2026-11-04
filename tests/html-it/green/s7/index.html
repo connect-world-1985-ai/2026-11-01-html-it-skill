@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en" data-variant="graphite">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Patient portal UI audit</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+
+/* page-specific */
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+.chip { font: inherit; font-size: .85rem; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: .2rem .8rem; cursor: pointer; }
+.chip[aria-pressed=true] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.chips[hidden] { display: none; }
+.search { display: grid; gap: .2rem; font-size: .9rem; color: var(--muted); margin-bottom: .8rem; max-width: 28rem; }
+.search input { font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .35rem .5rem; }
+tr[hidden] { display: none; }
+td.num { white-space: nowrap; }
+.shot-box { margin: 0 0 var(--space); }
+.shot { width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+.shot[hidden], .placeholder[hidden] { display: none; }
+.placeholder { border: 2px dashed var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 2.5rem 1rem; text-align: center; color: var(--muted); }
+.pager { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .8rem; margin: 2rem 0 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1rem; }
+.facts dt { color: var(--muted); } .facts dd { margin: 0; }
+@media print { .search, .chips { display: none !important; } tr[hidden] { display: table-row !important; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Patient portal UI audit</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Patient portal UI audit</h1>
+    <p class="lede">The user-interface audit of the patient portal for <a class="ref" data-ref="R26.11" href="#ref-R26.11"><span class="ref-id">R26.11</span> patient portal release</a> found one issue on each of the first ten screens. Two of them affect patient safety or privacy: an appointment can be cancelled without confirmation, and the full insurance number is visible on the profile screen. The issues for screens 11 to 40 are still to be filled in. Developers: open one screen page from the table below. Designers: put each PNG export into the <code>assets/</code> folder under its listed file name, and the screen page shows it.</p>
+    <p class="meta">Prepared 3 November 2026 for the patient portal developers and designers. The screenshots themselves are not part of this folder yet: <span class="ref" data-ref="shots" data-ref-status="unresolved"><span class="ref-id">PNG files</span> screenshots not provided</span>.</p>
+
+    <h2 id="found">What the audit found</h2>
+    <p>The designers captured 40 full-page screenshots and noted one issue per screen. For screens 1 to 10 the issues are known and fall into five kinds. This grouping was added for the overview; the original audit notes do not group the issues and give no severity.</p>
+    <ul>
+      <li><strong>Safety and privacy (2 screens):</strong> cancelling an appointment needs no confirmation, and the insurance number on the profile screen is not <dfn data-gloss="Showing only part of a sensitive value, with the rest replaced by dots.">masked</dfn>. These are the ones to fix first.</li>
+      <li><strong>Accessibility (3 screens):</strong> a password field without a visible label, unread messages marked only by colour, and settings toggles that do not say what on and off mean.</li>
+      <li><strong>Consistency (2 screens):</strong> three competing <dfn data-gloss="The one button on a screen styled as the main action, so the user knows the expected next step.">primary buttons</dfn> on the dashboard, and two date formats on the appointments list.</li>
+      <li><strong>Layout (1 screen):</strong> long messages overflow on a phone screen 390 px wide.</li>
+      <li><strong>Missing information (2 screens):</strong> no file sizes on downloads, and no <dfn data-gloss="What a screen shows when there is nothing to list, for example a search with no results.">empty state</dfn> guidance when a help search finds nothing.</li>
+    </ul>
+
+    <h2 id="screens">Issues by screen</h2>
+    <label class="search">Search screens and issues <input type="search" id="q" placeholder="for example date, button, label"></label>
+    <div class="chips" role="group" aria-label="Filter by kind of issue" hidden><button class="chip" type="button" aria-pressed="true" data-kind="all">All</button><button class="chip" type="button" aria-pressed="false" data-kind="a11y">Accessibility</button><button class="chip" type="button" aria-pressed="false" data-kind="consistency">Consistency</button><button class="chip" type="button" aria-pressed="false" data-kind="safety">Safety and privacy</button><button class="chip" type="button" aria-pressed="false" data-kind="layout">Layout</button><button class="chip" type="button" aria-pressed="false" data-kind="info">Missing information</button><button class="chip" type="button" aria-pressed="false" data-kind="todo">To be filled in</button></div>
+    <p class="meta" id="count" aria-live="polite">11 rows shown.</p>
+    <div class="table-wrap"><table id="issues">
+      <thead><tr><th scope="col">Screen</th><th scope="col">Page and file</th><th scope="col">Issue</th><th scope="col">Kind</th><th scope="col">PNG size</th></tr></thead>
+      <tbody>
+        <tr data-kind="a11y"><td class="num">01</td><td><a href="parts/01-login.html">Login</a><br><code>01-login.png</code></td><td>Password field has no visible label</td><td><span class="pill">Accessibility</span></td><td class="num">1.2 MB</td></tr>
+<tr data-kind="consistency"><td class="num">02</td><td><a href="parts/02-dashboard.html">Dashboard</a><br><code>02-dashboard.png</code></td><td>Three competing primary buttons</td><td><span class="pill">Consistency</span></td><td class="num">1.5 MB</td></tr>
+<tr data-kind="consistency"><td class="num">03</td><td><a href="parts/03-appointments.html">Appointments</a><br><code>03-appointments.png</code></td><td>Date format mixes 03/11 and 2026-11-03</td><td><span class="pill">Consistency</span></td><td class="num">1.4 MB</td></tr>
+<tr data-kind="safety"><td class="num">04</td><td><a href="parts/04-appointment-detail.html">Appointment detail</a><br><code>04-appointment-detail.png</code></td><td>Cancel action has no confirmation</td><td><span class="pill">Safety and privacy</span></td><td class="num">1.1 MB</td></tr>
+<tr data-kind="a11y"><td class="num">05</td><td><a href="parts/05-messages.html">Messages</a><br><code>05-messages.png</code></td><td>Unread state only shown by colour</td><td><span class="pill">Accessibility</span></td><td class="num">1.3 MB</td></tr>
+<tr data-kind="layout"><td class="num">06</td><td><a href="parts/06-message-thread.html">Message thread</a><br><code>06-message-thread.png</code></td><td>Long messages overflow on 390 px width</td><td><span class="pill">Layout</span></td><td class="num">1.6 MB</td></tr>
+<tr data-kind="info"><td class="num">07</td><td><a href="parts/07-documents.html">Documents</a><br><code>07-documents.png</code></td><td>File size missing on downloads</td><td><span class="pill">Missing information</span></td><td class="num">1.2 MB</td></tr>
+<tr data-kind="safety"><td class="num">08</td><td><a href="parts/08-profile.html">Profile</a><br><code>08-profile.png</code></td><td>Insurance number shown in full (should be masked)</td><td><span class="pill">Safety and privacy</span></td><td class="num">1.0 MB</td></tr>
+<tr data-kind="a11y"><td class="num">09</td><td><a href="parts/09-settings.html">Settings</a><br><code>09-settings.png</code></td><td>Toggle labels do not say what on/off means</td><td><span class="pill">Accessibility</span></td><td class="num">1.1 MB</td></tr>
+<tr data-kind="info"><td class="num">10</td><td><a href="parts/10-help.html">Help</a><br><code>10-help.png</code></td><td>Search returns no empty-state guidance</td><td><span class="pill">Missing information</span></td><td class="num">1.3 MB</td></tr>
+<tr data-kind="todo"><td class="num">11–40</td><td>30 further screens<br>file names not known yet</td><td>To be filled in by the designers</td><td><span class="pill" data-state="warn">To be filled in</span></td><td class="num">about 39 MB together</td></tr>
+      </tbody>
+    </table></div>
+    <p>The ten listed files add up to 12.7 MB. The audit gives about 52 MB for all 40 files, so screens 11 to 40 account for about 39 MB.</p>
+
+    <h2 id="later">Screens 11 to 40</h2>
+    <p>The audit notes say that screens 11 to 40 follow the same pattern, one issue per screen, but neither their file names nor their issues are written down yet. They are left out of this folder rather than guessed. Once the designers send the list, each screen gets a page in <code>parts/</code> in the same format as screens 1 to 10.</p>
+
+    <h2 id="assets">How screenshots get into the pages</h2>
+    <p>The screenshots stay as separate PNG files so that the designers can keep replacing them with new Figma exports; copies inside the HTML would go out of date. Embedding all 40 would also produce one file of about 70 MB, too large to attach to a Teams message or an email.</p>
+    <ol>
+      <li>Save each PNG into the <code>assets/</code> folder with exactly the file name in the table, for example <code>assets/01-login.png</code>.</li>
+      <li>Open the screen page. It shows the screenshot if the file is there, and a labelled “image not provided” placeholder if not.</li>
+      <li>To share, zip the whole folder. Readers unzip it and open <code>index.html</code>.</li>
+    </ol>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-R26.11"><b>R26.11</b> <span class="ref-summary">The release of the patient portal whose user interface this audit covers.</span> Source: the audit notes (“UI audit of the patient portal, release R26.11”). Release date and scope are not given there.</li>
+    </ol>
+    <h3 id="unresolved">Could not be resolved</h3>
+    <ol class="references">
+      <li id="ref-shots"><b>Screenshot files</b> <span class="ref-summary">The 40 full-page PNG screenshots the designers captured (1.0 to 1.6 MB each, about 52 MB in total). They are not in the repository, and the file names of screens 11 to 40 are not known yet.</span> Looked in: the audit notes and the repository. Expected location once provided: <code>assets/</code>, next to <code>index.html</code>.</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt id="gloss-primary">Primary button</dt><dd>The one button on a screen styled as the main action, so the user knows the expected next step.</dd>
+      <dt id="gloss-empty">Empty state</dt><dd>What a screen shows when there is nothing to list, for example a search with no results. A good empty state says what to try next.</dd>
+      <dt id="gloss-mask">Masking</dt><dd>Showing only part of a sensitive value, for example the last four digits of an insurance number, with the rest replaced by dots.</dd>
+    </dl>
+
+  </main>
+</div>
+<footer class="page-foot">Part of the patient portal UI audit folder. Opens offline; screenshots load from the <code>assets/</code> folder next to <code>index.html</code>.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  const q = document.getElementById('q'), rows = [...document.querySelectorAll('#issues tbody tr')];
+  const chips = document.querySelector('.chips'); chips.hidden = false;
+  let kind = 'all';
+  const apply = () => {
+    const t = q.value.trim().toLowerCase(); let n = 0;
+    rows.forEach((r) => { const on = (kind === 'all' || r.dataset.kind === kind) && r.textContent.toLowerCase().includes(t); r.hidden = !on; if (on) n++; });
+    document.getElementById('count').textContent = n + (n === 1 ? ' row' : ' rows') + ' shown.';
+  };
+  chips.addEventListener('click', (e) => { const c = e.target.closest('.chip'); if (!c) return;
+    kind = c.dataset.kind; chips.querySelectorAll('.chip').forEach((x) => x.setAttribute('aria-pressed', x === c)); apply(); });
+  q.addEventListener('input', apply);
+})();
+</script>
+</body>
+</html>

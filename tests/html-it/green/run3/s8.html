@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="zh-CN" data-variant="ivory">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>架构同步会纪要 2026-11-03</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+
+/* ---------- Page additions ---------- */
+details { border: 1px solid var(--line); border-radius: var(--radius); padding: .5rem .8rem; }
+summary { cursor: pointer; font-weight: 600; }
+.decisions li { margin-bottom: .5rem; }
+pre.message { white-space: pre-wrap; padding-top: 2.2rem; }
+.tbc { color: var(--warn); font-size: .85em; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>团队笔记</span>
+  <button type="button" id="theme-toggle" aria-label="切换配色主题">主题：跟随系统</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="本页目录"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>架构同步会纪要（2026-11-03）</h1>
+    <p class="lede">本次会议做出两项决定：9.0 版本删除 XML 导出接口，并提前两个版本通知客户；集成测试改用 <dfn data-gloss="一个测试库，测试运行时自动启动真实的数据库等依赖服务的 Docker 容器，测试结束后自动清理。">Testcontainers</dfn>。<a class="ref" data-ref="PR-431" href="#ref-PR-431"><span class="ref-id">PR 431</span> booking API 分页</a> 已就绪，Priya 于 2026-11-04 前复审后由 Tomasz 合并。另有三项待办，均已指定负责人和截止日期；SMS 网关合同续签由谁负责，仍待 Jonas 答复。</p>
+    <p class="meta">会议时间：2026-11-03 10:00–10:45 <span class="tbc">（原始记录未注明时区，待确认）</span>。参会：Lena、Tomasz、Priya、Raymond；缺席：Jonas。</p>
+
+    <h2 id="decisions">决定</h2>
+    <ul class="decisions">
+      <li><a class="ref" data-ref="D-14" href="#ref-D-14"><span class="ref-id">D-14</span> 删除 XML 导出接口</a>：9.0 版本删除 XML 导出接口，删除前提前两个版本通知客户。Raymond 负责起草弃用通知。</li>
+      <li><a class="ref" data-ref="D-15" href="#ref-D-15"><span class="ref-id">D-15</span> 集成测试改用 Testcontainers</a>：集成测试迁移到 Testcontainers。在 <a class="ref" data-ref="KT-940" href="#ref-KT-940"><span class="ref-id">KT-940</span> CI agent 升级到 Docker 27</a> 完成之前，CI agent 上的 <dfn data-gloss="在一个 Docker 容器内部再运行 Docker，CI 流水线常用它在构建容器里启动其他容器。">Docker-in-Docker</dfn> 暂时保留。</li>
+      <li><a class="ref" data-ref="PR-431" href="#ref-PR-431"><span class="ref-id">PR 431</span> booking API 分页</a> 已可合并：Priya 复审通过后，由 Tomasz 合并。</li>
+    </ul>
+
+    <h2 id="actions">待办事项</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>事项</th><th>负责人</th><th>截止日期</th></tr></thead>
+      <tbody>
+        <tr><td>复审 <a class="ref" data-ref="PR-431" href="#ref-PR-431"><span class="ref-id">PR 431</span> booking API 分页</a></td><td>Priya</td><td>2026-11-04</td></tr>
+        <tr><td>起草 XML 导出接口的弃用通知（<a class="ref" data-ref="D-14" href="#ref-D-14"><span class="ref-id">D-14</span> 删除 XML 导出接口</a>）</td><td>Raymond</td><td>2026-11-07</td></tr>
+        <tr><td>在 <a class="ref" data-ref="ONB-01" href="#ref-ONB-01"><span class="ref-id">ONB-01</span> 入职手册《How we work》</a> 中补充 Testcontainers 的配置说明</td><td>Lena</td><td>2026-11-10</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="open">待解决问题</h2>
+    <p><span class="pill" data-state="warn">待答复</span> SMS 网关合同续签由谁负责？Jonas 本次缺席，由他答复；原始记录未给出答复期限。</p>
+
+    <h2 id="next">下次会议</h2>
+    <p>2026-11-10 10:00 <span class="tbc">（时区待确认）</span>。</p>
+
+    <h2 id="post">团队频道消息</h2>
+    <p>可直接复制到团队频道。本页是一个 HTML 文件，没有网址：发送时请附上本文件，或换成文件在 SharePoint 或 Teams 中的链接。</p>
+    <pre class="message"><code>架构同步会 2026-11-03 纪要已整理好（见附件 HTML 文件）。
+决定：9.0 删除 XML 导出接口，提前两个版本通知客户（D-14）；集成测试改用 Testcontainers，Docker 27 升级（KT-940）完成前保留 Docker-in-Docker（D-15）。
+待办：Priya 11-04 前复审 PR 431，之后 Tomasz 合并；Raymond 11-07 前起草弃用通知；Lena 11-10 前更新入职手册 ONB-01。
+待答复：SMS 网关合同续签负责人，请 Jonas 回复。
+下次会议：2026-11-10 10:00（时区待确认）。</code></pre>
+
+    <h2 id="references">参考</h2>
+    <ol class="references">
+      <li id="ref-PR-431"><b>PR 431</b> <span class="ref-summary">booking API 分页功能的 pull request，已就绪，等待 Priya 复审后由 Tomasz 合并。</span>来源：本次会议记录；链接未提供。</li>
+      <li id="ref-D-14"><b>D-14</b> <span class="ref-summary">团队决策日志中的新条目：9.0 版本删除 XML 导出接口，客户提前两个版本收到通知。</span>来源：本次会议记录。</li>
+      <li id="ref-D-15"><b>D-15</b> <span class="ref-summary">团队决策日志中的新条目：集成测试迁移到 Testcontainers；KT-940 完成前 CI agent 上保留 Docker-in-Docker。</span>来源：本次会议记录。</li>
+      <li id="ref-KT-940"><b>KT-940</b> <span class="ref-summary">工单“Upgrade CI agents to Docker 27”：将 CI agent 升级到 Docker 27。</span>来源：会议记录的背景说明；工单链接未提供。</li>
+      <li id="ref-ONB-01"><b>ONB-01</b> <span class="ref-summary">团队入职手册《How we work》。</span>来源：会议记录的背景说明；链接未提供。</li>
+    </ol>
+
+    <h2 id="glossary">术语</h2>
+    <dl class="glossary">
+      <dt id="gloss-testcontainers">Testcontainers</dt>
+      <dd>一个测试库，测试运行时自动启动真实的数据库等依赖服务的 Docker 容器，测试结束后自动清理。</dd>
+      <dt id="gloss-dind">Docker-in-Docker</dt>
+      <dd>在一个 Docker 容器内部再运行 Docker，CI 流水线常用它在构建容器里启动其他容器。</dd>
+    </dl>
+
+    <details><summary>原始会议记录（英文，8 条）</summary>
+<pre><code>Architecture sync, 2026-11-03, 10:00-10:45. Present: Lena, Tomasz, Priya, Raymond. Absent: Jonas.
+- PR 431 (booking API pagination) is ready; Tomasz merges after Priya re-reviews.
+- Decision D-14: we drop the XML export endpoint in 9.0; customers get two releases of notice.
+- Decision D-15: integration tests move to Testcontainers; Docker-in-Docker on the CI agents stays until KT-940 is done.
+- Open question: who owns the SMS gateway contract renewal? Jonas to answer (he was absent).
+- Action: Lena updates ONB-01 with the Testcontainers setup by 2026-11-10.
+- Action: Priya re-reviews PR 431 by 2026-11-04.
+- Action: Raymond drafts the XML-export deprecation notice by 2026-11-07.
+- Next sync: 2026-11-10, 10:00.</code></pre>
+    </details>
+  </main>
+</div>
+<footer class="page-foot">由 html-it 生成。可离线打开，无需网络。</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = '主题：' + ({system:'跟随系统', light:'浅色', dark:'深色'}[mode]);
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : '提供的材料中未找到。';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = '复制';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = '已复制'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = '已选中，请按 Ctrl+C'; }
+      setTimeout(() => (b.textContent = '复制'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+</body>
+</html>
