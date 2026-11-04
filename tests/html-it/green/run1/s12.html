@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en" data-variant="graphite">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Paginate booking search</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+
+/* ---------- Page components ---------- */
+pre.diff { padding-inline: 0; }
+pre.diff span { display: block; padding-inline: 1rem; }
+pre.diff .add { background: var(--ok-bg); color: var(--fg); }
+pre.diff .del { background: var(--bad-bg); color: var(--fg); }
+.note { border-left: 2px solid var(--accent); padding-left: .7rem; color: var(--muted); font-size: .92rem; }
+.chg { font-family: var(--mono); font-size: .8em; padding: 0 .35em; border-radius: 3px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+.chg[data-kind=add] { background: var(--ok-bg); color: var(--ok); }
+.chg[data-kind=mod] { background: var(--warn-bg); color: var(--warn); }
+table.files td:first-child code { word-break: break-all; }
+.stepper { counter-reset: step; list-style: none; padding: 0; }
+.stepper > li { counter-increment: step; position: relative; padding-left: 2.6rem; margin-bottom: 1.2rem; }
+.stepper > li::before { content: counter(step); position: absolute; left: 0; top: .1rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line); font-weight: 600; }
+.stepper > li h3 { margin-top: 0; }
+.glossary dt { font-weight: 600; } .glossary dd { margin: 0 0 .8rem; color: var(--fg); }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Pull request write-up</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Paginate booking search</h1>
+    <p class="lede"><a class="ref" data-ref="PR-437" href="#ref-PR-437"><span class="ref-id">PR 437</span> Paginate booking search</a> replaces OFFSET pagination in the booking search with <dfn data-gloss="Pagination that continues after the last row the client has seen, identified here by its start time and ID, instead of skipping a number of rows.">keyset pagination</dfn> on <code>(start_time, id)</code> and adds a matching database index, so deep pages stay fast instead of slowing down after page 50. One behaviour changes for clients: the search response no longer contains a total count. Review the query change in <code>BookingSearchService.java</code> first; it is shown below with notes.</p>
+    <p class="meta">Branch <code>feature/KT-948-pagination</code> into <code>master</code>, for <a class="ref" data-ref="KT-948" href="#ref-KT-948"><span class="ref-id">KT-948</span> booking search slow on large practices</a>. Prepared 3 November 2026 for the reviewers of the pull request.</p>
+    <p>The reason is speed and safety. With <dfn data-gloss="Pagination that skips page × size rows and returns the next size rows; the database still reads every skipped row.">OFFSET pagination</dfn> the database reads and throws away every row before the requested page, so with the default of 20 slots per page, page 50 reads about 1,000 rows to return 20. <a class="ref" data-ref="INC-2307" href="#ref-INC-2307"><span class="ref-id">INC-2307</span> booking outage of 29 October 2026</a> showed what a <dfn data-gloss="A query that reads every row of a table because no index fits the filter or the sort order.">full table scan</dfn> on this data does to the booking API.</p>
+
+    <h2 id="diff">The key change</h2>
+    <p>The whole pagination logic of the search is this one statement in <code>booking-api/src/main/java/com/example/booking/BookingSearchService.java</code>. Removed lines start with <code>-</code>, added lines with <code>+</code>.</p>
+    <pre class="diff" aria-label="Diff excerpt of BookingSearchService.java"><code><span class="del" id="L-offset">-    return query.offset(page * size).limit(size).fetch();</span>
+<span class="add" id="L-where">+    return query.where(cursor.after(lastStartTime, lastId))</span>
+<span class="add" id="L-order">+                .orderBy(SLOT.START_TIME.asc(), SLOT.ID.asc())</span>
+<span class="add" id="L-limit">+                .limit(size + 1).fetch();</span></code></pre>
+    <p class="note" data-for="L-offset"><b>Removed line.</b> The old query skips <code>page * size</code> rows. Its cost grows with the page number, which is the slowdown reported in <a class="ref" data-ref="KT-948" href="#ref-KT-948"><span class="ref-id">KT-948</span> booking search slow on large practices</a>.</p>
+    <p class="note" data-for="L-where"><b>The cursor condition.</b> The new query starts right after the last slot of the previous page, identified by its start time and ID. The database can jump there through the index instead of counting rows, so page 50 costs about the same as page 1.</p>
+    <p class="note" data-for="L-order"><b>The sort order.</b> Slots are sorted by start time, and by ID when two slots start at the same time. The ID makes the order unique, which is what keeps pages from repeating or skipping slots; one of the new tests checks exactly this.</p>
+    <p class="note" data-for="L-limit"><b>One extra row.</b> The query fetches <code>size + 1</code> rows. The excerpt does not show what happens to the extra row; check in the full diff that it only decides whether a <code>nextCursor</code> is returned and is not sent to the client as part of the page.</p>
+    <p>The new migration <code>V57__search_index.sql</code> adds an index on <code>slots(practice_id, start_time, id)</code>. Its columns follow the query: the search filters by practice and then reads slots in start-time and ID order, so the page can be read straight from the index without a full table scan.</p>
+
+    <h2 id="files">Changed files</h2>
+    <p>Five files change, all in the <code>booking-api</code> module except the API documentation. The first four paths start below <code>booking-api/src/</code>.</p>
+    <div class="table-wrap"><table class="files">
+      <thead><tr><th scope="col">File</th><th scope="col">Lines</th><th scope="col">What changes</th></tr></thead>
+      <tbody>
+        <tr><td><code>main/java/…/booking/BookingSearchResource.java</code></td><td><span class="chg" data-kind="mod">+42 −11</span></td><td>New query parameters <code>page</code> and <code>size</code>; size defaults to 20 and is capped at 100.</td></tr>
+        <tr><td><code>main/java/…/booking/BookingSearchService.java</code></td><td><span class="chg" data-kind="mod">+65 −20</span></td><td>Keyset pagination on <code>(start_time, id)</code> instead of OFFSET (the diff above).</td></tr>
+        <tr><td><code>main/resources/db/migration/V57__search_index.sql</code></td><td><span class="chg" data-kind="add">new, +3</span></td><td>Index on <code>slots(practice_id, start_time, id)</code>.</td></tr>
+        <tr><td><code>test/java/…/booking/BookingSearchServiceIT.java</code></td><td><span class="chg" data-kind="add">+120</span></td><td>Six new integration tests, including a stable order across pages.</td></tr>
+        <tr><td><code>docs/api/booking-search.md</code> (repository root)</td><td><span class="chg" data-kind="mod">+18 −2</span></td><td>API documentation of the booking search.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="meta">The <code>…</code> in the Java paths stands for <code>com/example</code>.</p>
+
+    <h2 id="risk">Risk: the total count is gone</h2>
+    <p>Keyset pagination does not count the rows it skips, so the pull request removes the total count from the search response. Mobile app 3.2 reads that field only to show a label; the app team confirmed this.</p>
+    <aside class="callout" data-kind="warn"><p><strong>Open point:</strong> the write-up names no other client of the booking search. If you know of a client that relies on the total count, say so in the pull request before it is merged.</p></aside>
+
+    <h2 id="test">How to test</h2>
+    <ol class="stepper">
+      <li><h3>Run the integration tests</h3><p>Run the test class <code>BookingSearchServiceIT</code> in <code>booking-api</code>. All tests should pass, including the six new ones.</p></li>
+      <li><h3>Page through a practice by hand</h3><p>Against a running booking API, request the first page with five slots per page:</p>
+        <pre><code>GET /bookings/search?practice=17&amp;size=5</code></pre>
+        <p>Then follow the <code>nextCursor</code> value from each response to the next page. Each page should hold five slots, in start-time order, and no slot should appear twice or go missing between pages. How the cursor is passed back is described in <code>docs/api/booking-search.md</code>; this write-up does not repeat it.</p></li>
+    </ol>
+
+    <h2 id="checklist">What to check in review</h2>
+    <ul>
+      <li>Requests with <code>size</code> above 100: the write-up says the maximum is 100 but not whether larger values are rejected or reduced to 100. See <code>BookingSearchResource.java</code>.</li>
+      <li>The resource now takes a <code>page</code> parameter while the service pages by cursor: check what <code>page</code> still does, so that clients are not offered a parameter that has no effect.</li>
+      <li>The extra row from <code>limit(size + 1)</code> is used only to decide on <code>nextCursor</code>.</li>
+      <li>The index columns in <code>V57__search_index.sql</code> match the filter and sort order of the new query.</li>
+      <li><code>docs/api/booking-search.md</code> mentions that the total count is gone and explains <code>nextCursor</code>.</li>
+    </ul>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-PR-437"><b>PR 437</b> <span class="ref-summary">This pull request, "Paginate booking search": branch feature/KT-948-pagination into master.</span> Source: the author's pull-request notes (<code>tests/html-it/fixtures/s12-pr-writeup.md</code>).</li>
+      <li id="ref-KT-948"><b>KT-948</b> <span class="ref-summary">Ticket "Booking search slow on large practices": OFFSET pagination gets slow after page 50.</span> Source: the author's pull-request notes. The tracker address was not given, so there is no link.</li>
+      <li id="ref-INC-2307"><b>INC-2307</b> <span class="ref-summary">Incident: the booking outage of 29 October 2026, caused by a missing index that led to a full table scan.</span> Source: the author's pull-request notes. No incident report was provided.</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt id="gloss-cursor">Cursor (<code>nextCursor</code>)</dt>
+      <dd>A value in the search response that marks the last slot of the current page; the client sends it back to get the next page.</dd>
+      <dt id="gloss-full-scan">Full table scan</dt>
+      <dd>A query that reads every row of a table because no index fits its filter or sort order.</dd>
+      <dt id="gloss-keyset">Keyset pagination</dt>
+      <dd>Pagination that continues after the last row the client has seen, here identified by start time and ID, instead of skipping a number of rows.</dd>
+      <dt id="gloss-offset">OFFSET pagination</dt>
+      <dd>Pagination that skips page × size rows and returns the next size rows; the database still reads every row it skips.</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill. Opens offline; no network access needed.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+</body>
+</html>

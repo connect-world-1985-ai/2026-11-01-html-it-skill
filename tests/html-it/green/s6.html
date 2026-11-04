@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en" data-variant="ivory">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Event sourcing explained</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+
+/* ---------- Page components ---------- */
+figure { margin: 0 0 1.5rem; }
+figcaption { color: var(--muted); font-size: .9rem; margin-top: .4rem; }
+figure.cover img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--line); }
+svg.diagram { width: 100%; min-width: 520px; height: auto; color: var(--muted); font: 13px var(--sans); }
+svg.diagram .node rect { fill: var(--surface-2); stroke: var(--line); }
+svg.diagram .node.faded rect { opacity: .55; }
+svg.diagram .node.faded text { fill: var(--muted); text-decoration: line-through; }
+svg.diagram .node.ev rect { fill: var(--surface); stroke: var(--accent); }
+svg.diagram .node.hot rect { fill: var(--surface); stroke: var(--accent); stroke-width: 2; }
+svg.diagram text { fill: var(--fg); text-anchor: middle; }
+svg.diagram text.sub, svg.diagram text.note { fill: var(--muted); font-size: 11px; }
+svg.diagram text.hd, svg.diagram text.zl { font-weight: 600; }
+svg.diagram text.zl { fill: var(--muted); font-size: 12px; }
+svg.diagram .zone { fill: none; stroke: var(--line); stroke-dasharray: 4 4; }
+svg.diagram .edge { stroke: currentColor; stroke-width: 1.5; }
+.stepper { counter-reset: step; list-style: none; padding: 0; }
+.stepper > li { counter-increment: step; position: relative; padding-left: 2.6rem; margin-bottom: 1.2rem; }
+.stepper > li::before { content: counter(step); position: absolute; left: 0; top: .1rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line); font-weight: 600; }
+.stepper > li h3 { margin-top: 0; }
+.replay { border: 1px solid var(--line); border-radius: var(--radius); padding: .8rem 1rem; background: var(--surface); margin-bottom: var(--space); }
+.replay-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin-bottom: .6rem; }
+.replay-controls[hidden] { display: none; }
+.replay-controls input { flex: 1 1 12rem; accent-color: var(--accent); }
+.replay-table tr.future td { color: var(--muted); opacity: .45; }
+.replay-table tr.current td { background: var(--surface-2); font-weight: 600; }
+details { border: 1px solid var(--line); border-radius: var(--radius); padding: .5rem .8rem; }
+summary { cursor: pointer; font-weight: 600; }
+details p { margin: .5rem 0 0; }
+.glossary dt { font-weight: 600; margin-top: .6rem; } .glossary dd { margin: 0 0 .4rem; }
+@media print { .replay-controls { display: none !important; } .replay-table td { opacity: 1 !important; font-weight: normal !important; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Order service onboarding</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Event sourcing in the order service</h1>
+    <p class="lede">The order service does not store what an order looks like now; it stores every change that ever happened to it, as a list of <dfn data-gloss="A fact about something that already happened, written in the past tense, such as OrderPlaced. Events are never changed or deleted.">events</dfn>, and works out the current state by replaying that list. The team chose this design in <a class="ref" data-ref="ADR-007" href="#ref-ADR-007"><span class="ref-id">ADR-007</span> decision to use event sourcing for orders</a> because medical billing needs a complete history. If you come from <dfn data-gloss="Create, read, update, delete: the usual style where each table row holds the latest state and updates overwrite it.">CRUD</dfn> backends, read the next two sections first; they change what "saving" an order means.</p>
+    <p class="meta">Prepared 3 November 2026 for backend engineers joining the order service team.</p>
+
+    <figure class="cover">
+      <img data-generated="true" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Illustration: on the left an index card being erased and rewritten; on the right a ledger strip where each change is stamped as a new line and nothing is ever crossed out." width="1600" height="900">
+      <figcaption>Two ways to remember an order: rewrite one card, or keep a ledger of every change.</figcaption>
+    </figure>
+
+    <h2 id="snapshot-vs-log">Snapshot versus log</h2>
+    <p>In a CRUD service, an order is one row. When the payment arrives, the row's status changes from "placed" to "paid", and the old value is gone. The database always knows the present and forgets the past.</p>
+    <p>In an <dfn data-gloss="A storage design where the source of truth is the append-only list of events, and current state is derived by replaying them.">event-sourced</dfn> service, nothing is overwritten. Each change is appended as a new event to an <dfn data-gloss="A log you can only add to at the end; existing entries are never edited or removed.">append-only log</dfn>: <code>OrderPlaced</code>, then <code>PaymentCaptured</code>, then <code>OrderShipped</code>. The log is the source of truth. "The order is paid" is not stored anywhere directly; it is a conclusion you reach by reading the log.</p>
+
+    <figure>
+      <div class="table-wrap">
+      <svg class="diagram" viewBox="0 0 640 210" role="img" aria-labelledby="cmp-t">
+        <title id="cmp-t">Left: a CRUD row that is overwritten from placed to paid to shipped. Right: an event log that keeps three entries, OrderPlaced, PaymentCaptured and OrderShipped, from which the state shipped is derived.</title>
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <text class="hd" x="140" y="20">CRUD: one row, overwritten</text>
+        <g class="node faded"><rect x="40" y="40" width="200" height="34" rx="6"/><text x="140" y="62">status = placed</text></g>
+        <g class="node faded"><rect x="40" y="90" width="200" height="34" rx="6"/><text x="140" y="112">status = paid</text></g>
+        <g class="node"><rect x="40" y="140" width="200" height="34" rx="6"/><text x="140" y="162">status = shipped</text></g>
+        <text class="note" x="140" y="198">earlier values are lost</text>
+        <text class="hd" x="470" y="20">Event sourcing: every change kept</text>
+        <g class="node ev"><rect x="340" y="40" width="160" height="34" rx="6"/><text x="420" y="62">1 OrderPlaced</text></g>
+        <g class="node ev"><rect x="340" y="90" width="160" height="34" rx="6"/><text x="420" y="112">2 PaymentCaptured</text></g>
+        <g class="node ev"><rect x="340" y="140" width="160" height="34" rx="6"/><text x="420" y="162">3 OrderShipped</text></g>
+        <line class="edge" x1="500" y1="107" x2="532" y2="107" marker-end="url(#arr)"/>
+        <g class="node hot"><rect x="535" y="85" width="100" height="44" rx="6"/><text x="585" y="104">replay</text><text x="585" y="121">= shipped</text></g>
+        <text class="note" x="420" y="198">history is the data</text>
+      </svg>
+      </div>
+      <figcaption>The same three changes, stored two ways.</figcaption>
+    </figure>
+
+    <h2 id="flow">How an order moves through the service</h2>
+    <p>Every change follows the same path, from a request on the left to a screen on the right. The left half decides and records; the right half prepares data for reading.</p>
+    <figure>
+      <div class="table-wrap">
+      <svg class="diagram" viewBox="0 0 760 150" role="img" aria-labelledby="flow-t">
+        <title id="flow-t">Flow: command, then aggregate, then event store, then projector, then read model, then user interface. The write side ends at the event store; the read side starts at the projector.</title>
+        <rect class="zone" x="2" y="2" width="372" height="146" rx="8"/><text class="zl" x="188" y="22">Write side: decide and record</text>
+        <rect class="zone" x="386" y="2" width="372" height="146" rx="8"/><text class="zl" x="572" y="22">Read side: prepare for screens</text>
+        <g class="node"><rect x="14" y="55" width="100" height="50" rx="6"/><text x="64" y="78">Command</text><text class="sub" x="64" y="95">"capture payment"</text></g>
+        <line class="edge" x1="114" y1="80" x2="136" y2="80" marker-end="url(#arr)"/>
+        <g class="node"><rect x="138" y="55" width="100" height="50" rx="6"/><text x="188" y="78">Aggregate</text><text class="sub" x="188" y="95">checks the rules</text></g>
+        <line class="edge" x1="238" y1="80" x2="260" y2="80" marker-end="url(#arr)"/>
+        <g class="node hot"><rect x="262" y="55" width="100" height="50" rx="6"/><text x="312" y="78">Event store</text><text class="sub" x="312" y="95">append-only log</text></g>
+        <line class="edge" x1="362" y1="80" x2="396" y2="80" marker-end="url(#arr)"/>
+        <g class="node"><rect x="398" y="55" width="100" height="50" rx="6"/><text x="448" y="78">Projector</text><text class="sub" x="448" y="95">reads new events</text></g>
+        <line class="edge" x1="498" y1="80" x2="520" y2="80" marker-end="url(#arr)"/>
+        <g class="node"><rect x="522" y="55" width="100" height="50" rx="6"/><text x="572" y="78">Read model</text><text class="sub" x="572" y="95">order list, invoice</text></g>
+        <line class="edge" x1="622" y1="80" x2="644" y2="80" marker-end="url(#arr)"/>
+        <g class="node"><rect x="646" y="55" width="100" height="50" rx="6"/><text x="696" y="78">UI</text><text class="sub" x="696" y="95">what users see</text></g>
+        <text class="note" x="380" y="135">short delay here: eventual consistency</text>
+      </svg>
+      </div>
+      <figcaption>Command, aggregate, event store, projector, read model, UI.</figcaption>
+    </figure>
+    <ol class="stepper">
+      <li><h3>A command asks for a change</h3><p>A <dfn data-gloss="A request to change something, written as an instruction (capture payment, ship order). It can be rejected.">command</dfn> such as "capture payment for this order" arrives. It is a wish, not a fact: it can still be refused.</p></li>
+      <li><h3>The aggregate decides</h3><p>The <dfn data-gloss="The object that owns one order's business rules. It rebuilds its state from that order's events and decides whether a command is allowed.">aggregate</dfn> for that order replays the order's events to learn its current state, then checks the rules, for example "an order cannot be shipped before it is paid". If the command is allowed, the aggregate produces one or more new events.</p></li>
+      <li><h3>The event store records the fact</h3><p>The new event, such as <code>PaymentCaptured</code>, is appended to the order's log in the <dfn data-gloss="The database that holds the append-only event logs; the single source of truth on the write side.">event store</dfn>. From this moment it is history and is never edited.</p></li>
+      <li><h3>Projectors build read models</h3><p>A <dfn data-gloss="A component that listens to new events and updates a read model from them.">projector</dfn> picks up the new event and updates one or more <dfn data-gloss="A table or document shaped for one screen or query (for example the order list or the invoice view), rebuilt from events. Also called a projection.">read models</dfn>: the order list, the invoice view. Each read model is shaped for one screen, so reads are simple and fast.</p></li>
+      <li><h3>The UI reads the read model</h3><p>Screens never replay events themselves; they query a read model. Because projectors run after the event is stored, a screen can briefly show the previous state. That short delay is called <dfn data-gloss="The read side catches up with the write side after a short delay instead of instantly.">eventual consistency</dfn>.</p></li>
+    </ol>
+
+    <h2 id="example">Worked example: replaying one order</h2>
+    <p>The order below is an example, not a real record; its dates and amounts are made up to show the mechanics. Move the slider to replay its events and watch the current state being rebuilt one event at a time.</p>
+    <div class="replay" id="replay">
+      <div class="replay-controls" hidden>
+        <label for="replay-range">Events replayed: <output id="replay-count">3</output> of 3</label>
+        <input type="range" id="replay-range" min="0" max="3" value="3" step="1">
+      </div>
+      <div class="table-wrap">
+      <table class="replay-table">
+        <thead><tr><th>#</th><th>Event (example)</th><th>Recorded</th><th>State after this event</th></tr></thead>
+        <tbody>
+          <tr data-step="0"><td>0</td><td><em>no events yet</em></td><td>–</td><td>The order does not exist.</td></tr>
+          <tr data-step="1"><td>1</td><td><code>OrderPlaced</code>: 2 items, 120.00 EUR</td><td>2026-02-28</td><td>Placed; 120.00 EUR open; not shipped.</td></tr>
+          <tr data-step="2"><td>2</td><td><code>PaymentCaptured</code>: 120.00 EUR</td><td>2026-03-01</td><td>Paid; 0.00 EUR open; not shipped.</td></tr>
+          <tr data-step="3"><td>3</td><td><code>OrderShipped</code>: handed to the carrier</td><td>2026-03-03</td><td>Paid; 0.00 EUR open; shipped.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <p>This is also how a <dfn data-gloss="A question about the past state of data: what did this order look like on a given date?">temporal query</dfn> works. To answer "what did this order look like on 1 March?", replay only the events recorded up to the end of 1 March: rows 1 and 2. The answer is "paid, not yet shipped". A CRUD table cannot answer that question, because it overwrote "paid" with "shipped" on 3 March.</p>
+    <p>In code, replaying is a fold over the events: start from an empty state and apply each event in order. The sketch below is pseudocode, not the service's real code.</p>
+    <pre><code>state = empty order
+for each event in log(order), oldest first:
+    state = apply(state, event)   # OrderPlaced sets items and total, PaymentCaptured marks it paid
+return state</code></pre>
+
+    <h2 id="why">Why the team chose it</h2>
+    <p>The decision record <a class="ref" data-ref="ADR-007" href="#ref-ADR-007"><span class="ref-id">ADR-007</span> event sourcing for orders</a>, written in March 2025, gives three reasons:</p>
+    <ul>
+      <li><strong>A full audit trail for medical billing.</strong> Billing must be able to show what changed and when. With event sourcing, the history is not an extra audit table that can drift from the data; it is the data.</li>
+      <li><strong>Read models can be rebuilt.</strong> A new screen, or a fix to a broken one, means writing or correcting a projector and replaying the log into a fresh read model. Old data does not need a migration.</li>
+      <li><strong>Temporal queries.</strong> Questions like "what did this order look like on 1 March?" are answered by replaying up to that date, as in the example above.</li>
+    </ul>
+
+    <h2 id="costs">What it costs</h2>
+    <p>Event sourcing is not free. The decision record names three costs you will meet in daily work.</p>
+    <h3>Event schemas must be versioned</h3>
+    <p>Events are never rewritten, so an <code>OrderPlaced</code> event stored in 2025 keeps its 2025 shape forever. When you add or rename a field, the code must still read every older version. Treat an event's shape like a public API: change it carefully and on purpose.</p>
+    <h3>Screens can lag behind for a moment</h3>
+    <p>Projectors update read models after the event is stored, so the UI may briefly show the old state. Design screens and tests with that delay in mind; for example, a test should not read the order list immediately after a command and expect the new status.</p>
+    <h3>Replays get slower as logs grow</h3>
+    <p>An order with thousands of events would take longer and longer to rebuild. The service therefore saves a <dfn data-gloss="A stored copy of an aggregate's state at a given event, so replay can start from there instead of from the first event.">snapshot</dfn> every 500 events. To rebuild an order, the aggregate loads the latest snapshot and replays only the events after it, at most 499.</p>
+
+    <h2 id="self-check">Check your understanding</h2>
+    <p>Try each question before opening the answer.</p>
+    <details><summary>A customer's delivery address changes. Do you update the order's address field?</summary><p>No. The change is recorded as a new event appended to the order's log. The current address is whatever the replay produces; the old address stays in the history.</p></details>
+    <details><summary>The order list shows "placed" one second after the payment succeeded. Is that a bug?</summary><p>Not necessarily. The read model is updated by a projector after the event is stored, so a short delay is expected (eventual consistency). A delay that does not go away is worth investigating.</p></details>
+    <details><summary>The invoice view shows a wrong total for every order. How do you fix the data?</summary><p>Fix the invoice projector, then rebuild the invoice read model by replaying the events. The events were never wrong, so nothing in the event store changes.</p></details>
+    <details><summary>An order has 1,230 events. How many does the aggregate replay to rebuild it?</summary><p>230. It loads the snapshot taken at event 1,000 (snapshots are taken every 500 events) and replays the 230 events after it.</p></details>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-ADR-007"><b>ADR-007</b> <span class="ref-summary">Architecture decision record from March 2025 that chose event sourcing for the order service, for a full billing audit trail, rebuildable read models and temporal queries.</span> Source: the explainer brief for new joiners; the record's full text and location were not given.</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt id="gloss-aggregate">Aggregate</dt><dd>The object that owns one order's business rules. It rebuilds its state from that order's events and decides whether a command is allowed.</dd>
+      <dt id="gloss-append-only">Append-only log</dt><dd>A log you can only add to at the end; existing entries are never edited or removed.</dd>
+      <dt id="gloss-command">Command</dt><dd>A request to change something, written as an instruction (capture payment, ship order). It can be rejected.</dd>
+      <dt id="gloss-crud">CRUD</dt><dd>Create, read, update, delete: the usual style where each table row holds the latest state and updates overwrite it.</dd>
+      <dt id="gloss-event">Event</dt><dd>A fact about something that already happened, written in the past tense, such as <code>OrderPlaced</code>. Events are never changed or deleted.</dd>
+      <dt id="gloss-es">Event sourcing</dt><dd>A storage design where the source of truth is the append-only list of events, and current state is derived by replaying them.</dd>
+      <dt id="gloss-store">Event store</dt><dd>The database that holds the append-only event logs; the single source of truth on the write side.</dd>
+      <dt id="gloss-eventual">Eventual consistency</dt><dd>The read side catches up with the write side after a short delay instead of instantly.</dd>
+      <dt id="gloss-projector">Projector</dt><dd>A component that listens to new events and updates a read model from them.</dd>
+      <dt id="gloss-read-model">Read model (projection)</dt><dd>A table or document shaped for one screen or query, such as the order list or the invoice view, rebuilt from events.</dd>
+      <dt id="gloss-snapshot">Snapshot</dt><dd>A stored copy of an aggregate's state at a given event, so replay can start from there instead of from the first event. The order service takes one every 500 events.</dd>
+      <dt id="gloss-temporal">Temporal query</dt><dd>A question about the past state of data: what did this order look like on a given date?</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill. Opens offline; no network access needed.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  // Event replay: highlights the state after N events. Without JavaScript every row stays visible.
+  const box = document.getElementById('replay'); if (!box) return;
+  const range = box.querySelector('#replay-range'), out = box.querySelector('#replay-count');
+  const rows = [...box.querySelectorAll('tr[data-step]')];
+  box.querySelector('.replay-controls').hidden = false;
+  const show = (n) => { out.textContent = n; rows.forEach((r) => { const s = +r.dataset.step;
+    r.classList.toggle('future', s > n); r.classList.toggle('current', s === n); }); };
+  range.addEventListener('input', () => show(+range.value)); show(+range.value);
+})();
+</script>
+</body>
+</html>

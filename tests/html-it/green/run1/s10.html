@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en" data-variant="ivory">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Reminder queue proposal</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+/* ---------- Deck ---------- */
+.page { max-width: none; display: block; }
+.page > main { max-width: none; }
+.slide { min-height: 100vh; padding: 6vh 6vw; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; font-size: clamp(1rem, .7rem + 1vw, 1.6rem); }
+.slide > * { width: 100%; max-width: 64rem; margin-inline: auto; }
+.slide h1, .slide h2 { margin-top: 0; font-size: clamp(1.8rem, 1rem + 3vw, 3.2rem); }
+.slide h3 { font-size: 1.1em; margin-top: 0; }
+.slide .lede { font-size: 1.15em; }
+.slide p, .slide li { max-width: 60ch; }
+.slide table { font-size: .8em; }
+.slide .meta { font-size: .7em; }
+.big-list { padding-left: 1.2em; } .big-list li { margin-bottom: .7em; }
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; }
+.option { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.1rem; background: var(--surface); font-size: .85em; }
+.option.pick { border: 2px solid var(--ok); }
+.option .effort { font-weight: 600; color: var(--muted); }
+.matrix tr.pick { background: var(--ok-bg); }
+.ref-id, .pill { white-space: nowrap; }
+.notes { display: none; border-top: 1px dashed var(--line); margin-top: 2rem; padding-top: .8rem; color: var(--muted); font-size: .7em; }
+.notes::before { content: "Speaker notes"; display: block; font-weight: 600; margin-bottom: .2rem; }
+body.show-notes .notes { display: block; }
+body.deck-on { padding-bottom: 0; }
+body.deck-on .slide { display: none; border: 0; } body.deck-on .slide.on { display: flex; }
+body.deck-on .topbar { position: fixed; top: .4rem; right: 1rem; padding: 0; z-index: 5; }
+body.deck-on .topbar > span, body.deck-on .page-foot { display: none; }
+.deck-bar { position: fixed; bottom: .8rem; right: 1rem; display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: .25rem .6rem; z-index: 5; }
+.deck-bar[hidden] { display: none; }
+.deck-bar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: .1rem .55rem; cursor: pointer; }
+.deck-bar button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+@media (max-width: 600px) { .deck-bar .meta { display: none; } }
+.glossary dt { font-weight: 600; } .glossary dd { margin: 0 0 .5em; }
+.backup { font-size: clamp(.95rem, .7rem + .6vw, 1.2rem); }
+/* SVG diagram */
+svg.diagram { width: 100%; min-width: 560px; height: auto; color: var(--muted); font: 14px var(--sans); }
+figure:has(svg.diagram) { overflow-x: auto; }
+svg.diagram .node rect { fill: var(--surface-2); stroke: var(--line); }
+svg.diagram .node.pick rect { fill: var(--ok-bg); stroke: var(--ok); }
+svg.diagram text { fill: var(--fg); text-anchor: middle; }
+svg.diagram text.sub, svg.diagram text.lbl { fill: var(--muted); font-size: 12px; }
+svg.diagram .edge { stroke: currentColor; stroke-width: 1.5; }
+figcaption { color: var(--muted); font-size: .75em; }
+@media print {
+  body.deck-on .slide { display: flex !important; }
+  .slide { min-height: auto; break-after: page; font-size: 12pt; }
+  .deck-bar { display: none !important; }
+  .notes { display: block !important; }
+  body.deck-on .page-foot { display: block; }
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Design proposal: appointment reminders</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page">
+  <main id="content" class="deck">
+
+    <section class="slide" id="s-1" aria-label="Slide 1: recommendation">
+      <h1>Appointment reminders: move sending to a queue</h1>
+      <p class="lede">The team recommends <strong>Option B</strong>: send appointment reminders through a <dfn data-gloss="A list of jobs held by a broker. Producers add jobs; consumers take them off and process them at their own pace.">message queue</dfn> on <dfn data-gloss="An open-source message broker. It holds queued messages and hands them to consumers, with acknowledgement and redelivery.">RabbitMQ</dfn> instead of the nightly <dfn data-gloss="A job that the operating system starts on a fixed schedule, here once every night.">cron job</dfn>. It removes late reminders and manual retries for about 2 sprints of work.</p>
+      <aside class="callout" data-kind="decision"><p><strong>Decision needed from Lena (tech lead)</strong> at the architecture review on Friday 7 November 2026. If Option B is chosen, work starts in sprint 47.</p></aside>
+      <aside class="notes"><p>Open with the recommendation and who decides. The rest of the deck is the evidence: the problem, the three options, how B works and what B costs us. The last slide is the decision.</p></aside>
+    </section>
+
+    <section class="slide" id="s-2" aria-label="Slide 2: the problem">
+      <h2>Today one nightly job sends every reminder, and 6&nbsp;% arrive late</h2>
+      <p>The core service sends all appointment reminders from a single cron job that runs once a night at 02:00. Two problems follow from that design:</p>
+      <ul class="big-list">
+        <li><strong>6&nbsp;% of reminders arrive late.</strong> Every reminder is sent in the same nightly window, which creates a load peak at 02:00.</li>
+        <li><strong>Failed reminders are retried by hand.</strong> When a send fails, someone has to notice and resend it; see <span class="ref" data-ref="KT-955" data-ref-status="unresolved"><span class="ref-id">KT-955</span> not found in the provided material</span>.</li>
+      </ul>
+      <aside class="notes"><p>The 6 % figure and the 02:00 peak come from the proposal; it does not state the time zone of the 02:00 run. The ticket cited for the manual retries is mentioned on this slide, but its content was not available when this deck was made, so it is marked as unresolved.</p></aside>
+    </section>
+
+    <section class="slide" id="s-3" aria-label="Slide 3: three options">
+      <h2>Three options</h2>
+      <div class="options">
+        <article class="option">
+          <h3>A: keep the cron job, add retries</h3>
+          <p class="effort">Effort: 3 days</p>
+          <p>Quick, and retries no longer need a person. The nightly load peak at 02:00 stays, so it does not fix the cause of late reminders.</p>
+        </article>
+        <article class="option pick">
+          <h3>B: queue on RabbitMQ <span class="pill" data-state="ok">Recommended</span></h3>
+          <p class="effort">Effort: 2 sprints</p>
+          <p>Retries and <dfn data-gloss="A consumer takes new work only as fast as it can finish it, so a burst waits in the queue instead of overloading the sender.">back-pressure</dfn> are built in. RabbitMQ already runs for <code>sms-service</code>. Needs an ops <dfn data-gloss="A written procedure that operations staff follow to run, monitor and recover a system.">runbook</dfn>.</p>
+        </article>
+        <article class="option">
+          <h3>C: external notification provider</h3>
+          <p class="effort">Effort: 1 sprint, about 1,800&nbsp;EUR per month</p>
+          <p>Patient data leaves our hosting, so the provider needs a <dfn data-gloss="A contract that binds an outside company to process personal data only on our instructions and under data-protection law.">data processing agreement</dfn> under <a class="ref" data-ref="SEC-20" href="#ref-SEC-20"><span class="ref-id">SEC-20</span> patient data stays in EU-hosted systems</a>.</p>
+        </article>
+      </div>
+      <aside class="notes"><p>A is cheap but treats the symptom. C is fast to build but adds a monthly cost and a contract, and moves patient data outside our hosting. B costs the most build time and is the only option that addresses the load peak and the retries together.</p></aside>
+    </section>
+
+    <section class="slide" id="s-4" aria-label="Slide 4: trade-offs">
+      <h2>Option B addresses both the load peak and the manual retries</h2>
+      <div class="table-wrap"><table class="matrix">
+        <thead><tr><th scope="col">Option</th><th scope="col">Build effort</th><th scope="col">Running cost</th><th scope="col">Load peak at 02:00</th><th scope="col">Retries</th><th scope="col">Patient data</th><th scope="col">Also needs</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">A: cron + retries</th><td>3 days</td><td>Not stated</td><td><span class="pill" data-state="bad">Stays</span></td><td>Added to the cron job</td><td>Stays in our hosting</td><td>Nothing stated</td></tr>
+          <tr class="pick"><th scope="row">B: RabbitMQ queue</th><td>2 sprints</td><td>Not stated</td><td><span class="pill" data-state="ok">Back-pressure</span></td><td>Built in</td><td>Stays in our hosting</td><td>Ops runbook</td></tr>
+          <tr><th scope="row">C: external provider</th><td>1 sprint</td><td>About 1,800 EUR per month</td><td>Not stated</td><td>Not stated</td><td><span class="pill" data-state="warn">Leaves our hosting</span></td><td>Data processing agreement under <a class="ref" data-ref="SEC-20" href="#ref-SEC-20"><span class="ref-id">SEC-20</span> EU hosting rule</a></td></tr>
+        </tbody>
+      </table></div>
+      <p class="meta">"Not stated" means the proposal gives no figure; it does not mean zero.</p>
+      <aside class="notes"><p>Running cost for A and B is not in the proposal; do not quote a number for them. The C cost is an estimate, "about 1,800 EUR per month".</p></aside>
+    </section>
+
+    <section class="slide" id="s-5" aria-label="Slide 5: how Option B works">
+      <h2>How Option B works</h2>
+      <figure>
+        <svg class="diagram" viewBox="0 0 790 230" role="img" aria-labelledby="d1t">
+          <title id="d1t">Option B: the core service puts reminder jobs on a RabbitMQ queue; a reminder sender takes them at its own pace and puts failed sends back on the queue for a retry</title>
+          <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+          <g class="node"><rect x="0" y="60" width="170" height="70" rx="6"/><text x="85" y="91">Core service</text><text class="sub" x="85" y="111">adds one job per reminder</text></g>
+          <line class="edge" x1="170" y1="95" x2="228" y2="95" marker-end="url(#arr)"/>
+          <g class="node pick"><rect x="230" y="60" width="220" height="70" rx="6"/><text x="340" y="91">RabbitMQ queue</text><text class="sub" x="340" y="111">broker already used by sms-service</text></g>
+          <line class="edge" x1="450" y1="95" x2="508" y2="95" marker-end="url(#arr)"/>
+          <g class="node"><rect x="510" y="60" width="160" height="70" rx="6"/><text x="590" y="91">Reminder sender</text><text class="sub" x="590" y="111">takes jobs at its own pace</text></g>
+          <line class="edge" x1="670" y1="95" x2="728" y2="95" marker-end="url(#arr)"/>
+          <g class="node"><rect x="730" y="60" width="60" height="70" rx="6"/><text x="760" y="100">Patient</text></g>
+          <path class="edge" d="M590,130 C590,200 340,200 340,132" fill="none" marker-end="url(#arr)"/>
+          <text class="lbl" x="465" y="215">failed send goes back on the queue (retry)</text>
+          <text class="lbl" x="340" y="40">waiting jobs absorb bursts (back-pressure)</text>
+        </svg>
+        <figcaption>Sketch for discussion. The proposal names RabbitMQ and the built-in retries and back-pressure; the name and placement of the reminder sender are not decided yet.</figcaption>
+      </figure>
+      <aside class="notes"><p>Walk the arrows left to right. The point is that jobs wait in the queue instead of all firing at 02:00, and a failed send is redelivered by the broker instead of by a person.</p></aside>
+    </section>
+
+    <section class="slide" id="s-6" aria-label="Slide 6: what Option B commits us to">
+      <h2>What Option B commits us to</h2>
+      <ul class="big-list">
+        <li><strong>2 sprints of build work</strong>, compared with 3 days for Option A and 1 sprint for Option C.</li>
+        <li><strong>An ops runbook</strong>, so that operations staff can monitor the reminder queue and recover it when it fails.</li>
+        <li><strong>No new infrastructure product:</strong> RabbitMQ is already in use by <code>sms-service</code>.</li>
+        <li><strong>Patient data stays in our hosting</strong>, so no new data processing agreement is needed under <a class="ref" data-ref="SEC-20" href="#ref-SEC-20"><span class="ref-id">SEC-20</span> patient data stays in EU-hosted systems</a>.</li>
+      </ul>
+      <aside class="notes"><p>The runbook is real extra work and should be counted in the 2 sprints or planned next to them; ask ops who owns it.</p></aside>
+    </section>
+
+    <section class="slide" id="s-7" aria-label="Slide 7: decision">
+      <h2>Decision for Lena</h2>
+      <p class="lede">Approve Option B, the RabbitMQ queue, so that work starts in sprint 47.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">If Lena chooses</th><th scope="col">What happens next</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">B (recommended)</th><td>Work starts in sprint 47; about 2 sprints, including an ops runbook.</td></tr>
+          <tr><th scope="row">A</th><td>3 days of work; late reminders from the 02:00 peak remain.</td></tr>
+          <tr><th scope="row">C</th><td>A data processing agreement under <a class="ref" data-ref="SEC-20" href="#ref-SEC-20"><span class="ref-id">SEC-20</span> EU hosting rule</a> is needed first; about 1,800 EUR per month.</td></tr>
+        </tbody>
+      </table></div>
+      <aside class="notes"><p>End by asking Lena for the decision in the room. Record the outcome in the review notes.</p></aside>
+    </section>
+
+    <section class="slide backup" id="s-8" aria-label="Slide 8: references and glossary">
+      <h2 id="references">References</h2>
+      <ol class="references">
+        <li id="ref-SEC-20"><b>SEC-20</b> <span class="ref-summary">Security rule: patient data stays in EU-hosted systems covered by a data processing agreement.</span> Source: the proposal text for this review.</li>
+      </ol>
+      <h3>Could not be resolved</h3>
+      <ol class="references">
+        <li id="ref-KT-955"><b>KT-955</b> <span class="ref-summary">Cited for "retries are manual". Its content was not in the provided material; no issue tracker was available to look it up.</span></li>
+      </ol>
+      <h2 id="glossary">Glossary</h2>
+      <dl class="glossary">
+        <dt>Back-pressure</dt><dd>A consumer takes new work only as fast as it can finish it, so a burst waits in the queue instead of overloading the sender.</dd>
+        <dt>Cron job</dt><dd>A job that the operating system starts on a fixed schedule, here once every night at 02:00.</dd>
+        <dt>Data processing agreement</dt><dd>A contract that binds an outside company to process personal data only on our instructions and under data-protection law.</dd>
+        <dt>Message queue</dt><dd>A list of jobs held by a broker. Producers add jobs; consumers take them off and process them at their own pace.</dd>
+        <dt>RabbitMQ</dt><dd>An open-source message broker, already used by <code>sms-service</code>.</dd>
+        <dt>Runbook</dt><dd>A written procedure that operations staff follow to run, monitor and recover a system.</dd>
+      </dl>
+      <aside class="notes"><p>Backup slide; show only if someone asks about a term or a reference.</p></aside>
+    </section>
+
+  </main>
+</div>
+<div class="deck-bar" hidden>
+  <button type="button" id="deck-prev" aria-label="Previous slide">Back</button>
+  <span id="deck-count"></span>
+  <button type="button" id="deck-next" aria-label="Next slide">Next</button>
+  <button type="button" id="deck-notes" aria-pressed="false">Notes</button>
+  <span class="meta">Arrow keys move, N shows notes</span>
+</div>
+<footer class="page-foot">Proposal for the architecture review on Friday 7 November 2026. Opens offline; no network access needed. Print gives one slide per page with speaker notes.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  // Deck mode: arrow keys, Home/End, slide counter, N for speaker notes.
+  const slides = [...document.querySelectorAll('.slide')], bar = document.querySelector('.deck-bar');
+  const notesBtn = document.getElementById('deck-notes');
+  let cur = Math.max(0, slides.findIndex((s) => '#' + s.id === location.hash));
+  document.body.classList.add('deck-on'); bar.hidden = false;
+  const go = (i) => {
+    cur = Math.min(slides.length - 1, Math.max(0, i));
+    slides.forEach((s, k) => s.classList.toggle('on', k === cur));
+    document.getElementById('deck-count').textContent = (cur + 1) + ' / ' + slides.length;
+    history.replaceState(null, '', '#' + slides[cur].id);
+  };
+  const toggleNotes = () => notesBtn.setAttribute('aria-pressed', document.body.classList.toggle('show-notes'));
+  document.getElementById('deck-prev').addEventListener('click', () => go(cur - 1));
+  document.getElementById('deck-next').addEventListener('click', () => go(cur + 1));
+  notesBtn.addEventListener('click', toggleNotes);
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest('input, textarea, select, button')) { if (e.key === ' ' || e.key === 'Enter') return; }
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) go(cur - 1);
+    else if (e.key === 'Home') go(0); else if (e.key === 'End') go(slides.length - 1);
+    else if (e.key.toLowerCase() === 'n') toggleNotes();
+  });
+  // Ref chips jump to the backup slide.
+  document.querySelectorAll('a.ref[href^="#ref-"]').forEach((a) => a.addEventListener('click', () => go(slides.length - 1)));
+  window.addEventListener('beforeprint', () => slides.forEach((s) => s.classList.add('on')));
+  window.addEventListener('afterprint', () => go(cur));
+  go(cur);
+})();
+</script>
+</body>
+</html>

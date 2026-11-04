@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en" data-variant="console">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Booking app sketches</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+
+/* ---------- Page components: sketch board ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+.chip { font: inherit; font-size: .85rem; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: .25rem .85rem; cursor: pointer; }
+.chip[aria-pressed=true] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.chip:disabled { opacity: .55; cursor: not-allowed; }
+.board { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.sketch-card { margin: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: .6rem; display: flex; flex-direction: column; }
+.sketch-card[hidden] { display: none; }
+.sketch-card.picked { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.sketch-card h3 { margin: .7rem 0 .3rem; font-size: 1rem; }
+.sketch-card p { margin: 0 0 .5rem; font-size: .9rem; }
+.sketch-card .open-q { color: var(--muted); }
+iframe.sketch { width: 100%; height: 520px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.pick-btn { font: inherit; font-size: .85rem; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; align-self: flex-start; }
+.pick-btn[aria-pressed=true] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.board.comparing { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.board.comparing .sketch-card:not(.picked) { display: none; }
+@media (max-width: 560px) { .board.comparing { grid-template-columns: minmax(0, 1fr); } }
+svg.diagram { width: 100%; min-width: 600px; height: auto; color: var(--muted); font: 13px var(--sans); }
+svg.diagram .node rect { fill: var(--surface-2); stroke: var(--line); }
+svg.diagram .node.hot rect { fill: var(--bad-bg); stroke: var(--bad); }
+svg.diagram .node.ok rect { fill: var(--ok-bg); stroke: var(--ok); }
+svg.diagram text { fill: var(--fg); text-anchor: middle; }
+svg.diagram text.small { fill: var(--muted); font-size: 11px; }
+svg.diagram .edge { stroke: currentColor; stroke-width: 1.5; fill: none; }
+svg.diagram .edge.dashed { stroke-dasharray: 4 3; }
+.glossary dt { font-weight: 600; } .glossary dd { margin: 0 0 .6rem; color: var(--muted); }
+@media print {
+  .chips, .pick-btn { display: none !important; }
+  .sketch-card[hidden], .board.comparing .sketch-card { display: flex !important; }
+  .board, .board.comparing { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sketch-card { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Booking app team: screen sketches</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Booking app: six screen sketches</h1>
+    <p class="lede">Six mobile screen sketches for the appointment booking app cover the whole booking flow, from the home screen to a slot that was taken in the meantime. The team compares the layouts and picks two directions to take forward. Mark your two picks on the board below, then paste the message under it into the team channel.</p>
+    <p class="meta">Prepared 2026-11-03 for the booking app team. The sketches are low-fidelity wireframes: grey bars stand for text, and dates, times, names and labels are placeholders.</p>
+    <aside class="callout" data-kind="decision"><p><strong>Decision needed:</strong> two directions out of these layouts. Who decides and by when is not given in the source. What "direction" means here, two of the six screens or two overall layout styles, is <span class="pill" data-state="warn">To be confirmed</span>.</p></aside>
+
+    <h2 id="flow">The flow at a glance</h2>
+    <p>The six screens are steps of one booking. A patient starts on Home, searches for a practice, picks a slot and confirms. The booking then either succeeds, or fails because the slot is gone; the error screen leads straight back to choosing a time.</p>
+    <figure>
+      <div class="table-wrap">
+      <svg class="diagram" viewBox="0 0 760 160" role="img" aria-labelledby="flow-t">
+        <title id="flow-t">Booking flow: Home, Search, Slot picker, Confirm, then either Success or Error: slot taken, which returns to the slot picker</title>
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <text class="small" x="155" y="14">Book again</text>
+        <path class="edge dashed" d="M50,45 L50,22 L300,22 L314,43" marker-end="url(#arr)"/>
+        <g class="node"><rect x="0" y="45" width="100" height="44" rx="6"/><text x="50" y="72">1. Home</text></g>
+        <line class="edge" x1="100" y1="67" x2="128" y2="67" marker-end="url(#arr)"/>
+        <g class="node"><rect x="130" y="45" width="100" height="44" rx="6"/><text x="180" y="72">2. Search</text></g>
+        <line class="edge" x1="230" y1="67" x2="258" y2="67" marker-end="url(#arr)"/>
+        <g class="node"><rect x="260" y="45" width="120" height="44" rx="6"/><text x="320" y="72">3. Slot picker</text></g>
+        <line class="edge" x1="380" y1="67" x2="408" y2="67" marker-end="url(#arr)"/>
+        <g class="node"><rect x="410" y="45" width="110" height="44" rx="6"/><text x="465" y="72">4. Confirm</text></g>
+        <line class="edge" x1="520" y1="58" x2="588" y2="30" marker-end="url(#arr)"/>
+        <line class="edge" x1="520" y1="76" x2="588" y2="110" marker-end="url(#arr)"/>
+        <g class="node ok"><rect x="590" y="8" width="160" height="40" rx="6"/><text x="670" y="33">5. Success</text></g>
+        <g class="node hot"><rect x="590" y="94" width="160" height="40" rx="6"/><text x="670" y="119">6. Error: slot taken</text></g>
+        <path class="edge" d="M590,126 C470,150 340,140 322,92" marker-end="url(#arr)"/>
+        <text class="small" x="470" y="156">pick one of the next three slots</text>
+      </svg>
+      </div>
+      <figcaption>The dashed path is the <b>Book again</b> shortcut from Home, which skips Search. That it lands on the slot picker is an assumption; the source does not say.</figcaption>
+    </figure>
+
+    <h2 id="board">Sketch board</h2>
+    <p>Filter by flow stage with the chips. To compare two sketches side by side, press <b>Mark as pick</b> on two of them, then <b>Compare picks</b>. Each sketch is a separate small page inside a frame, so its styles do not mix with this page.</p>
+    <div class="chips" role="group" aria-label="Filter sketches by flow stage">
+      <button type="button" class="chip" aria-pressed="true" data-tag="all">All six</button>
+      <button type="button" class="chip" aria-pressed="false" data-tag="find">Find (1, 2)</button>
+      <button type="button" class="chip" aria-pressed="false" data-tag="book">Book (3, 4)</button>
+      <button type="button" class="chip" aria-pressed="false" data-tag="outcome">Outcome (5, 6)</button>
+      <button type="button" class="chip" id="compare-btn" aria-pressed="false" disabled>Compare picks (0 of 2)</button>
+    </div>
+    <div class="board">
+      <figure class="sketch-card" id="card-home" data-tags="find">
+        <iframe class="sketch" title="Home screen sketch" loading="lazy" sandbox srcdoc="&lt;!doctype html&gt;&lt;meta charset='utf-8'&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#1d1f22;font:13px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}.ph{width:100%;min-height:100vh;display:flex;flex-direction:column;padding:10px 12px 12px;position:relative;overflow:hidden}.sb{display:flex;justify-content:space-between;font-size:10px;color:#777;margin-bottom:8px}h1{font-size:17px;margin:2px 0 10px}h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#666;margin:14px 0 6px}.card{border:1px solid #d5d8dd;border-radius:10px;padding:10px;background:#f6f7f9}.bar{height:8px;border-radius:4px;background:#d9dce1;margin:6px 0}.bar.s{width:45%}.bar.m{width:65%}.bar.l{width:85%}.btn{display:block;width:100%;text-align:center;border-radius:8px;padding:9px;font-weight:600;border:1px solid #1d1f22;background:#1d1f22;color:#fff;margin-top:8px}.btn.o{background:#fff;color:#1d1f22}.row{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #e6e8eb}.av{width:28px;height:28px;border-radius:50%;background:#d9dce1;flex:none}.grow{flex:1}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid #c4c8ce;border-radius:999px;padding:3px 9px;font-size:12px}.chip.on{background:#1d1f22;color:#fff;border-color:#1d1f22}.seg{display:flex;border:1px solid #c4c8ce;border-radius:8px;overflow:hidden;margin:10px 0}.seg span{flex:1;text-align:center;padding:5px}.seg .on{background:#e6e8eb;font-weight:600}.note{font-size:10px;color:#8a5a00;background:#fff4dc;border:1px dashed #d8a640;border-radius:6px;padding:3px 6px;margin-top:6px}.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #c4c8ce;border-radius:14px 14px 0 0;padding:10px 12px 14px;box-shadow:0 -6px 18px rgba(0,0,0,.12)}.grab{width:36px;height:4px;border-radius:2px;background:#c4c8ce;margin:0 auto 8px}.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11px}.week span{border-radius:6px;padding:5px 0;border:1px solid #e0e2e6}.week .on{background:#1d1f22;color:#fff}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.slot{border:1px solid #1d1f22;border-radius:6px;text-align:center;padding:6px 0;font-variant-numeric:tabular-nums}.slot.x{border-color:#e0e2e6;background:#f0f1f3;color:#a6abb2;text-decoration:line-through}.slot.pick{background:#1d1f22;color:#fff}.photo{border:2px dashed #b8bdc4;border-radius:10px;height:84px;display:grid;place-items:center;color:#777;text-align:center;font-size:12px}.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e6e8eb}.kv b{font-weight:600}.chk{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:12px}.box{width:16px;height:16px;border:1.5px solid #1d1f22;border-radius:3px;flex:none}.center{text-align:center}.code{font:600 18px ui-monospace,Consolas,monospace;letter-spacing:.05em;border:1px solid #d5d8dd;border-radius:8px;padding:8px;margin:8px 0;background:#f6f7f9}.alert{border:1px solid #d9534f;background:#fdeceb;color:#8f2420;border-radius:8px;padding:9px}.spacer{flex:1}.tab{display:flex;justify-content:space-around;border-top:1px solid #e6e8eb;padding-top:8px;font-size:10px;color:#777;margin-top:10px}&lt;/style&gt;&lt;div class='ph'&gt;&lt;div class='sb'&gt;&lt;span&gt;9:41&lt;/span&gt;&lt;span&gt;signal / battery&lt;/span&gt;&lt;/div&gt;&lt;h1&gt;Hello&lt;/h1&gt;&lt;h2&gt;Next appointment&lt;/h2&gt;&lt;div class='card'&gt;&lt;div style='display:flex;gap:8px;align-items:center'&gt;&lt;div class='av'&gt;&lt;/div&gt;&lt;div class='grow'&gt;&lt;b&gt;Specialty, practice name&lt;/b&gt;&lt;div class='bar m'&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class='bar l'&gt;&lt;/div&gt;&lt;div class='bar s'&gt;&lt;/div&gt;&lt;div class='btn o'&gt;Details&lt;/div&gt;&lt;/div&gt;&lt;div class='btn'&gt;Book again&lt;/div&gt;&lt;h2&gt;Past visits&lt;/h2&gt;&lt;div class='row'&gt;&lt;div class='av'&gt;&lt;/div&gt;&lt;div class='grow'&gt;&lt;div class='bar m'&gt;&lt;/div&gt;&lt;div class='bar s'&gt;&lt;/div&gt;&lt;/div&gt;&lt;span&gt;Rebook&lt;/span&gt;&lt;/div&gt;&lt;div class='row'&gt;&lt;div class='av'&gt;&lt;/div&gt;&lt;div class='grow'&gt;&lt;div class='bar m'&gt;&lt;/div&gt;&lt;div class='bar s'&gt;&lt;/div&gt;&lt;/div&gt;&lt;span&gt;Rebook&lt;/span&gt;&lt;/div&gt;&lt;div class='row'&gt;&lt;div class='av'&gt;&lt;/div&gt;&lt;div class='grow'&gt;&lt;div class='bar m'&gt;&lt;/div&gt;&lt;div class='bar s'&gt;&lt;/div&gt;&lt;/div&gt;&lt;span&gt;Rebook&lt;/span&gt;&lt;/div&gt;&lt;div class='spacer'&gt;&lt;/div&gt;&lt;div class='tab'&gt;&lt;span&gt;&lt;b&gt;Home&lt;/b&gt;&lt;/span&gt;&lt;span&gt;Search&lt;/span&gt;&lt;span&gt;Visits&lt;/span&gt;&lt;span&gt;Profile&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;"></iframe>
+        <figcaption><h3>1. Home</h3><p>The next appointment sits on top as a card, with a prominent <b>Book again</b> button under it and the list of past visits below. Each past visit has its own Rebook action.</p><p class="open-q"><b>Open:</b> Is "Book again" the same as Rebook on a past visit, or does it repeat only the next appointment?</p>
+          <button type="button" class="pick-btn" aria-pressed="false" data-name="1. Home">Mark as pick</button></figcaption>
+      </figure>
+      <figure class="sketch-card" id="card-search" data-tags="find">
+        <iframe class="sketch" title="Search screen sketch" loading="lazy" sandbox srcdoc="&lt;!doctype html&gt;&lt;meta charset='utf-8'&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#1d1f22;font:13px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}.ph{width:100%;min-height:100vh;display:flex;flex-direction:column;padding:10px 12px 12px;position:relative;overflow:hidden}.sb{display:flex;justify-content:space-between;font-size:10px;color:#777;margin-bottom:8px}h1{font-size:17px;margin:2px 0 10px}h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#666;margin:14px 0 6px}.card{border:1px solid #d5d8dd;border-radius:10px;padding:10px;background:#f6f7f9}.bar{height:8px;border-radius:4px;background:#d9dce1;margin:6px 0}.bar.s{width:45%}.bar.m{width:65%}.bar.l{width:85%}.btn{display:block;width:100%;text-align:center;border-radius:8px;padding:9px;font-weight:600;border:1px solid #1d1f22;background:#1d1f22;color:#fff;margin-top:8px}.btn.o{background:#fff;color:#1d1f22}.row{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #e6e8eb}.av{width:28px;height:28px;border-radius:50%;background:#d9dce1;flex:none}.grow{flex:1}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid #c4c8ce;border-radius:999px;padding:3px 9px;font-size:12px}.chip.on{background:#1d1f22;color:#fff;border-color:#1d1f22}.seg{display:flex;border:1px solid #c4c8ce;border-radius:8px;overflow:hidden;margin:10px 0}.seg span{flex:1;text-align:center;padding:5px}.seg .on{background:#e6e8eb;font-weight:600}.note{font-size:10px;color:#8a5a00;background:#fff4dc;border:1px dashed #d8a640;border-radius:6px;padding:3px 6px;margin-top:6px}.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #c4c8ce;border-radius:14px 14px 0 0;padding:10px 12px 14px;box-shadow:0 -6px 18px rgba(0,0,0,.12)}.grab{width:36px;height:4px;border-radius:2px;background:#c4c8ce;margin:0 auto 8px}.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11px}.week span{border-radius:6px;padding:5px 0;border:1px solid #e0e2e6}.week .on{background:#1d1f22;color:#fff}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.slot{border:1px solid #1d1f22;border-radius:6px;text-align:center;padding:6px 0;font-variant-numeric:tabular-nums}.slot.x{border-color:#e0e2e6;background:#f0f1f3;color:#a6abb2;text-decoration:line-through}.slot.pick{background:#1d1f22;color:#fff}.photo{border:2px dashed #b8bdc4;border-radius:10px;height:84px;display:grid;place-items:center;color:#777;text-align:center;font-size:12px}.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e6e8eb}.kv b{font-weight:600}.chk{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:12px}.box{width:16px;height:16px;border:1.5px solid #1d1f22;border-radius:3px;flex:none}.center{text-align:center}.code{font:600 18px ui-monospace,Consolas,monospace;letter-spacing:.05em;border:1px solid #d5d8dd;border-radius:8px;padding:8px;margin:8px 0;background:#f6f7f9}.alert{border:1px solid #d9534f;background:#fdeceb;color:#8f2420;border-radius:8px;padding:9px}.spacer{flex:1}.tab{display:flex;justify-content:space-around;border-top:1px solid #e6e8eb;padding-top:8px;font-size:10px;color:#777;margin-top:10px}&lt;/style&gt;&lt;div class='ph'&gt;&lt;div class='sb'&gt;&lt;span&gt;9:41&lt;/span&gt;&lt;span&gt;signal / battery&lt;/span&gt;&lt;/div&gt;&lt;h1&gt;Find a practice&lt;/h1&gt;&lt;div class='card' style='padding:7px 10px;color:#777'&gt;Search by name or place&lt;/div&gt;&lt;h2&gt;Specialty&lt;/h2&gt;&lt;div class='chips'&gt;&lt;span class='chip on'&gt;General practice&lt;/span&gt;&lt;span class='chip'&gt;Dental&lt;/span&gt;&lt;span class='chip'&gt;Eyes&lt;/span&gt;&lt;span class='chip'&gt;Skin&lt;/span&gt;&lt;span class='chip'&gt;More&lt;/span&gt;&lt;/div&gt;&lt;div class='seg'&gt;&lt;span class='on'&gt;List&lt;/span&gt;&lt;span&gt;Map&lt;/span&gt;&lt;/div&gt;&lt;div class='row'&gt;&lt;div class='av'&gt;&lt;/div&gt;&lt;div class='grow'&gt;&lt;div class='bar m'&gt;&lt;/div&gt;&lt;div class='bar s'&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class='row'&gt;&lt;div class='av'&gt;&lt;/div&gt;&lt;div class='grow'&gt;&lt;div class='bar l'&gt;&lt;/div&gt;&lt;div class='bar s'&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class='sheet'&gt;&lt;div class='grab'&gt;&lt;/div&gt;&lt;b&gt;Filters&lt;/b&gt;&lt;div class='kv'&gt;&lt;span&gt;Distance&lt;/span&gt;&lt;b&gt;Up to 5 km&lt;/b&gt;&lt;/div&gt;&lt;div class='kv'&gt;&lt;span&gt;Earliest slot&lt;/span&gt;&lt;b&gt;This week&lt;/b&gt;&lt;/div&gt;&lt;div class='kv'&gt;&lt;span&gt;Language&lt;/span&gt;&lt;b&gt;Any&lt;/b&gt;&lt;/div&gt;&lt;div class='btn'&gt;Show results&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;"></iframe>
+        <figcaption><h3>2. Search</h3><p>Specialty <dfn data-gloss="Small rounded buttons that each switch one filter value on or off.">chips</dfn> across the top, a list/map toggle under them, and a <dfn data-gloss="A panel that slides up from the bottom of the screen and holds filter controls, then closes to show the results.">filter sheet</dfn> drawn open over the results. Chip labels and filter values are examples.</p><p class="open-q"><b>Open:</b> Which filters belong in the sheet is not given in the source.</p>
+          <button type="button" class="pick-btn" aria-pressed="false" data-name="2. Search">Mark as pick</button></figcaption>
+      </figure>
+      <figure class="sketch-card" id="card-slot" data-tags="book">
+        <iframe class="sketch" title="Slot picker sketch" loading="lazy" sandbox srcdoc="&lt;!doctype html&gt;&lt;meta charset='utf-8'&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#1d1f22;font:13px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}.ph{width:100%;min-height:100vh;display:flex;flex-direction:column;padding:10px 12px 12px;position:relative;overflow:hidden}.sb{display:flex;justify-content:space-between;font-size:10px;color:#777;margin-bottom:8px}h1{font-size:17px;margin:2px 0 10px}h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#666;margin:14px 0 6px}.card{border:1px solid #d5d8dd;border-radius:10px;padding:10px;background:#f6f7f9}.bar{height:8px;border-radius:4px;background:#d9dce1;margin:6px 0}.bar.s{width:45%}.bar.m{width:65%}.bar.l{width:85%}.btn{display:block;width:100%;text-align:center;border-radius:8px;padding:9px;font-weight:600;border:1px solid #1d1f22;background:#1d1f22;color:#fff;margin-top:8px}.btn.o{background:#fff;color:#1d1f22}.row{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #e6e8eb}.av{width:28px;height:28px;border-radius:50%;background:#d9dce1;flex:none}.grow{flex:1}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid #c4c8ce;border-radius:999px;padding:3px 9px;font-size:12px}.chip.on{background:#1d1f22;color:#fff;border-color:#1d1f22}.seg{display:flex;border:1px solid #c4c8ce;border-radius:8px;overflow:hidden;margin:10px 0}.seg span{flex:1;text-align:center;padding:5px}.seg .on{background:#e6e8eb;font-weight:600}.note{font-size:10px;color:#8a5a00;background:#fff4dc;border:1px dashed #d8a640;border-radius:6px;padding:3px 6px;margin-top:6px}.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #c4c8ce;border-radius:14px 14px 0 0;padding:10px 12px 14px;box-shadow:0 -6px 18px rgba(0,0,0,.12)}.grab{width:36px;height:4px;border-radius:2px;background:#c4c8ce;margin:0 auto 8px}.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11px}.week span{border-radius:6px;padding:5px 0;border:1px solid #e0e2e6}.week .on{background:#1d1f22;color:#fff}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.slot{border:1px solid #1d1f22;border-radius:6px;text-align:center;padding:6px 0;font-variant-numeric:tabular-nums}.slot.x{border-color:#e0e2e6;background:#f0f1f3;color:#a6abb2;text-decoration:line-through}.slot.pick{background:#1d1f22;color:#fff}.photo{border:2px dashed #b8bdc4;border-radius:10px;height:84px;display:grid;place-items:center;color:#777;text-align:center;font-size:12px}.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e6e8eb}.kv b{font-weight:600}.chk{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:12px}.box{width:16px;height:16px;border:1.5px solid #1d1f22;border-radius:3px;flex:none}.center{text-align:center}.code{font:600 18px ui-monospace,Consolas,monospace;letter-spacing:.05em;border:1px solid #d5d8dd;border-radius:8px;padding:8px;margin:8px 0;background:#f6f7f9}.alert{border:1px solid #d9534f;background:#fdeceb;color:#8f2420;border-radius:8px;padding:9px}.spacer{flex:1}.tab{display:flex;justify-content:space-around;border-top:1px solid #e6e8eb;padding-top:8px;font-size:10px;color:#777;margin-top:10px}&lt;/style&gt;&lt;div class='ph'&gt;&lt;div class='sb'&gt;&lt;span&gt;9:41&lt;/span&gt;&lt;span&gt;signal / battery&lt;/span&gt;&lt;/div&gt;&lt;h1&gt;Pick a time&lt;/h1&gt;&lt;div class='week'&gt;&lt;span&gt;Mon&lt;br&gt;9&lt;/span&gt;&lt;span class='on'&gt;Tue&lt;br&gt;10&lt;/span&gt;&lt;span&gt;Wed&lt;br&gt;11&lt;/span&gt;&lt;span&gt;Thu&lt;br&gt;12&lt;/span&gt;&lt;span&gt;Fri&lt;br&gt;13&lt;/span&gt;&lt;span&gt;Sat&lt;br&gt;14&lt;/span&gt;&lt;span&gt;Sun&lt;br&gt;15&lt;/span&gt;&lt;/div&gt;&lt;h2&gt;Morning&lt;/h2&gt;&lt;div class='grid'&gt;&lt;span class='slot x'&gt;08:00&lt;/span&gt;&lt;span class='slot'&gt;08:30&lt;/span&gt;&lt;span class='slot x'&gt;09:00&lt;/span&gt;&lt;span class='slot pick'&gt;09:30&lt;/span&gt;&lt;span class='slot'&gt;10:00&lt;/span&gt;&lt;span class='slot x'&gt;10:30&lt;/span&gt;&lt;/div&gt;&lt;h2&gt;Afternoon&lt;/h2&gt;&lt;div class='grid'&gt;&lt;span class='slot'&gt;13:00&lt;/span&gt;&lt;span class='slot x'&gt;13:30&lt;/span&gt;&lt;span class='slot x'&gt;14:00&lt;/span&gt;&lt;span class='slot'&gt;14:30&lt;/span&gt;&lt;span class='slot'&gt;15:00&lt;/span&gt;&lt;span class='slot x'&gt;15:30&lt;/span&gt;&lt;/div&gt;&lt;div class='note'&gt;Greyed and struck through: not available. Dates and times are placeholders.&lt;/div&gt;&lt;div class='spacer'&gt;&lt;/div&gt;&lt;div class='btn'&gt;Continue with 09:30&lt;/div&gt;&lt;/div&gt;"></iframe>
+        <figcaption><h3>3. Slot picker</h3><p>A <dfn data-gloss="A row of seven day buttons for one week; tapping a day shows its free times.">week strip</dfn> on top and a time grid split into morning and afternoon. Unavailable slots are greyed and struck through, so they read as unavailable without relying on colour.</p><p class="open-q"><b>Open:</b> Should the week strip scroll to later weeks, or jump to the first week with free slots?</p>
+          <button type="button" class="pick-btn" aria-pressed="false" data-name="3. Slot picker">Mark as pick</button></figcaption>
+      </figure>
+      <figure class="sketch-card" id="card-confirm" data-tags="book">
+        <iframe class="sketch" title="Confirm screen sketch" loading="lazy" sandbox srcdoc="&lt;!doctype html&gt;&lt;meta charset='utf-8'&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#1d1f22;font:13px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}.ph{width:100%;min-height:100vh;display:flex;flex-direction:column;padding:10px 12px 12px;position:relative;overflow:hidden}.sb{display:flex;justify-content:space-between;font-size:10px;color:#777;margin-bottom:8px}h1{font-size:17px;margin:2px 0 10px}h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#666;margin:14px 0 6px}.card{border:1px solid #d5d8dd;border-radius:10px;padding:10px;background:#f6f7f9}.bar{height:8px;border-radius:4px;background:#d9dce1;margin:6px 0}.bar.s{width:45%}.bar.m{width:65%}.bar.l{width:85%}.btn{display:block;width:100%;text-align:center;border-radius:8px;padding:9px;font-weight:600;border:1px solid #1d1f22;background:#1d1f22;color:#fff;margin-top:8px}.btn.o{background:#fff;color:#1d1f22}.row{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #e6e8eb}.av{width:28px;height:28px;border-radius:50%;background:#d9dce1;flex:none}.grow{flex:1}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid #c4c8ce;border-radius:999px;padding:3px 9px;font-size:12px}.chip.on{background:#1d1f22;color:#fff;border-color:#1d1f22}.seg{display:flex;border:1px solid #c4c8ce;border-radius:8px;overflow:hidden;margin:10px 0}.seg span{flex:1;text-align:center;padding:5px}.seg .on{background:#e6e8eb;font-weight:600}.note{font-size:10px;color:#8a5a00;background:#fff4dc;border:1px dashed #d8a640;border-radius:6px;padding:3px 6px;margin-top:6px}.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #c4c8ce;border-radius:14px 14px 0 0;padding:10px 12px 14px;box-shadow:0 -6px 18px rgba(0,0,0,.12)}.grab{width:36px;height:4px;border-radius:2px;background:#c4c8ce;margin:0 auto 8px}.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11px}.week span{border-radius:6px;padding:5px 0;border:1px solid #e0e2e6}.week .on{background:#1d1f22;color:#fff}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.slot{border:1px solid #1d1f22;border-radius:6px;text-align:center;padding:6px 0;font-variant-numeric:tabular-nums}.slot.x{border-color:#e0e2e6;background:#f0f1f3;color:#a6abb2;text-decoration:line-through}.slot.pick{background:#1d1f22;color:#fff}.photo{border:2px dashed #b8bdc4;border-radius:10px;height:84px;display:grid;place-items:center;color:#777;text-align:center;font-size:12px}.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e6e8eb}.kv b{font-weight:600}.chk{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:12px}.box{width:16px;height:16px;border:1.5px solid #1d1f22;border-radius:3px;flex:none}.center{text-align:center}.code{font:600 18px ui-monospace,Consolas,monospace;letter-spacing:.05em;border:1px solid #d5d8dd;border-radius:8px;padding:8px;margin:8px 0;background:#f6f7f9}.alert{border:1px solid #d9534f;background:#fdeceb;color:#8f2420;border-radius:8px;padding:9px}.spacer{flex:1}.tab{display:flex;justify-content:space-around;border-top:1px solid #e6e8eb;padding-top:8px;font-size:10px;color:#777;margin-top:10px}&lt;/style&gt;&lt;div class='ph'&gt;&lt;div class='sb'&gt;&lt;span&gt;9:41&lt;/span&gt;&lt;span&gt;signal / battery&lt;/span&gt;&lt;/div&gt;&lt;h1&gt;Check and confirm&lt;/h1&gt;&lt;div class='card'&gt;&lt;div class='kv'&gt;&lt;span&gt;Practice&lt;/span&gt;&lt;b&gt;Practice name&lt;/b&gt;&lt;/div&gt;&lt;div class='kv'&gt;&lt;span&gt;Specialty&lt;/span&gt;&lt;b&gt;Specialty&lt;/b&gt;&lt;/div&gt;&lt;div class='kv'&gt;&lt;span&gt;Date&lt;/span&gt;&lt;b&gt;Tue 10, 09:30&lt;/b&gt;&lt;/div&gt;&lt;div class='kv' style='border:0'&gt;&lt;span&gt;Patient&lt;/span&gt;&lt;b&gt;Your name&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;&lt;h2&gt;Insurance card&lt;/h2&gt;&lt;div class='photo'&gt;Take a photo of&lt;br&gt;your insurance card&lt;/div&gt;&lt;div class='chk'&gt;&lt;span class='box'&gt;&lt;/span&gt;&lt;span&gt;I agree that the practice may use my data for this appointment.&lt;/span&gt;&lt;/div&gt;&lt;div class='note'&gt;Consent wording is a placeholder, not approved text.&lt;/div&gt;&lt;div class='spacer'&gt;&lt;/div&gt;&lt;div class='btn'&gt;Confirm booking&lt;/div&gt;&lt;/div&gt;"></iframe>
+        <figcaption><h3>4. Confirm</h3><p>A summary of the booking, a photo field for the insurance card, and a consent checkbox before the <b>Confirm booking</b> button.</p><p class="open-q"><b>Open:</b> The consent text is a placeholder; who writes the approved wording is not given.</p>
+          <button type="button" class="pick-btn" aria-pressed="false" data-name="4. Confirm">Mark as pick</button></figcaption>
+      </figure>
+      <figure class="sketch-card" id="card-success" data-tags="outcome">
+        <iframe class="sketch" title="Success screen sketch" loading="lazy" sandbox srcdoc="&lt;!doctype html&gt;&lt;meta charset='utf-8'&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#1d1f22;font:13px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}.ph{width:100%;min-height:100vh;display:flex;flex-direction:column;padding:10px 12px 12px;position:relative;overflow:hidden}.sb{display:flex;justify-content:space-between;font-size:10px;color:#777;margin-bottom:8px}h1{font-size:17px;margin:2px 0 10px}h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#666;margin:14px 0 6px}.card{border:1px solid #d5d8dd;border-radius:10px;padding:10px;background:#f6f7f9}.bar{height:8px;border-radius:4px;background:#d9dce1;margin:6px 0}.bar.s{width:45%}.bar.m{width:65%}.bar.l{width:85%}.btn{display:block;width:100%;text-align:center;border-radius:8px;padding:9px;font-weight:600;border:1px solid #1d1f22;background:#1d1f22;color:#fff;margin-top:8px}.btn.o{background:#fff;color:#1d1f22}.row{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #e6e8eb}.av{width:28px;height:28px;border-radius:50%;background:#d9dce1;flex:none}.grow{flex:1}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid #c4c8ce;border-radius:999px;padding:3px 9px;font-size:12px}.chip.on{background:#1d1f22;color:#fff;border-color:#1d1f22}.seg{display:flex;border:1px solid #c4c8ce;border-radius:8px;overflow:hidden;margin:10px 0}.seg span{flex:1;text-align:center;padding:5px}.seg .on{background:#e6e8eb;font-weight:600}.note{font-size:10px;color:#8a5a00;background:#fff4dc;border:1px dashed #d8a640;border-radius:6px;padding:3px 6px;margin-top:6px}.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #c4c8ce;border-radius:14px 14px 0 0;padding:10px 12px 14px;box-shadow:0 -6px 18px rgba(0,0,0,.12)}.grab{width:36px;height:4px;border-radius:2px;background:#c4c8ce;margin:0 auto 8px}.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11px}.week span{border-radius:6px;padding:5px 0;border:1px solid #e0e2e6}.week .on{background:#1d1f22;color:#fff}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.slot{border:1px solid #1d1f22;border-radius:6px;text-align:center;padding:6px 0;font-variant-numeric:tabular-nums}.slot.x{border-color:#e0e2e6;background:#f0f1f3;color:#a6abb2;text-decoration:line-through}.slot.pick{background:#1d1f22;color:#fff}.photo{border:2px dashed #b8bdc4;border-radius:10px;height:84px;display:grid;place-items:center;color:#777;text-align:center;font-size:12px}.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e6e8eb}.kv b{font-weight:600}.chk{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:12px}.box{width:16px;height:16px;border:1.5px solid #1d1f22;border-radius:3px;flex:none}.center{text-align:center}.code{font:600 18px ui-monospace,Consolas,monospace;letter-spacing:.05em;border:1px solid #d5d8dd;border-radius:8px;padding:8px;margin:8px 0;background:#f6f7f9}.alert{border:1px solid #d9534f;background:#fdeceb;color:#8f2420;border-radius:8px;padding:9px}.spacer{flex:1}.tab{display:flex;justify-content:space-around;border-top:1px solid #e6e8eb;padding-top:8px;font-size:10px;color:#777;margin-top:10px}&lt;/style&gt;&lt;div class='ph'&gt;&lt;div class='sb'&gt;&lt;span&gt;9:41&lt;/span&gt;&lt;span&gt;signal / battery&lt;/span&gt;&lt;/div&gt;&lt;div class='spacer'&gt;&lt;/div&gt;&lt;div class='center'&gt;&lt;svg width='56' height='56' viewBox='0 0 56 56' aria-hidden='true'&gt;&lt;circle cx='28' cy='28' r='26' fill='none' stroke='#2f7d4a' stroke-width='3'/&gt;&lt;path d='M17 29l7 7 15-16' fill='none' stroke='#2f7d4a' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/&gt;&lt;/svg&gt;&lt;h1&gt;Booking confirmed&lt;/h1&gt;&lt;div&gt;Your confirmation code&lt;/div&gt;&lt;div class='code'&gt;BK-2026-0042&lt;/div&gt;&lt;div style='color:#666'&gt;Show this code at the practice reception.&lt;/div&gt;&lt;/div&gt;&lt;div class='btn'&gt;Add to calendar&lt;/div&gt;&lt;div class='btn o'&gt;Back to home&lt;/div&gt;&lt;div class='spacer'&gt;&lt;/div&gt;&lt;/div&gt;"></iframe>
+        <figcaption><h3>5. Success</h3><p>A clear confirmation with the confirmation code <a class="ref" data-ref="BK-2026-0042" href="#ref-BK-2026-0042"><span class="ref-id">BK-2026-0042</span> example confirmation code</a> and an <b>Add to calendar</b> button.</p><p class="open-q"><b>Open:</b> Which calendars "add to calendar" supports is not given in the source.</p>
+          <button type="button" class="pick-btn" aria-pressed="false" data-name="5. Success">Mark as pick</button></figcaption>
+      </figure>
+      <figure class="sketch-card" id="card-error" data-tags="outcome">
+        <iframe class="sketch" title="Slot-taken error screen sketch" loading="lazy" sandbox srcdoc="&lt;!doctype html&gt;&lt;meta charset='utf-8'&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#1d1f22;font:13px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}.ph{width:100%;min-height:100vh;display:flex;flex-direction:column;padding:10px 12px 12px;position:relative;overflow:hidden}.sb{display:flex;justify-content:space-between;font-size:10px;color:#777;margin-bottom:8px}h1{font-size:17px;margin:2px 0 10px}h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#666;margin:14px 0 6px}.card{border:1px solid #d5d8dd;border-radius:10px;padding:10px;background:#f6f7f9}.bar{height:8px;border-radius:4px;background:#d9dce1;margin:6px 0}.bar.s{width:45%}.bar.m{width:65%}.bar.l{width:85%}.btn{display:block;width:100%;text-align:center;border-radius:8px;padding:9px;font-weight:600;border:1px solid #1d1f22;background:#1d1f22;color:#fff;margin-top:8px}.btn.o{background:#fff;color:#1d1f22}.row{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #e6e8eb}.av{width:28px;height:28px;border-radius:50%;background:#d9dce1;flex:none}.grow{flex:1}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid #c4c8ce;border-radius:999px;padding:3px 9px;font-size:12px}.chip.on{background:#1d1f22;color:#fff;border-color:#1d1f22}.seg{display:flex;border:1px solid #c4c8ce;border-radius:8px;overflow:hidden;margin:10px 0}.seg span{flex:1;text-align:center;padding:5px}.seg .on{background:#e6e8eb;font-weight:600}.note{font-size:10px;color:#8a5a00;background:#fff4dc;border:1px dashed #d8a640;border-radius:6px;padding:3px 6px;margin-top:6px}.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #c4c8ce;border-radius:14px 14px 0 0;padding:10px 12px 14px;box-shadow:0 -6px 18px rgba(0,0,0,.12)}.grab{width:36px;height:4px;border-radius:2px;background:#c4c8ce;margin:0 auto 8px}.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11px}.week span{border-radius:6px;padding:5px 0;border:1px solid #e0e2e6}.week .on{background:#1d1f22;color:#fff}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.slot{border:1px solid #1d1f22;border-radius:6px;text-align:center;padding:6px 0;font-variant-numeric:tabular-nums}.slot.x{border-color:#e0e2e6;background:#f0f1f3;color:#a6abb2;text-decoration:line-through}.slot.pick{background:#1d1f22;color:#fff}.photo{border:2px dashed #b8bdc4;border-radius:10px;height:84px;display:grid;place-items:center;color:#777;text-align:center;font-size:12px}.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e6e8eb}.kv b{font-weight:600}.chk{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:12px}.box{width:16px;height:16px;border:1.5px solid #1d1f22;border-radius:3px;flex:none}.center{text-align:center}.code{font:600 18px ui-monospace,Consolas,monospace;letter-spacing:.05em;border:1px solid #d5d8dd;border-radius:8px;padding:8px;margin:8px 0;background:#f6f7f9}.alert{border:1px solid #d9534f;background:#fdeceb;color:#8f2420;border-radius:8px;padding:9px}.spacer{flex:1}.tab{display:flex;justify-content:space-around;border-top:1px solid #e6e8eb;padding-top:8px;font-size:10px;color:#777;margin-top:10px}&lt;/style&gt;&lt;div class='ph'&gt;&lt;div class='sb'&gt;&lt;span&gt;9:41&lt;/span&gt;&lt;span&gt;signal / battery&lt;/span&gt;&lt;/div&gt;&lt;h1&gt;Pick a time&lt;/h1&gt;&lt;div class='alert'&gt;&lt;b&gt;This slot was just taken.&lt;/b&gt;&lt;br&gt;Someone booked 09:30 while you were confirming. These are the next free times:&lt;/div&gt;&lt;h2&gt;Next three slots&lt;/h2&gt;&lt;div class='row'&gt;&lt;span class='grow'&gt;&lt;b&gt;Tue 10, 10:00&lt;/b&gt;&lt;/span&gt;&lt;span class='chip'&gt;Book&lt;/span&gt;&lt;/div&gt;&lt;div class='row'&gt;&lt;span class='grow'&gt;&lt;b&gt;Tue 10, 14:30&lt;/b&gt;&lt;/span&gt;&lt;span class='chip'&gt;Book&lt;/span&gt;&lt;/div&gt;&lt;div class='row'&gt;&lt;span class='grow'&gt;&lt;b&gt;Wed 11, 08:30&lt;/b&gt;&lt;/span&gt;&lt;span class='chip'&gt;Book&lt;/span&gt;&lt;/div&gt;&lt;div class='note'&gt;Times are placeholders.&lt;/div&gt;&lt;div class='spacer'&gt;&lt;/div&gt;&lt;div class='btn o'&gt;See all times&lt;/div&gt;&lt;/div&gt;"></iframe>
+        <figcaption><h3>6. Error: slot taken</h3><p>When the chosen slot was booked by someone else in the meantime, the screen says so plainly and offers the next three free slots, each bookable with one tap.</p><p class="open-q"><b>Open:</b> Do the three suggestions stay at the same practice, or may they come from other practices?</p>
+          <button type="button" class="pick-btn" aria-pressed="false" data-name="6. Error: slot taken">Mark as pick</button></figcaption>
+      </figure>
+    </div>
+
+    <h2 id="share">Share your two picks</h2>
+    <p>This page is a file, so it cannot collect picks from the whole team. Your marks stay in this browser and are gone when the page is reloaded. To count picks, copy the message below into the team channel, or run a poll in the channel with the six screen names as options.</p>
+    <pre class="message"><code id="pick-msg">Booking app sketches: my two picks are (none marked yet). Reason: …</code></pre>
+
+    <h2 id="open">Open questions</h2>
+    <ul>
+      <li>What "two directions" means: two of the six screens to develop first, or two overall layout styles to apply to all screens.</li>
+      <li>Who makes the final choice, and by which date.</li>
+      <li>Each sketch card lists its own open question, from the meaning of <b>Book again</b> to where the three suggested slots come from.</li>
+    </ul>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-BK-2026-0042"><b>BK-2026-0042</b> <span class="ref-summary">The confirmation code shown on the success screen, as given in the team's screen ideas. It illustrates the code format; whether real codes follow this pattern is not given.</span> Source: the list of six screen ideas, item 5.</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt id="gloss-chips">Chips</dt><dd>Small rounded buttons that each switch one filter value on or off; here, one per medical specialty.</dd>
+      <dt id="gloss-sheet">Filter sheet</dt><dd>A panel that slides up from the bottom of the screen and holds filter controls, then closes to show the results.</dd>
+      <dt id="gloss-week">Week strip</dt><dd>A row of seven day buttons for one week; tapping a day shows its free times.</dd>
+    </dl>
+
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill. Opens offline; no network access needed.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  // Sketch board: filter chips, up to two picks, compare mode, copy-ready message.
+  const board = document.querySelector('.board'), cards = [...board.querySelectorAll('.sketch-card')];
+  const cmp = document.getElementById('compare-btn'), msg = document.getElementById('pick-msg');
+  const filters = [...document.querySelectorAll('.chip[data-tag]')];
+  filters.forEach((c) => c.addEventListener('click', () => {
+    filters.forEach((x) => x.setAttribute('aria-pressed', x === c));
+    cards.forEach((k) => (k.hidden = c.dataset.tag !== 'all' && !k.dataset.tags.split(' ').includes(c.dataset.tag)));
+  }));
+  const update = () => {
+    const picked = cards.filter((k) => k.classList.contains('picked'));
+    cmp.disabled = picked.length !== 2;
+    cmp.textContent = 'Compare picks (' + picked.length + ' of 2)';
+    if (picked.length !== 2) { board.classList.remove('comparing'); cmp.setAttribute('aria-pressed', 'false'); }
+    const names = picked.map((k) => k.querySelector('.pick-btn').dataset.name);
+    msg.textContent = 'Booking app sketches: my two picks are ' + (names.length ? names.join(' and ') : '(none marked yet)') + '. Reason: …';
+  };
+  cards.forEach((k) => {
+    const b = k.querySelector('.pick-btn');
+    b.addEventListener('click', () => {
+      const on = !k.classList.contains('picked');
+      if (on && board.querySelectorAll('.picked').length >= 2) {
+        b.textContent = 'Two already marked'; setTimeout(() => (b.textContent = 'Mark as pick'), 1400); return;
+      }
+      k.classList.toggle('picked', on); b.setAttribute('aria-pressed', on); b.textContent = on ? 'Picked' : 'Mark as pick';
+      update();
+    });
+  });
+  cmp.addEventListener('click', () => {
+    const on = cmp.getAttribute('aria-pressed') !== 'true';
+    cmp.setAttribute('aria-pressed', on); board.classList.toggle('comparing', on);
+    if (on) { filters.forEach((x) => x.setAttribute('aria-pressed', x.dataset.tag === 'all')); cards.forEach((k) => (k.hidden = false)); }
+  });
+  update();
+})();
+</script>
+</body>
+</html>

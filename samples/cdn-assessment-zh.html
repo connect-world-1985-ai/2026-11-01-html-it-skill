@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-CN" data-variant="ivory">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>CDN 与离线评估</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+/* ---------- Page: CDN assessment (zh) ---------- */
+body { line-height: 1.75; }
+.callout { margin-bottom: var(--space); }
+.callout p { margin: 0; }
+th[scope="row"] { color: var(--fg); font-weight: 600; }
+td:nth-child(3) { white-space: nowrap; }
+svg.diagram { width: 100%; height: auto; color: var(--muted); font: 14px var(--sans); }
+svg.diagram.flow { min-width: 560px; }
+svg.diagram .node rect { fill: var(--surface-2); stroke: var(--line); }
+svg.diagram .node.hot rect { fill: var(--bad-bg); stroke: var(--bad); }
+svg.diagram .node.warn rect { fill: var(--warn-bg); stroke: var(--warn); }
+svg.diagram .node.ok rect { fill: var(--ok-bg); stroke: var(--ok); }
+svg.diagram text { fill: var(--fg); text-anchor: middle; }
+svg.diagram .lane { text-anchor: start; fill: var(--muted); font-weight: 600; font-size: 13px; }
+svg.diagram .tag { fill: var(--muted); font-size: 12px; }
+svg.diagram .edge { stroke: currentColor; stroke-width: 1.5; }
+figure { margin-inline: 0; }
+figcaption { color: var(--muted); font-size: .9rem; margin-top: .4rem; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .8rem; margin-bottom: 1.5rem; }
+.kpi { border: 1px solid var(--line); border-radius: var(--radius); padding: .7rem .9rem; background: var(--surface); }
+.kpi-v { display: block; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.kpi-l { color: var(--muted); font-size: .85rem; }
+.glossary dt { font-weight: 600; margin-top: .6rem; }
+.glossary dd { margin: 0 0 .3rem; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>技术评估</span>
+  <button type="button" id="theme-toggle" aria-label="切换颜色主题">主题：跟随系统</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="本页内容"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>页面打开时为什么不连网</h1>
+    <p class="lede"><strong>结论：团队分享的 HTML 页面在打开时不发出任何网络请求。</strong>字体、样式、脚本和图片全部写进文件本身。原因有四：在中国大陆，常用的 <dfn data-gloss="内容分发网络：托管常用文件（如 JavaScript 库和字体）的服务器网络，许多网站从同一处加载这些文件。">CDN</dfn> 被屏蔽或不稳定；CDN 脚本是与内部内容并排运行的第三方代码；CDN 地址日后可能失效；公司代理也可能拦截 CDN。确实需要某个库时，在生成页面时下载一个固定版本并内联进文件。</p>
+    <p class="meta">技术评估，2026-11-03，供上海办公室和平台团队参考。依据：截至 2026 年年中的公开资料；<strong>未在中国大陆境内实测</strong>，以下是评估，不是测量结果。</p>
+
+    <aside class="callout" data-kind="decision"><p><strong>决定：</strong>页面打开时零网络请求。需要库时，由 agent 在生成页面时从 cdnjs 或 npm 仓库（中国大陆境内用 npmmirror）下载一个固定版本，内联进文件。读者的浏览器永远不会去取它。</p></aside>
+
+    <h2 id="compare">常用 CDN 在中国大陆的情况</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">CDN</th><th scope="col">常见用途</th><th scope="col">中国大陆</th><th scope="col">说明</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Google Fonts<br><code>fonts.googleapis.com</code><br><code>fonts.gstatic.com</code></th><td>网页字体</td><td><span class="pill" data-state="bad">被屏蔽</span></td><td>等待字体样式表的页面可能在加载时卡住。</td></tr>
+        <tr><th scope="row">jsDelivr<br><code>cdn.jsdelivr.net</code></th><td>大多数 npm / GitHub 上的 JS</td><td><span class="pill" data-state="bad">不稳定</span></td><td>2021 年底失去 <dfn data-gloss="ICP 备案：在中国大陆提供网站服务所需的工信部备案。没有备案，境内节点不能合法提供服务。">ICP 备案</dfn>，此后时有 DNS 污染和变慢。</td></tr>
+        <tr><th scope="row">unpkg</th><td>npm 文件</td><td><span class="pill" data-state="bad">慢或不稳定</span></td><td>不适合作为页面打开时的依赖。</td></tr>
+        <tr><th scope="row">cdnjs（Cloudflare）</th><td>常用库</td><td><span class="pill" data-state="warn">通常可达</span></td><td>有时较慢。适合在生成页面时下载，不适合在读者打开时加载。</td></tr>
+        <tr><th scope="row">BootCDN、Staticfile</th><td>国内镜像</td><td><span class="pill" data-state="bad">不信任</span></td><td>国内速度快，但运营方就是 2024 年 polyfill.io <dfn data-gloss="供应链攻击：攻击者篡改许多网站共同依赖的第三方代码或服务，从而一次影响所有使用它的网站。">供应链攻击</dfn>背后的实体。</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="flow">页面打开时发生了什么</h2>
+    <figure>
+      <div class="table-wrap">
+      <svg class="diagram flow" viewBox="0 0 660 230" role="img" aria-labelledby="flow-t flow-d">
+        <title id="flow-t">对比：依赖 CDN 的页面与离线页面在打开时的过程</title>
+        <desc id="flow-d">依赖 CDN 的页面：打开文件，浏览器请求 CDN 上的字体和脚本；在中国大陆这些请求可能被屏蔽或超时，页面卡住或缺少样式与功能。离线页面：打开文件，所有内容已在文件内，页面立即完整显示，不需要网络。</desc>
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <text class="lane" x="0" y="20">依赖 CDN</text>
+        <g class="node"><rect x="0" y="32" width="140" height="56" rx="6"/><text x="70" y="65">打开文件</text></g>
+        <line class="edge" x1="140" y1="60" x2="168" y2="60" marker-end="url(#arr)"/>
+        <g class="node"><rect x="170" y="32" width="150" height="56" rx="6"/><text x="245" y="56">请求 CDN 上的</text><text x="245" y="74">字体和脚本</text></g>
+        <line class="edge" x1="320" y1="60" x2="348" y2="60" marker-end="url(#arr)"/>
+        <g class="node warn"><rect x="350" y="32" width="140" height="56" rx="6"/><text x="420" y="56">被屏蔽</text><text x="420" y="74">或超时</text></g>
+        <line class="edge" x1="490" y1="60" x2="518" y2="60" marker-end="url(#arr)"/>
+        <g class="node hot"><rect x="520" y="32" width="140" height="56" rx="6"/><text x="590" y="56">页面卡住，</text><text x="590" y="74">缺样式或功能</text></g>
+        <text class="lane" x="0" y="140">离线页面</text>
+        <g class="node"><rect x="0" y="152" width="140" height="56" rx="6"/><text x="70" y="185">打开文件</text></g>
+        <line class="edge" x1="140" y1="180" x2="168" y2="180" marker-end="url(#arr)"/>
+        <g class="node"><rect x="170" y="152" width="150" height="56" rx="6"/><text x="245" y="176">所有内容</text><text x="245" y="194">已在文件里</text></g>
+        <line class="edge" x1="320" y1="180" x2="518" y2="180" marker-end="url(#arr)"/><text class="tag" x="420" y="172">不需要网络</text>
+        <g class="node ok"><rect x="520" y="152" width="140" height="56" rx="6"/><text x="590" y="176">立即完整</text><text x="590" y="194">显示</text></g>
+      </svg>
+      </div>
+      <figcaption>同一个页面，两种做法。离线页面在任何网络下表现一致，包括没有网络。</figcaption>
+    </figure>
+
+    <h2 id="why">除了可达性，还有三个理由</h2>
+    <ol>
+      <li><strong>安全。</strong>每个 CDN <code>&lt;script&gt;</code> 都是在内部内容（代码、事故、设计）旁边运行的第三方代码。polyfill.io 攻击正是这样扩散的。</li>
+      <li><strong>持久。</strong>一年后从 Teams 旧消息里打开的页面依然能用；CDN 地址和版本可能消失。</li>
+      <li><strong>代理。</strong>公司代理可能拦截 CDN。</li>
+    </ol>
+
+    <h2 id="size">文件会不会太大</h2>
+    <p>比看起来小得多，因为写页面的 agent 本身就承担了渲染：</p>
+    <div class="kpis">
+      <div class="kpi"><span class="kpi-v">30–150 KB</span><span class="kpi-l">典型页面大小</span></div>
+      <div class="kpi"><span class="kpi-v">约 3 MB</span><span class="kpi-l">最坏情况：内联一个大型库，Teams 和邮件仍可发送</span></div>
+      <div class="kpi"><span class="kpi-v">约 200 KB</span><span class="kpi-l">Chart.js，只在真正需要交互数据时内联</span></div>
+    </div>
+    <ul>
+      <li>手绘 <dfn data-gloss="可缩放矢量图形：用文字描述的图形，直接写在 HTML 里，放大不失真，可随浅色或深色主题变化。">SVG</dfn> 代替 Mermaid（压缩后约 3 MB）。</li>
+      <li>代码高亮在生成时直接写进 HTML，代替 highlight.js。</li>
+      <li>图片以 <dfn data-gloss="把文件数据本身写进 URL 的方式，例如 data:image/png;base64,…，不需要单独的文件或下载。">data URI</dfn> 嵌入；只有大量截图或视频才会让文件超过约 20 MB，这时改用多文件夹方式。</li>
+    </ul>
+
+    <h2 id="decision">决定与做法</h2>
+    <ul>
+      <li>页面打开时<strong>零网络请求</strong>。html-it 技能的检查脚本 <code>check_html.py</code> 会让任何从网络加载脚本、样式、字体、图片或调用 <code>fetch</code> 的页面检查失败。</li>
+      <li>需要库时，<strong>在生成页面时</strong>下载一个固定版本（cdnjs 或 npm 仓库；中国大陆境内用 npmmirror）并内联。</li>
+      <li>不使用 BootCDN、Staticfile。</li>
+      <li>普通超链接（<code>&lt;a href&gt;</code>）不受限制：读者点击时才访问，页面本身不依赖它。</li>
+    </ul>
+    <aside class="callout" data-kind="warn"><p><strong>待确认：</strong>以上可达性来自截至 2026 年年中的公开资料，未在中国大陆境内实测。建议上海办公室的同事打开一个示例页面，确认没有延迟。</p></aside>
+
+    <h2 id="glossary">术语</h2>
+    <dl class="glossary">
+      <dt>CDN</dt><dd>内容分发网络：托管常用文件（如 JavaScript 库和字体）的服务器网络，许多网站从同一处加载这些文件。</dd>
+      <dt>ICP 备案</dt><dd>在中国大陆提供网站服务所需的工信部备案。没有备案，境内节点不能合法提供服务。</dd>
+      <dt>供应链攻击</dt><dd>攻击者篡改许多网站共同依赖的第三方代码或服务，从而一次影响所有使用它的网站。2024 年的 polyfill.io 事件是一例。</dd>
+      <dt>data URI</dt><dd>把文件数据本身写进 URL 的方式（例如 <code>data:image/png;base64,…</code>），不需要单独的文件或下载。base64 编码会让数据变大约 33%。</dd>
+      <dt>SVG</dt><dd>可缩放矢量图形：用文字描述的图形，直接写在 HTML 里，放大不失真，可随浅色或深色主题变化。</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">由 html-it 技能生成，2026-11-03。离线打开，不需要网络。</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = '主题：' + ({ system: '跟随系统', light: '浅色', dark: '深色' })[mode];
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+</body>
+</html>

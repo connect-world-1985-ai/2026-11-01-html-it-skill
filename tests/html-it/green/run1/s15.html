@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en" data-variant="ivory">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Sprint 46 retro vote</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+/* ---------- Page components: ballot and tally ---------- */
+.ballot, .tool { display: grid; gap: .7rem; padding: 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); margin-bottom: var(--space); }
+.ballot fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: .6rem; }
+.ballot legend { font-weight: 600; margin-bottom: .3rem; }
+.ballot .name, .tool label { display: grid; gap: .2rem; font-size: .9rem; color: var(--muted); max-width: 24rem; }
+.ballot input[type=text], .tool textarea { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: .35rem .5rem; }
+.tool textarea { font-family: var(--mono); font-size: .88rem; width: 100%; resize: vertical; }
+.tool label { max-width: none; }
+.idea { display: grid; grid-template-columns: auto 1fr; gap: .6rem; align-items: start; padding: .6rem .7rem; border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer; }
+.idea input { margin-top: .35rem; width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
+.idea:has(input:checked) { background: var(--ok-bg); border-color: var(--ok); }
+.hint { margin: 0; font-size: .9rem; color: var(--muted); }
+.ballot pre { margin: 0; padding-right: 4.5rem; white-space: pre-wrap; }
+.totals td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.totals .barcol { width: 40%; }
+.bar { display: block; height: .7rem; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin-top: .45rem; }
+.bar > span { display: block; height: 100%; width: 0; background: var(--accent); }
+@media (max-width: 520px) { .totals .barcol { display: none; } }
+@media print { .bar > span { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Booking team retro, sprint 46</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Sprint 46 retro: vote on four action ideas</h1>
+    <p class="lede">The booking team's sprint 46 <dfn data-gloss="A short team meeting at the end of a sprint to look at what went well, what to improve, and what to change next.">retrospective</dfn> produced four ideas for the next sprints. Each of the six team members votes for the ideas they support by <strong>Thursday 5 November 2026</strong>. This file cannot collect votes or show live totals, so tick your ideas below, copy the vote line it builds, and paste it in the team channel; the facilitator then pastes all lines into the tally to get the totals.</p>
+    <p class="meta">Sprint 46 ran from 20 to 31 October 2026. The source notes give the deadline as "Thursday 2026-11-06", but 6 November 2026 is a Friday; this page uses Thursday 5 November so that no vote arrives late.</p>
+
+    <h2 id="vote">Vote on the action ideas</h2>
+    <p>Tick every idea you want the team to adopt; any number from none to four is fine. The line under the ideas updates as you tick. Press <b>Copy</b> and paste it in the team channel.</p>
+
+    <form class="ballot" id="ballot" onsubmit="return false">
+      <label class="name">Your name <input id="voter" type="text" autocomplete="name" placeholder="for example your first name"></label>
+      <fieldset>
+        <legend>Action ideas</legend>
+        <label class="idea"><input type="checkbox" name="idea" value="1"> <span><b>1. Quarantine flaky tests automatically.</b> Tests found to be flaky are taken out of the run that blocks merges, without anyone doing it by hand, until they are fixed. Addresses the 22 <dfn data-gloss="A test that sometimes passes and sometimes fails on the same code, so its result says little about the change.">flaky tests</dfn> in the integration suite.</span></label>
+        <label class="idea"><input type="checkbox" name="idea" value="2"> <span><b>2. Review rotation with a 24-hour target.</b> Team members take turns picking up open reviews, with a target of a first review within 24 hours. Addresses the median review wait of 1.8 days (about 43 hours).</span></label>
+        <label class="idea"><input type="checkbox" name="idea" value="3"> <span><b>3. Meeting-free Wednesday afternoons.</b> No team meetings on Wednesday afternoons. Addresses the feeling that Wednesdays have too many meetings.</span></label>
+        <label class="idea"><input type="checkbox" name="idea" value="4"> <span><b>4. Hold the retro every 3 weeks instead of every 2.</b> Fewer retros, each covering a longer stretch of work.</span></label>
+      </fieldset>
+      <p class="hint">Your vote line:</p>
+      <pre class="message"><code id="vote-line">Sprint 46 retro vote, &lt;your name&gt;: none</code></pre>
+    </form>
+    <aside class="callout" data-kind="warn"><p><strong>Limit:</strong> your ticks stay in this browser window and are not sent anywhere. Nobody else sees them until you paste your line in the team channel. Without JavaScript, write the line by hand in the same form, for example <code>Sprint 46 retro vote, &lt;your name&gt;: 1, 3</code>.</p></aside>
+
+    <h2 id="tally">Count the votes</h2>
+    <p>For the facilitator. After the deadline, copy all vote lines from the team channel and paste them into the box. The table counts them in this browser. If someone posted twice, only their last line counts; lines in any other form are ignored and listed below the table.</p>
+    <form class="tool" id="tally-form" onsubmit="return false">
+      <label for="tally-in">Vote lines from the channel</label>
+      <textarea id="tally-in" rows="6" placeholder="Sprint 46 retro vote, &lt;name&gt;: 1, 3"></textarea>
+    </form>
+    <div class="table-wrap"><table class="totals" aria-describedby="tally-status">
+      <thead><tr><th scope="col">Action idea</th><th scope="col">Votes</th><th scope="col" class="barcol">Share of ballots</th></tr></thead>
+      <tbody>
+        <tr data-idea="1"><th scope="row">1. Quarantine flaky tests automatically</th><td class="n">not counted yet</td><td class="barcol"><span class="bar"><span></span></span></td></tr>
+        <tr data-idea="2"><th scope="row">2. Review rotation, 24-hour target</th><td class="n">not counted yet</td><td class="barcol"><span class="bar"><span></span></span></td></tr>
+        <tr data-idea="3"><th scope="row">3. Meeting-free Wednesday afternoons</th><td class="n">not counted yet</td><td class="barcol"><span class="bar"><span></span></span></td></tr>
+        <tr data-idea="4"><th scope="row">4. Retro every 3 weeks</th><td class="n">not counted yet</td><td class="barcol"><span class="bar"><span></span></span></td></tr>
+      </tbody>
+    </table></div>
+    <p id="tally-status" class="meta">No lines pasted yet. The team has 6 members, so 6 ballots are expected.</p>
+    <p id="tally-skipped" class="meta" hidden></p>
+    <aside class="callout" data-kind="note"><p>These totals are not live. They count only what is pasted into this copy of the file, so share the result as a screenshot or a message in the team channel once all six lines are in.</p></aside>
+
+    <h2 id="well">What went well</h2>
+    <ul>
+      <li>Pairing on <a class="ref" data-ref="KT-948" href="#ref-KT-948"><span class="ref-id">KT-948</span> booking search pagination</a>: two people worked on the change together.</li>
+      <li>Release <a class="ref" data-ref="8.4.0.0" href="#ref-8.4.0.0"><span class="ref-id">8.4.0.0</span> sprint 46 release</a> shipped on time.</li>
+      <li>The new on-call <dfn data-gloss="A written, step-by-step procedure for a recurring operational task.">runbook</dfn> <a class="ref" data-ref="RB-04" href="#ref-RB-04"><span class="ref-id">RB-04</span> rollback runbook</a> is in place.</li>
+    </ul>
+
+    <h2 id="improve">What to improve</h2>
+    <ul>
+      <li>The integration suite is flaky: 22 tests fail now and then without a code change. Idea 1 targets this.</li>
+      <li>Reviews wait too long: the median wait was 1.8 days in sprint 46. Idea 2 targets this.</li>
+      <li>Wednesdays have too many meetings. Idea 3 targets this.</li>
+    </ul>
+    <p>Idea 4, a three-week retro cycle, is not tied to one of these points in the retro notes.</p>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-KT-948"><b>KT-948</b> <span class="ref-summary">Ticket for the booking search pagination work, which two team members paired on in sprint 46.</span> Source: sprint 46 retro notes.</li>
+      <li id="ref-8.4.0.0"><b>8.4.0.0</b> <span class="ref-summary">The release that shipped on time in sprint 46. The retro notes give no further detail about its contents.</span> Source: sprint 46 retro notes.</li>
+      <li id="ref-RB-04"><b>RB-04</b> <span class="ref-summary">The rollback runbook: the new on-call procedure for rolling back a release.</span> Source: sprint 46 retro notes.</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt id="gloss-retro">Retrospective (retro)</dt>
+      <dd>A short team meeting at the end of a sprint to look at what went well, what to improve, and what to change next.</dd>
+      <dt id="gloss-flaky">Flaky test</dt>
+      <dd>A test that sometimes passes and sometimes fails on the same code, so its result says little about the change.</dd>
+      <dt id="gloss-quarantine">Quarantine (of a test)</dt>
+      <dd>Moving a flaky test out of the run that blocks merges, while it still runs and is reported, until it is fixed.</dd>
+      <dt id="gloss-runbook">Runbook</dt>
+      <dd>A written, step-by-step procedure for a recurring operational task, such as rolling back a release.</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill. Opens offline; no network access needed.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  // Ballot: builds a vote line from the ticks. Nothing is stored or sent.
+  const PREFIX = 'Sprint 46 retro vote';
+  const voter = document.getElementById('voter'), line = document.getElementById('vote-line');
+  const boxes = [...document.querySelectorAll('#ballot input[name=idea]')];
+  const render = () => {
+    const name = voter.value.trim() || '<your name>';
+    const picked = boxes.filter((b) => b.checked).map((b) => b.value);
+    line.textContent = PREFIX + ', ' + name + ': ' + (picked.length ? picked.join(', ') : 'none');
+  };
+  document.getElementById('ballot').addEventListener('input', render);
+  render();
+
+  // Tally: counts pasted vote lines in this browser. Last line per name wins.
+  const input = document.getElementById('tally-in'), status = document.getElementById('tally-status');
+  const skipped = document.getElementById('tally-skipped');
+  const rows = [...document.querySelectorAll('.totals tbody tr')];
+  const LINE = /sprint 46 retro vote\s*,\s*([^:]+?)\s*:\s*(.*)$/i;
+  const count = () => {
+    const ballots = new Map(), bad = [];
+    input.value.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).forEach((l) => {
+      const m = l.match(LINE);
+      if (!m || /^<.*>$/.test(m[1])) { bad.push(l); return; }
+      const rest = m[2].trim().toLowerCase();
+      const ideas = rest === 'none' ? [] : rest.split(/[\s,;]+/).filter(Boolean);
+      if (!ideas.every((x) => /^[1-4]$/.test(x))) { bad.push(l); return; }
+      ballots.set(m[1].toLowerCase(), new Set(ideas));
+    });
+    const n = ballots.size;
+    rows.forEach((r) => {
+      const id = r.dataset.idea;
+      const votes = [...ballots.values()].filter((s) => s.has(id)).length;
+      r.querySelector('.n').textContent = n ? votes + ' of ' + n : 'not counted yet';
+      r.querySelector('.bar > span').style.width = n ? (votes / n * 100) + '%' : '0';
+    });
+    status.textContent = n
+      ? n + ' ballot' + (n === 1 ? '' : 's') + ' counted, of 6 expected. Counted in this browser only; nothing is saved.'
+      : 'No lines pasted yet. The team has 6 members, so 6 ballots are expected.';
+    skipped.hidden = !bad.length;
+    skipped.textContent = bad.length ? 'Ignored ' + bad.length + ' line' + (bad.length === 1 ? '' : 's') + ' not in the vote line form: ' + bad.join(' | ') : '';
+  };
+  input.addEventListener('input', count);
+  count();
+})();
+</script>
+</body>
+</html>

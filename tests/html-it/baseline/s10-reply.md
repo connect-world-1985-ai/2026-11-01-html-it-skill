@@ -1,0 +1,1 @@
+I made the slide deck for Friday's architecture review as a single HTML file. ... Speaker notes: none. All the facts fit on the slides. ... Fonts: they load from Google Fonts. If the room has no internet, it falls back to system fonts.

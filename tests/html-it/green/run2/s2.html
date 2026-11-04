@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en" data-variant="console">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Booking app sketches</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+
+/* ---------- Page: wide sketch board ---------- */
+.page { max-width: 1400px; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 13rem minmax(0, 1fr); } }
+.page > main { max-width: none; }
+main > p, main > ul, main > ol, main > aside, main > dl, main > h1 { max-width: 72ch; }
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .6rem; align-items: center; }
+.chip { font: inherit; font-size: .85rem; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: .2rem .8rem; cursor: pointer; }
+.chip[aria-pressed=true] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.chips[hidden] { display: none; }
+.chip:disabled { opacity: .5; cursor: not-allowed; }
+.pick-status { color: var(--muted); font-size: .9rem; margin: 0 0 1rem; }
+.board { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 1rem; }
+.sketch-card { margin: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: .6rem; display: flex; flex-direction: column; gap: .5rem; }
+.sketch-card[hidden] { display: none; }
+.sketch-card.picked { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.sketch-card figcaption { font-size: .9rem; }
+iframe.sketch { width: 100%; height: 600px; border: 1px solid var(--line); border-radius: 4px; background: #fff; display: block; }
+.pick-btn { align-self: flex-start; font: inherit; font-size: .85rem; border: 1px solid var(--accent); background: transparent; color: var(--accent-ink); border-radius: var(--radius); padding: .25rem .7rem; cursor: pointer; }
+.pick-btn[aria-pressed=true] { background: var(--accent); color: var(--bg); }
+.pick-btn:disabled { opacity: .45; cursor: not-allowed; }
+.board.comparing { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 640px) { .board.comparing { grid-template-columns: minmax(0, 1fr); } }
+.board.comparing .sketch-card:not(.picked) { display: none; }
+.flow { overflow-x: auto; max-width: 960px; }
+.flow svg { min-width: 640px; width: 100%; height: auto; color: var(--fg); }
+.flow .box { fill: var(--surface-2); stroke: currentColor; stroke-width: 1.2; }
+.flow .box.alt { fill: var(--warn-bg); stroke: var(--warn); }
+.flow text { fill: currentColor; font: 14px var(--sans); }
+.flow text.small { fill: var(--muted); font-size: 12px; }
+.flow .arrow { stroke: currentColor; stroke-width: 1.5; fill: none; }
+.notes-table { max-width: 1100px; }
+pre.message { max-width: 72ch; white-space: pre-wrap; }
+@media print {
+  .chips, .pick-btn, .pick-status { display: none !important; }
+  .board, .board.comparing { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .board .sketch-card, .board .sketch-card[hidden] { display: flex !important; break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Team note: booking app sketches</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Booking app screen sketches</h1>
+    <p class="lede">Six wireframe sketches cover the whole booking flow of the mobile appointment booking app, from the home screen to a successful or failed booking. The team compares their layouts and picks two directions to develop further: use the Pick buttons on the board below, compare your two picks side by side, then post them in the team channel.</p>
+    <p class="meta">Prepared 3 November 2026 for the booking app team, from the team's six screen ideas. Doctor names, practices, dates and times inside the sketches are placeholders, not real data.</p>
+
+    <aside class="callout" data-kind="decision"><p><strong>Decision needed:</strong> which two sketches become the design directions. The notes do not say whether a "direction" means two of these six screens or two layout styles to apply across the flow, nor who decides and by when; both are <span class="pill" data-state="warn">To be confirmed</span>.</p></aside>
+
+    <h2 id="flow">How the screens connect</h2>
+    <p>The six screens form one flow. A patient starts on Home, searches for a doctor, picks a free slot, checks the details and confirms. Normally the booking succeeds; if someone else booked the same slot in the meantime, the Error screen offers the next three free slots and the patient confirms one of those instead. The notes do not say exactly when the Error screen appears; the diagram assumes it appears after pressing confirm.</p>
+    <figure class="flow">
+<svg viewBox="0 0 870 210" role="img" aria-labelledby="flow-title">
+  <title id="flow-title">Booking flow: Home leads to Search, Slot picker, Confirm and Success. From Confirm, a taken slot leads to the Error screen, which leads back to Confirm with a suggested slot.</title>
+  <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
+  <rect class="box" x="20" y="40" width="130" height="48" rx="8"/><text x="85" y="69" text-anchor="middle">1. Home</text>
+  <rect class="box" x="195" y="40" width="130" height="48" rx="8"/><text x="260" y="69" text-anchor="middle">2. Search</text>
+  <rect class="box" x="370" y="40" width="130" height="48" rx="8"/><text x="435" y="69" text-anchor="middle">3. Slot picker</text>
+  <rect class="box" x="545" y="40" width="130" height="48" rx="8"/><text x="610" y="69" text-anchor="middle">4. Confirm</text>
+  <rect class="box" x="720" y="40" width="130" height="48" rx="8"/><text x="785" y="69" text-anchor="middle">5. Success</text>
+  <rect class="box alt" x="545" y="150" width="130" height="48" rx="8"/><text x="610" y="179" text-anchor="middle">6. Error</text>
+  <path class="arrow" d="M150 64H193" marker-end="url(#arr)"/>
+  <path class="arrow" d="M325 64H368" marker-end="url(#arr)"/>
+  <path class="arrow" d="M500 64H543" marker-end="url(#arr)"/>
+  <path class="arrow" d="M675 64H718" marker-end="url(#arr)"/>
+  <path class="arrow" d="M590 88V148" marker-end="url(#arr)"/>
+  <path class="arrow" d="M630 150V90" marker-end="url(#arr)"/>
+  <text class="small" x="582" y="124" text-anchor="end">slot taken</text>
+  <text class="small" x="638" y="124">pick a suggested slot</text>
+  <text class="small" x="85" y="24" text-anchor="middle">start</text>
+</svg>
+</figure>
+
+    <h2 id="board">Sketch board</h2>
+    <p>Each sketch is a phone-width wireframe drawn in plain HTML, isolated in its own frame so its styles cannot clash with the page. Filter by stage of the flow, press <em>Pick as a direction</em> on up to two sketches, then press <em>Compare picks</em> to see the two side by side.</p>
+    <div class="chips" role="group" aria-label="Filter and compare sketches" hidden>
+      <button type="button" class="chip" aria-pressed="true" data-tag="all">All six</button>
+      <button type="button" class="chip" aria-pressed="false" data-tag="start">Start</button>
+      <button type="button" class="chip" aria-pressed="false" data-tag="find">Find a doctor</button>
+      <button type="button" class="chip" aria-pressed="false" data-tag="book">Book a slot</button>
+      <button type="button" class="chip" aria-pressed="false" data-tag="outcome">Result</button>
+      <button type="button" class="chip" id="compare-btn" aria-pressed="false" disabled>Compare picks</button>
+      <button type="button" class="chip" id="copy-picks" disabled>Copy my picks</button>
+    </div>
+    <p class="pick-status" id="pick-status" aria-live="polite" hidden></p>
+    <div class="board">
+  <figure class="sketch-card" id="sketch-home" data-key="home" data-tags="start" data-label="1. Home">
+    <iframe class="sketch" title="1. Home screen sketch" sandbox srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Home&lt;/title&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0}body{font:14px/1.4 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,&quot;Helvetica Neue&quot;,Arial,sans-serif;color:#1d2329;background:#fff}
+.phone{max-width:360px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
+.status{display:flex;justify-content:space-between;padding:6px 16px;font-size:11px;color:#6b7680}
+.top{padding:6px 16px 2px}h1{font-size:20px;margin:2px 0 10px}h2{font-size:13px;color:#6b7680;font-weight:600;margin:14px 16px 6px}
+.card{border:1px solid #d5dbe0;border-radius:12px;padding:12px;margin:0 16px 12px;background:#f5f7f8}
+.card b{display:block;font-size:15px}.muted{color:#6b7680;font-size:12px}
+.btn{display:block;width:calc(100% - 32px);margin:8px 16px;padding:11px;border-radius:10px;border:1.5px solid #1f6f68;background:#1f6f68;color:#fff;font:600 14px system-ui,sans-serif;text-align:center}
+.btn.ghost{background:#fff;color:#1f6f68}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #e6eaed}
+.row:last-child{border-bottom:0}
+.hatch{background:repeating-linear-gradient(45deg,#eef1f3 0 8px,#e2e7ea 8px 16px);border:1px dashed #b8c1c8;border-radius:10px;color:#56616c;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px}
+.chips{display:flex;gap:6px;overflow:hidden;padding:0 16px 10px}.chip{flex:none;border:1px solid #c9d1d7;border-radius:999px;padding:5px 10px;font-size:12px;background:#fff}
+.chip.on{background:#1f6f68;color:#fff;border-color:#1f6f68}
+.seg{display:flex;margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:8px;overflow:hidden}.seg span{flex:1;text-align:center;padding:6px;font-size:12px}.seg .on{background:#1d2329;color:#fff}
+.input{margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:10px;padding:9px 12px;color:#8a949c}
+.foot{margin-top:auto;padding-bottom:12px}&lt;/style&gt;&lt;body&gt;&lt;div class=&quot;phone&quot;&gt;&lt;div class=&quot;status&quot;&gt;&lt;span&gt;09:41&lt;/span&gt;&lt;span&gt;Booking app&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;top&quot;&gt;&lt;h1&gt;Hello&lt;/h1&gt;&lt;/div&gt;
+&lt;h2&gt;Next appointment&lt;/h2&gt;
+&lt;div class=&quot;card&quot;&gt;&lt;b&gt;Dermatology&lt;/b&gt;&lt;div&gt;Tue, 09:30, Dr. Name Surname&lt;/div&gt;&lt;div class=&quot;muted&quot;&gt;Practice name, street address&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&quot;btn&quot;&gt;Book again&lt;/div&gt;
+&lt;h2&gt;Past visits&lt;/h2&gt;
+&lt;div class=&quot;row&quot;&gt;&lt;span&gt;General practice&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Dr. Name Surname&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;muted&quot;&gt;Visited&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;row&quot;&gt;&lt;span&gt;Dentist&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Dr. Name Surname&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;muted&quot;&gt;Visited&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;row&quot;&gt;&lt;span&gt;Eye care&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Dr. Name Surname&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;muted&quot;&gt;Visited&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;"></iframe>
+    <figcaption><b>1. Home.</b> The next appointment sits on top as a card, a single "Book again" button follows, and past visits form a plain list below.</figcaption>
+    <button type="button" class="pick-btn" aria-pressed="false" hidden>Pick as a direction</button>
+  </figure>
+  <figure class="sketch-card" id="sketch-search" data-key="search" data-tags="find" data-label="2. Search">
+    <iframe class="sketch" title="2. Search screen sketch" sandbox srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Search&lt;/title&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0}body{font:14px/1.4 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,&quot;Helvetica Neue&quot;,Arial,sans-serif;color:#1d2329;background:#fff}
+.phone{max-width:360px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
+.status{display:flex;justify-content:space-between;padding:6px 16px;font-size:11px;color:#6b7680}
+.top{padding:6px 16px 2px}h1{font-size:20px;margin:2px 0 10px}h2{font-size:13px;color:#6b7680;font-weight:600;margin:14px 16px 6px}
+.card{border:1px solid #d5dbe0;border-radius:12px;padding:12px;margin:0 16px 12px;background:#f5f7f8}
+.card b{display:block;font-size:15px}.muted{color:#6b7680;font-size:12px}
+.btn{display:block;width:calc(100% - 32px);margin:8px 16px;padding:11px;border-radius:10px;border:1.5px solid #1f6f68;background:#1f6f68;color:#fff;font:600 14px system-ui,sans-serif;text-align:center}
+.btn.ghost{background:#fff;color:#1f6f68}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #e6eaed}
+.row:last-child{border-bottom:0}
+.hatch{background:repeating-linear-gradient(45deg,#eef1f3 0 8px,#e2e7ea 8px 16px);border:1px dashed #b8c1c8;border-radius:10px;color:#56616c;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px}
+.chips{display:flex;gap:6px;overflow:hidden;padding:0 16px 10px}.chip{flex:none;border:1px solid #c9d1d7;border-radius:999px;padding:5px 10px;font-size:12px;background:#fff}
+.chip.on{background:#1f6f68;color:#fff;border-color:#1f6f68}
+.seg{display:flex;margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:8px;overflow:hidden}.seg span{flex:1;text-align:center;padding:6px;font-size:12px}.seg .on{background:#1d2329;color:#fff}
+.input{margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:10px;padding:9px 12px;color:#8a949c}
+.foot{margin-top:auto;padding-bottom:12px}.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;box-shadow:0 -6px 20px rgba(0,0,0,.18);padding:8px 0 12px}.grab{width:40px;height:4px;border-radius:2px;background:#c9d1d7;margin:0 auto 8px}.dim{position:absolute;inset:0;background:rgba(20,26,31,.35)}.tog{width:34px;height:20px;border-radius:10px;background:#c9d1d7;position:relative}.tog.on{background:#1f6f68}.tog::after{content:&#x27;&#x27;;position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff}.tog.on::after{left:16px}&lt;/style&gt;&lt;body&gt;&lt;div class=&quot;phone&quot;&gt;&lt;div class=&quot;status&quot;&gt;&lt;span&gt;09:41&lt;/span&gt;&lt;span&gt;Booking app&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;top&quot;&gt;&lt;h1&gt;Find a doctor&lt;/h1&gt;&lt;/div&gt;
+&lt;div class=&quot;input&quot;&gt;Search by name or practice&lt;/div&gt;
+&lt;div class=&quot;chips&quot;&gt;&lt;span class=&quot;chip on&quot;&gt;General practice&lt;/span&gt;&lt;span class=&quot;chip&quot;&gt;Dermatology&lt;/span&gt;&lt;span class=&quot;chip&quot;&gt;Dentist&lt;/span&gt;&lt;span class=&quot;chip&quot;&gt;Eye care&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;seg&quot;&gt;&lt;span class=&quot;on&quot;&gt;Map&lt;/span&gt;&lt;span&gt;List&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;hatch&quot; style=&quot;height:180px;margin:0 16px&quot;&gt;Map with practice pins&lt;/div&gt;
+&lt;div class=&quot;dim&quot;&gt;&lt;/div&gt;
+&lt;div class=&quot;sheet&quot;&gt;&lt;div class=&quot;grab&quot;&gt;&lt;/div&gt;&lt;h2 style=&quot;margin-top:0&quot;&gt;Filters&lt;/h2&gt;
+&lt;div class=&quot;row&quot;&gt;&lt;span&gt;Free slot this week&lt;/span&gt;&lt;span class=&quot;tog on&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;row&quot;&gt;&lt;span&gt;Distance&lt;/span&gt;&lt;span class=&quot;muted&quot;&gt;Placeholder&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;row&quot;&gt;&lt;span&gt;Another filter&lt;/span&gt;&lt;span class=&quot;muted&quot;&gt;Placeholder&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;btn&quot;&gt;Show results&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;"></iframe>
+    <figcaption><b>2. Search.</b> <dfn data-gloss="Small rounded buttons in a row, each selecting one medical specialty.">Specialty chips</dfn> under the search field, a Map / List toggle, and the <dfn data-gloss="A panel that slides up from the bottom of the screen and holds the search filters.">filter sheet</dfn> shown open over the map.</figcaption>
+    <button type="button" class="pick-btn" aria-pressed="false" hidden>Pick as a direction</button>
+  </figure>
+  <figure class="sketch-card" id="sketch-slot" data-key="slot" data-tags="book" data-label="3. Slot picker">
+    <iframe class="sketch" title="3. Slot picker screen sketch" sandbox srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Slot picker&lt;/title&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0}body{font:14px/1.4 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,&quot;Helvetica Neue&quot;,Arial,sans-serif;color:#1d2329;background:#fff}
+.phone{max-width:360px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
+.status{display:flex;justify-content:space-between;padding:6px 16px;font-size:11px;color:#6b7680}
+.top{padding:6px 16px 2px}h1{font-size:20px;margin:2px 0 10px}h2{font-size:13px;color:#6b7680;font-weight:600;margin:14px 16px 6px}
+.card{border:1px solid #d5dbe0;border-radius:12px;padding:12px;margin:0 16px 12px;background:#f5f7f8}
+.card b{display:block;font-size:15px}.muted{color:#6b7680;font-size:12px}
+.btn{display:block;width:calc(100% - 32px);margin:8px 16px;padding:11px;border-radius:10px;border:1.5px solid #1f6f68;background:#1f6f68;color:#fff;font:600 14px system-ui,sans-serif;text-align:center}
+.btn.ghost{background:#fff;color:#1f6f68}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #e6eaed}
+.row:last-child{border-bottom:0}
+.hatch{background:repeating-linear-gradient(45deg,#eef1f3 0 8px,#e2e7ea 8px 16px);border:1px dashed #b8c1c8;border-radius:10px;color:#56616c;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px}
+.chips{display:flex;gap:6px;overflow:hidden;padding:0 16px 10px}.chip{flex:none;border:1px solid #c9d1d7;border-radius:999px;padding:5px 10px;font-size:12px;background:#fff}
+.chip.on{background:#1f6f68;color:#fff;border-color:#1f6f68}
+.seg{display:flex;margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:8px;overflow:hidden}.seg span{flex:1;text-align:center;padding:6px;font-size:12px}.seg .on{background:#1d2329;color:#fff}
+.input{margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:10px;padding:9px 12px;color:#8a949c}
+.foot{margin-top:auto;padding-bottom:12px}.week{display:flex;gap:4px;padding:0 16px 12px}.day{flex:1;text-align:center;border:1px solid #d5dbe0;border-radius:10px;padding:6px 0;font-size:11px;color:#56616c}.day b{display:block;font-size:15px;color:#1d2329}.day.on{background:#1f6f68;border-color:#1f6f68;color:#dff3f0}.day.on b{color:#fff}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px}.slot{border:1.5px solid #1f6f68;color:#1f6f68;border-radius:8px;text-align:center;padding:8px 0;font-weight:600}.slot.off{border-color:#dfe4e8;color:#a9b2b9;background:#f1f3f5;text-decoration:line-through;font-weight:400}.slot.on{background:#1f6f68;color:#fff}.legend{display:flex;gap:14px;padding:10px 16px 0;font-size:11px;color:#6b7680}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}&lt;/style&gt;&lt;body&gt;&lt;div class=&quot;phone&quot;&gt;&lt;div class=&quot;status&quot;&gt;&lt;span&gt;09:41&lt;/span&gt;&lt;span&gt;Booking app&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;top&quot;&gt;&lt;h1&gt;Pick a time&lt;/h1&gt;&lt;div class=&quot;muted&quot; style=&quot;margin:-6px 0 10px&quot;&gt;Dermatology, Dr. Name Surname&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&quot;week&quot;&gt;&lt;div class=&quot;day&quot;&gt;Mon&lt;b&gt;9&lt;/b&gt;&lt;/div&gt;&lt;div class=&quot;day on&quot;&gt;Tue&lt;b&gt;10&lt;/b&gt;&lt;/div&gt;&lt;div class=&quot;day&quot;&gt;Wed&lt;b&gt;11&lt;/b&gt;&lt;/div&gt;&lt;div class=&quot;day&quot;&gt;Thu&lt;b&gt;12&lt;/b&gt;&lt;/div&gt;&lt;div class=&quot;day&quot;&gt;Fri&lt;b&gt;13&lt;/b&gt;&lt;/div&gt;&lt;div class=&quot;day&quot;&gt;Sat&lt;b&gt;14&lt;/b&gt;&lt;/div&gt;&lt;div class=&quot;day&quot;&gt;Sun&lt;b&gt;15&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&quot;grid&quot;&gt;&lt;span class=&quot;slot off&quot;&gt;08:00&lt;/span&gt;&lt;span class=&quot;slot&quot;&gt;08:30&lt;/span&gt;&lt;span class=&quot;slot off&quot;&gt;09:00&lt;/span&gt;&lt;span class=&quot;slot on&quot;&gt;09:30&lt;/span&gt;&lt;span class=&quot;slot off&quot;&gt;10:00&lt;/span&gt;&lt;span class=&quot;slot&quot;&gt;10:30&lt;/span&gt;&lt;span class=&quot;slot&quot;&gt;11:00&lt;/span&gt;&lt;span class=&quot;slot off&quot;&gt;11:30&lt;/span&gt;&lt;span class=&quot;slot off&quot;&gt;12:00&lt;/span&gt;&lt;span class=&quot;slot&quot;&gt;14:00&lt;/span&gt;&lt;span class=&quot;slot off&quot;&gt;14:30&lt;/span&gt;&lt;span class=&quot;slot&quot;&gt;15:00&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;legend&quot;&gt;&lt;span&gt;&lt;i style=&quot;border:1.5px solid #1f6f68&quot;&gt;&lt;/i&gt;Free&lt;/span&gt;&lt;span&gt;&lt;i style=&quot;background:#f1f3f5;border:1px solid #dfe4e8&quot;&gt;&lt;/i&gt;Unavailable&lt;/span&gt;&lt;span&gt;&lt;i style=&quot;background:#1f6f68&quot;&gt;&lt;/i&gt;Selected&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;foot&quot;&gt;&lt;div class=&quot;btn&quot;&gt;Continue with Tue 10, 09:30&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;"></iframe>
+    <figcaption><b>3. Slot picker.</b> A <dfn data-gloss="A row of seven day buttons at the top of the slot picker; tapping one shows that day's times.">week strip</dfn> on top and a <dfn data-gloss="The times of the chosen day laid out as a grid of buttons.">time grid</dfn> below; unavailable slots are greyed and struck through.</figcaption>
+    <button type="button" class="pick-btn" aria-pressed="false" hidden>Pick as a direction</button>
+  </figure>
+  <figure class="sketch-card" id="sketch-confirm" data-key="confirm" data-tags="book" data-label="4. Confirm">
+    <iframe class="sketch" title="4. Confirm screen sketch" sandbox srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Confirm&lt;/title&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0}body{font:14px/1.4 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,&quot;Helvetica Neue&quot;,Arial,sans-serif;color:#1d2329;background:#fff}
+.phone{max-width:360px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
+.status{display:flex;justify-content:space-between;padding:6px 16px;font-size:11px;color:#6b7680}
+.top{padding:6px 16px 2px}h1{font-size:20px;margin:2px 0 10px}h2{font-size:13px;color:#6b7680;font-weight:600;margin:14px 16px 6px}
+.card{border:1px solid #d5dbe0;border-radius:12px;padding:12px;margin:0 16px 12px;background:#f5f7f8}
+.card b{display:block;font-size:15px}.muted{color:#6b7680;font-size:12px}
+.btn{display:block;width:calc(100% - 32px);margin:8px 16px;padding:11px;border-radius:10px;border:1.5px solid #1f6f68;background:#1f6f68;color:#fff;font:600 14px system-ui,sans-serif;text-align:center}
+.btn.ghost{background:#fff;color:#1f6f68}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #e6eaed}
+.row:last-child{border-bottom:0}
+.hatch{background:repeating-linear-gradient(45deg,#eef1f3 0 8px,#e2e7ea 8px 16px);border:1px dashed #b8c1c8;border-radius:10px;color:#56616c;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px}
+.chips{display:flex;gap:6px;overflow:hidden;padding:0 16px 10px}.chip{flex:none;border:1px solid #c9d1d7;border-radius:999px;padding:5px 10px;font-size:12px;background:#fff}
+.chip.on{background:#1f6f68;color:#fff;border-color:#1f6f68}
+.seg{display:flex;margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:8px;overflow:hidden}.seg span{flex:1;text-align:center;padding:6px;font-size:12px}.seg .on{background:#1d2329;color:#fff}
+.input{margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:10px;padding:9px 12px;color:#8a949c}
+.foot{margin-top:auto;padding-bottom:12px}.check{display:flex;gap:10px;align-items:flex-start;margin:12px 16px;font-size:12px}.box{flex:none;width:20px;height:20px;border:2px solid #1f6f68;border-radius:4px;background:#1f6f68;color:#fff;font-size:13px;line-height:16px;text-align:center}.kv{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}.kv span:first-child{color:#6b7680}&lt;/style&gt;&lt;body&gt;&lt;div class=&quot;phone&quot;&gt;&lt;div class=&quot;status&quot;&gt;&lt;span&gt;09:41&lt;/span&gt;&lt;span&gt;Booking app&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;top&quot;&gt;&lt;h1&gt;Check and confirm&lt;/h1&gt;&lt;/div&gt;
+&lt;div class=&quot;card&quot;&gt;&lt;div class=&quot;kv&quot;&gt;&lt;span&gt;Specialty&lt;/span&gt;&lt;span&gt;Dermatology&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;kv&quot;&gt;&lt;span&gt;Doctor&lt;/span&gt;&lt;span&gt;Dr. Name Surname&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;kv&quot;&gt;&lt;span&gt;When&lt;/span&gt;&lt;span&gt;Tue 10, 09:30&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;kv&quot;&gt;&lt;span&gt;Where&lt;/span&gt;&lt;span&gt;Practice name&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2&gt;Insurance card&lt;/h2&gt;
+&lt;div class=&quot;hatch&quot; style=&quot;height:110px;margin:0 16px 4px&quot;&gt;Photo of the insurance card&lt;/div&gt;
+&lt;div class=&quot;muted&quot; style=&quot;margin:0 16px;text-align:right;color:#1f6f68&quot;&gt;Retake photo&lt;/div&gt;
+&lt;div class=&quot;check&quot;&gt;&lt;span class=&quot;box&quot;&gt;&amp;#10003;&lt;/span&gt;&lt;span&gt;Consent text goes here (wording not yet written).&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;foot&quot;&gt;&lt;div class=&quot;btn&quot;&gt;Confirm booking&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;"></iframe>
+    <figcaption><b>4. Confirm.</b> A summary of the booking, a photo of the insurance card with a retake link, and a consent checkbox before the confirm button.</figcaption>
+    <button type="button" class="pick-btn" aria-pressed="false" hidden>Pick as a direction</button>
+  </figure>
+  <figure class="sketch-card" id="sketch-success" data-key="success" data-tags="outcome" data-label="5. Success">
+    <iframe class="sketch" title="5. Success screen sketch" sandbox srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Success&lt;/title&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0}body{font:14px/1.4 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,&quot;Helvetica Neue&quot;,Arial,sans-serif;color:#1d2329;background:#fff}
+.phone{max-width:360px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
+.status{display:flex;justify-content:space-between;padding:6px 16px;font-size:11px;color:#6b7680}
+.top{padding:6px 16px 2px}h1{font-size:20px;margin:2px 0 10px}h2{font-size:13px;color:#6b7680;font-weight:600;margin:14px 16px 6px}
+.card{border:1px solid #d5dbe0;border-radius:12px;padding:12px;margin:0 16px 12px;background:#f5f7f8}
+.card b{display:block;font-size:15px}.muted{color:#6b7680;font-size:12px}
+.btn{display:block;width:calc(100% - 32px);margin:8px 16px;padding:11px;border-radius:10px;border:1.5px solid #1f6f68;background:#1f6f68;color:#fff;font:600 14px system-ui,sans-serif;text-align:center}
+.btn.ghost{background:#fff;color:#1f6f68}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #e6eaed}
+.row:last-child{border-bottom:0}
+.hatch{background:repeating-linear-gradient(45deg,#eef1f3 0 8px,#e2e7ea 8px 16px);border:1px dashed #b8c1c8;border-radius:10px;color:#56616c;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px}
+.chips{display:flex;gap:6px;overflow:hidden;padding:0 16px 10px}.chip{flex:none;border:1px solid #c9d1d7;border-radius:999px;padding:5px 10px;font-size:12px;background:#fff}
+.chip.on{background:#1f6f68;color:#fff;border-color:#1f6f68}
+.seg{display:flex;margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:8px;overflow:hidden}.seg span{flex:1;text-align:center;padding:6px;font-size:12px}.seg .on{background:#1d2329;color:#fff}
+.input{margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:10px;padding:9px 12px;color:#8a949c}
+.foot{margin-top:auto;padding-bottom:12px}.hero{text-align:center;padding:28px 16px 8px}.tick{width:64px;height:64px;border-radius:50%;background:#dff3ec;margin:0 auto 12px;display:flex;align-items:center;justify-content:center}.code{font:600 22px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;margin-top:4px}&lt;/style&gt;&lt;body&gt;&lt;div class=&quot;phone&quot;&gt;&lt;div class=&quot;status&quot;&gt;&lt;span&gt;09:41&lt;/span&gt;&lt;span&gt;Booking app&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;hero&quot;&gt;&lt;div class=&quot;tick&quot;&gt;&lt;svg width=&quot;30&quot; height=&quot;30&quot; viewBox=&quot;0 0 30 30&quot; aria-hidden=&quot;true&quot;&gt;&lt;path d=&quot;M6 16l6 6 12-13&quot; fill=&quot;none&quot; stroke=&quot;#1c7a55&quot; stroke-width=&quot;3.5&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;/&gt;&lt;/svg&gt;&lt;/div&gt;&lt;h1&gt;Booking confirmed&lt;/h1&gt;
+&lt;div class=&quot;muted&quot;&gt;Confirmation code&lt;/div&gt;&lt;div class=&quot;code&quot;&gt;BK-2026-0042&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&quot;card&quot;&gt;&lt;b&gt;Dermatology&lt;/b&gt;&lt;div&gt;Tue 10, 09:30, Dr. Name Surname&lt;/div&gt;&lt;div class=&quot;muted&quot;&gt;Practice name, street address&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&quot;foot&quot;&gt;&lt;div class=&quot;btn&quot;&gt;Add to calendar&lt;/div&gt;&lt;div class=&quot;btn ghost&quot;&gt;Back to home&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;"></iframe>
+    <figcaption><b>5. Success.</b> A large confirmation code, the booking summary and an "Add to calendar" button.</figcaption>
+    <button type="button" class="pick-btn" aria-pressed="false" hidden>Pick as a direction</button>
+  </figure>
+  <figure class="sketch-card" id="sketch-error" data-key="error" data-tags="outcome" data-label="6. Error">
+    <iframe class="sketch" title="6. Error screen sketch" sandbox srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Error&lt;/title&gt;&lt;style&gt;*{box-sizing:border-box}html,body{margin:0}body{font:14px/1.4 system-ui,-apple-system,&quot;Segoe UI&quot;,Roboto,&quot;Helvetica Neue&quot;,Arial,sans-serif;color:#1d2329;background:#fff}
+.phone{max-width:360px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
+.status{display:flex;justify-content:space-between;padding:6px 16px;font-size:11px;color:#6b7680}
+.top{padding:6px 16px 2px}h1{font-size:20px;margin:2px 0 10px}h2{font-size:13px;color:#6b7680;font-weight:600;margin:14px 16px 6px}
+.card{border:1px solid #d5dbe0;border-radius:12px;padding:12px;margin:0 16px 12px;background:#f5f7f8}
+.card b{display:block;font-size:15px}.muted{color:#6b7680;font-size:12px}
+.btn{display:block;width:calc(100% - 32px);margin:8px 16px;padding:11px;border-radius:10px;border:1.5px solid #1f6f68;background:#1f6f68;color:#fff;font:600 14px system-ui,sans-serif;text-align:center}
+.btn.ghost{background:#fff;color:#1f6f68}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #e6eaed}
+.row:last-child{border-bottom:0}
+.hatch{background:repeating-linear-gradient(45deg,#eef1f3 0 8px,#e2e7ea 8px 16px);border:1px dashed #b8c1c8;border-radius:10px;color:#56616c;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px}
+.chips{display:flex;gap:6px;overflow:hidden;padding:0 16px 10px}.chip{flex:none;border:1px solid #c9d1d7;border-radius:999px;padding:5px 10px;font-size:12px;background:#fff}
+.chip.on{background:#1f6f68;color:#fff;border-color:#1f6f68}
+.seg{display:flex;margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:8px;overflow:hidden}.seg span{flex:1;text-align:center;padding:6px;font-size:12px}.seg .on{background:#1d2329;color:#fff}
+.input{margin:0 16px 10px;border:1px solid #c9d1d7;border-radius:10px;padding:9px 12px;color:#8a949c}
+.foot{margin-top:auto;padding-bottom:12px}.hero{text-align:center;padding:24px 16px 6px}.warn{width:56px;height:56px;border-radius:50%;background:#fbe9d6;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font:700 28px system-ui;color:#a35b00}.opt{display:flex;align-items:center;gap:10px;border:1.5px solid #d5dbe0;border-radius:10px;padding:10px 12px;margin:0 16px 8px}.opt.on{border-color:#1f6f68;background:#eef7f5}.radio{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid #9aa5ad}.opt.on .radio{border:5px solid #1f6f68}&lt;/style&gt;&lt;body&gt;&lt;div class=&quot;phone&quot;&gt;&lt;div class=&quot;status&quot;&gt;&lt;span&gt;09:41&lt;/span&gt;&lt;span&gt;Booking app&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;hero&quot;&gt;&lt;div class=&quot;warn&quot;&gt;!&lt;/div&gt;&lt;h1&gt;This slot was just taken&lt;/h1&gt;
+&lt;div class=&quot;muted&quot;&gt;Tue 10, 09:30 was booked by someone else while you were confirming. These are the next three free slots.&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&quot;opt on&quot;&gt;&lt;span class=&quot;radio&quot;&gt;&lt;/span&gt;&lt;span&gt;&lt;b&gt;Tue 10, 10:30&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Doctor name&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;opt&quot;&gt;&lt;span class=&quot;radio&quot;&gt;&lt;/span&gt;&lt;span&gt;&lt;b&gt;Tue 10, 11:00&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Doctor name&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;opt&quot;&gt;&lt;span class=&quot;radio&quot;&gt;&lt;/span&gt;&lt;span&gt;&lt;b&gt;Tue 10, 14:00&lt;/b&gt;&lt;br&gt;&lt;span class=&quot;muted&quot;&gt;Doctor name&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;
+&lt;div class=&quot;foot&quot;&gt;&lt;div class=&quot;btn&quot;&gt;Book Tue 10, 10:30&lt;/div&gt;&lt;div class=&quot;btn ghost&quot;&gt;Pick another time&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;"></iframe>
+    <figcaption><b>6. Error.</b> The chosen slot was taken in the meantime; the screen offers the next three free slots, with the first one preselected.</figcaption>
+    <button type="button" class="pick-btn" aria-pressed="false" hidden>Pick as a direction</button>
+  </figure>
+    </div>
+    <div hidden><pre class="message"><code id="picks-out"></code></pre></div>
+    <aside class="callout" data-kind="warn"><p><strong>Limit:</strong> your picks stay in this browser on this computer. This page is a file, so it cannot collect or count picks from the whole team. Press <em>Copy my picks</em> and paste the line into the team channel, or use the team's usual poll tool.</p></aside>
+
+    <h2 id="notes">What each sketch shows and what is still open</h2>
+    <p>The sketches follow the team's notes closely. Where the notes leave a detail open, the sketch uses a neutral placeholder, and the question is listed here so the chosen direction can answer it.</p>
+    <div class="table-wrap notes-table"><table>
+      <thead><tr><th scope="col">Screen</th><th scope="col">From the notes</th><th scope="col">Open question</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">1. Home</th><td>Next appointment card, "Book again" button, list of past visits.</td><td>What "Book again" books again: the next appointment's doctor, the last visit, or a choice from the list. The notes do not say.</td></tr>
+        <tr><th scope="row">2. Search</th><td>Specialty chips, map / list toggle, filter sheet.</td><td>Which filters the sheet holds and which specialties appear as chips; the sketch shows placeholders.</td></tr>
+        <tr><th scope="row">3. Slot picker</th><td>Week strip, time grid, unavailable slots greyed.</td><td>How far ahead the week strip goes, and whether greyed slots are hidden or only disabled for screen reader users.</td></tr>
+        <tr><th scope="row">4. Confirm</th><td>Summary, insurance card photo, consent checkbox.</td><td>The consent wording, and what happens to the insurance card photo after booking (stored, for how long, who sees it).</td></tr>
+        <tr><th scope="row">5. Success</th><td>Confirmation code <a class="ref" data-ref="BK-2026-0042" href="#ref-BK-2026-0042"><span class="ref-id">BK-2026-0042</span> example confirmation code</a>, add-to-calendar.</td><td>The format rules for confirmation codes; the notes give only this one example.</td></tr>
+        <tr><th scope="row">6. Error</th><td>Slot taken in the meantime, suggest next three slots.</td><td>How the three suggestions are chosen: same doctor only, or other doctors of the same specialty as well.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="post">Message for the team channel</h2>
+    <p>A ready-made message to share this page; the Copy button copies it.</p>
+    <pre class="message"><code>Booking app screen sketches: six wireframes covering the full booking flow (Home, Search, Slot picker, Confirm, Success, Error) are in the attached page. Open it, pick the two sketches you want as directions, press "Copy my picks" and paste the line here. Who decides and by when is still to be confirmed.</code></pre>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-BK-2026-0042"><b>BK-2026-0042</b> <span class="ref-summary">The example confirmation code that the team's notes give for the Success screen. It shows the code's look, not a real booking.</span> Source: the team's six screen ideas, item 5 ("Success: confirmation code BK-2026-0042, add-to-calendar").</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt>Direction</dt><dd>A layout approach the design team develops further after this comparison. Whether it means a screen or a style across screens is to be confirmed.</dd>
+      <dt>Filter sheet</dt><dd>A panel that slides up from the bottom of the screen and holds the search filters.</dd>
+      <dt>Specialty chips</dt><dd>Small rounded buttons in a row, each selecting one medical specialty.</dd>
+      <dt>Time grid</dt><dd>The times of the chosen day laid out as a grid of buttons.</dd>
+      <dt>Week strip</dt><dd>A row of seven day buttons at the top of the slot picker; tapping one shows that day's times.</dd>
+      <dt>Wireframe</dt><dd>A deliberately plain sketch of a screen that shows layout and content, not final colours or type.</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill. Opens offline; no network access needed. Sketches are drawn in plain HTML and CSS; no libraries or web fonts.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  // Sketch board: filter by flow stage, pick at most two directions, compare the picks, copy them.
+  const board = document.querySelector('.board');
+  const cards = [...board.querySelectorAll('.sketch-card')];
+  const filters = [...document.querySelectorAll('.chip[data-tag]')];
+  const cmp = document.getElementById('compare-btn'), copy = document.getElementById('copy-picks');
+  const status = document.getElementById('pick-status'), out = document.getElementById('picks-out');
+  document.querySelectorAll('.chips[hidden], .pick-btn[hidden], #pick-status[hidden]').forEach((el) => (el.hidden = false));
+  const KEY = 'html-it-booking-sketch-picks';
+  const picked = () => cards.filter((k) => k.classList.contains('picked'));
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(picked().map((k) => k.dataset.key))); } catch {} };
+  const message = () => {
+    const p = picked().map((k) => k.dataset.label);
+    return p.length ? 'My picks for the booking app sketch board: ' + p.join(' and ') + '.' : '';
+  };
+  const render = () => {
+    const p = picked();
+    cards.forEach((k) => {
+      const b = k.querySelector('.pick-btn'), on = k.classList.contains('picked');
+      b.setAttribute('aria-pressed', on); b.textContent = on ? 'Picked (click to undo)' : 'Pick as a direction';
+      b.disabled = !on && p.length >= 2;
+    });
+    status.textContent = p.length === 0 ? 'No sketch picked yet. Pick two, then compare them side by side.'
+      : p.length === 1 ? 'Picked: ' + p[0].dataset.label + '. Pick one more.'
+      : 'Picked: ' + p.map((k) => k.dataset.label).join(' and ') + '. Unpick one to change.';
+    cmp.disabled = p.length !== 2;
+    if (p.length !== 2 && board.classList.contains('comparing')) setCompare(false);
+    copy.disabled = p.length === 0;
+  };
+  const setCompare = (on) => {
+    board.classList.toggle('comparing', on); cmp.setAttribute('aria-pressed', on);
+    cmp.textContent = on ? 'Show all sketches' : 'Compare picks';
+    if (on) cards.forEach((k) => (k.hidden = false)); else applyFilter();
+  };
+  let tag = 'all';
+  const applyFilter = () => cards.forEach((k) => (k.hidden = tag !== 'all' && !k.dataset.tags.split(' ').includes(tag)));
+  filters.forEach((c) => c.addEventListener('click', () => {
+    tag = c.dataset.tag; filters.forEach((x) => x.setAttribute('aria-pressed', x === c));
+    if (board.classList.contains('comparing')) setCompare(false); else applyFilter();
+  }));
+  cards.forEach((k) => k.querySelector('.pick-btn').addEventListener('click', () => {
+    if (k.classList.contains('picked')) k.classList.remove('picked');
+    else if (picked().length < 2) k.classList.add('picked');
+    save(); render();
+  }));
+  cmp.addEventListener('click', () => setCompare(!board.classList.contains('comparing')));
+  copy.addEventListener('click', async () => {
+    const text = message(); out.textContent = text; out.closest('div').hidden = false;
+    try { await navigator.clipboard.writeText(text); copy.textContent = 'Copied'; }
+    catch { const r = document.createRange(); r.selectNodeContents(out); const s = getSelection(); s.removeAllRanges(); s.addRange(r); copy.textContent = 'Selected, press Ctrl+C'; }
+    setTimeout(() => (copy.textContent = 'Copy my picks'), 1800);
+  });
+  try { (JSON.parse(localStorage.getItem(KEY) || '[]') || []).slice(0, 2).forEach((key) => cards.find((k) => k.dataset.key === key)?.classList.add('picked')); } catch {}
+  render();
+})();
+</script>
+</body>
+</html>

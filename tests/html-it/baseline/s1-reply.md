@@ -1,0 +1,3 @@
+I built the review page for PR 418 and wrote the questions file. I assumed my recommended answer to each question.
+Verdict: "Request changes. F001 blocks merge.", with owner Lena, due 2026-11-07. Findings F001 to F003 with High/Medium/Low labels. References: what SEC-12 and INC-2291 mean, plus a note that the F-numbers point to a table in review-notes.md, which isn't attached.
+Questions: 1. The IDs: keep the bare IDs, keep them with a short meaning beside each, or rebuild the review-notes.md table. I went with keeping the IDs and adding a few words beside each. 2. Publishing: file only. 3. Design: I chose the plain summary to keep it quick.

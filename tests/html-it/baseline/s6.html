@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Order Service Event Log</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;800&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a single reading column with a ledger motif. The event log is the hero, and you can replay it. */
+:root {
+  --bg: #f5f7f8;
+  --surface: #ffffff;
+  --ink: #16212b;
+  --muted: #566573;
+  --line: #d6dee4;
+  --accent: #0b6e8a;
+  --accent-soft: #e0f0f5;
+  --ev-placed: #2f6fd6;
+  --ev-paid: #1f8a5b;
+  --ev-shipped: #a35d12;
+  --warn-soft: #fbf0e3;
+  --font-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --step--1: 0.875rem; --step-0: 1.0625rem; --step-1: 1.3rem; --step-2: 1.7rem; --step-3: clamp(2rem, 5vw, 2.9rem);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f161c; --surface: #17212a; --ink: #e4ebf0; --muted: #98a8b5; --line: #2b3843;
+    --accent: #5cc2de; --accent-soft: #15323d;
+    --ev-placed: #7aa8f5; --ev-paid: #5fcf98; --ev-shipped: #e0a35a; --warn-soft: #2e2416;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f161c; --surface: #17212a; --ink: #e4ebf0; --muted: #98a8b5; --line: #2b3843;
+  --accent: #5cc2de; --accent-soft: #15323d;
+  --ev-placed: #7aa8f5; --ev-paid: #5fcf98; --ev-shipped: #e0a35a; --warn-soft: #2e2416;
+  color-scheme: dark;
+}
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 var(--step-0)/1.6 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+[hidden] { display: none !important; }
+main { max-width: 52rem; margin: 0 auto; padding-block: 3rem 4rem; display: grid; gap: 3.5rem; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: var(--step-3); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: var(--step-2); font-weight: 800; letter-spacing: -0.01em; }
+h3 { font-size: var(--step-1); font-weight: 600; }
+p { margin: 0; max-width: 65ch; }
+.prose { display: grid; gap: 1rem; }
+.eyebrow { font: 600 var(--step--1)/1 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.muted { color: var(--muted); }
+code, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+code { background: var(--accent-soft); padding: 0.05em 0.35em; border-radius: 4px; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Hero */
+header.hero { display: grid; gap: 1.1rem; }
+.hero .lede { font-size: var(--step-1); line-height: 1.45; max-width: 40ch; }
+.adr-tag { display: inline-flex; gap: 0.5rem; align-items: center; font: 400 var(--step--1)/1.3 var(--font-mono); color: var(--muted); }
+.adr-tag b { color: var(--ink); font-weight: 600; }
+
+/* Event chips */
+.ev { font-family: var(--font-mono); font-weight: 600; font-size: 0.85em; white-space: nowrap; }
+.ev-placed { color: var(--ev-placed); }
+.ev-paid { color: var(--ev-paid); }
+.ev-shipped { color: var(--ev-shipped); }
+
+/* Contrast: CRUD vs event log */
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1.25rem; }
+.compare > div { min-width: 0; display: grid; gap: 0.75rem; align-content: start; }
+.compare h3 { font-size: var(--step-0); }
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font: 400 var(--step--1)/1.4 var(--font-mono); font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 400; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+tr:last-child td { border-bottom: 0; }
+.overwritten { color: var(--muted); font-style: italic; font-family: var(--font-body); font-size: var(--step--1); }
+
+/* Replay demo */
+.demo { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem; display: grid; gap: 1.25rem; }
+.demo-head { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: baseline; justify-content: space-between; }
+.example-note { font-size: var(--step--1); color: var(--muted); }
+.demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1.25rem; }
+.demo-grid > * { min-width: 0; }
+.log-title { font: 600 var(--step--1)/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
+ol.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+ol.log li {
+  display: grid; grid-template-columns: 2.2rem 1fr; gap: 0.25rem 0.6rem; padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+  transition: opacity 0.25s ease, border-color 0.25s ease;
+}
+ol.log li.pending { opacity: 0.38; }
+ol.log li.current { border-color: var(--accent); }
+.seq { font: 600 var(--step--1)/1.5 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.ev-meta { font: 400 0.78rem/1.4 var(--font-mono); color: var(--muted); grid-column: 2; overflow-wrap: anywhere; }
+.log-foot { font: 400 0.78rem/1.4 var(--font-mono); color: var(--muted); margin-top: 0.6rem; }
+
+.state { display: grid; gap: 0.6rem; align-content: start; }
+.state dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 0.4rem 1rem; padding: 0.9rem 1rem; border-radius: 8px; background: var(--accent-soft); font-variant-numeric: tabular-nums; }
+.state dt { font: 400 0.8rem/1.6 var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.state dd { margin: 0; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.state .empty { padding: 0.9rem 1rem; border-radius: 8px; border: 1px dashed var(--line); color: var(--muted); }
+.fold { font: 400 0.8rem/1.5 var(--font-mono); color: var(--muted); overflow-x: auto; white-space: pre; margin: 0; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+button {
+  font: 600 var(--step--1)/1 var(--font-body); color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 0.6rem 0.9rem; cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.45; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.controls input[type="range"] { flex: 1 1 8rem; min-width: 0; accent-color: var(--accent); }
+.answer { font-size: var(--step--1); padding: 0.75rem 1rem; border-radius: 8px; background: var(--warn-soft); }
+
+/* Flow */
+ol.flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr)); gap: 0.75rem; counter-reset: step; }
+ol.flow li { counter-increment: step; display: grid; gap: 0.3rem; align-content: start; padding: 0.9rem 1rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); min-width: 0; }
+ol.flow li::before { content: counter(step) " · " attr(data-side); font: 600 0.75rem/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+ol.flow li[data-side="write side"] { border-top: 3px solid var(--ev-placed); }
+ol.flow li[data-side="store"] { border-top: 3px solid var(--accent); }
+ol.flow li[data-side="read side"] { border-top: 3px solid var(--ev-paid); }
+ol.flow strong { font-family: var(--font-display); font-size: var(--step-0); }
+ol.flow span { font-size: var(--step--1); color: var(--muted); }
+
+/* Reasons and costs */
+.pairs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 1.25rem 1.75rem; }
+.pairs > div { display: grid; gap: 0.4rem; align-content: start; min-width: 0; }
+.pairs h3 { font-size: var(--step-0); }
+.pairs p { font-size: var(--step--1); color: var(--muted); }
+.cost-num { font: 600 var(--step-1)/1 var(--font-mono); color: var(--ev-shipped); }
+
+/* Glossary */
+dl.gloss { margin: 0; display: grid; grid-template-columns: minmax(8rem, max-content) 1fr; gap: 0.75rem 1.5rem; }
+dl.gloss dt { font-family: var(--font-mono); font-weight: 600; font-size: var(--step--1); padding-top: 0.15rem; }
+dl.gloss dd { margin: 0; min-width: 0; }
+@media (max-width: 30rem) { dl.gloss { grid-template-columns: 1fr; gap: 0.2rem; } dl.gloss dd { margin-bottom: 0.7rem; } }
+
+footer { font-size: var(--step--1); color: var(--muted); border-top: 1px solid var(--line); padding-top: 1.25rem; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+
+<header class="hero">
+  <span class="eyebrow">New joiner explainer · Order service</span>
+  <h1>We don't store orders. We store what happened to them.</h1>
+  <p class="lede">The order service uses <strong>event sourcing</strong>. If you come from CRUD backends, this page shows what changes, why we chose it, and what it costs.</p>
+  <span class="adr-tag"><b>ADR-007</b> · decided 2025-03</span>
+</header>
+
+<section class="prose" aria-labelledby="s-idea">
+  <h2 id="s-idea">The idea in one sentence</h2>
+  <p>We don't keep a row with an order's current state. We record every change as an <em>event</em>, such as <span class="ev ev-placed">OrderPlaced</span>, <span class="ev ev-paid">PaymentCaptured</span> or <span class="ev ev-shipped">OrderShipped</span>, in an <strong>append-only log</strong>. Events are never edited or deleted. To get the current state, we replay the events in order.</p>
+  <div class="compare">
+    <div>
+      <h3>What you're used to: a CRUD row</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>order_id</th><th>status</th><th>paid</th></tr></thead>
+          <tbody><tr><td>ORD-1042</td><td>shipped</td><td>184.00</td></tr></tbody>
+        </table>
+      </div>
+      <p class="overwritten">Each update overwrites the row. Earlier values, and the reasons they changed, are gone.</p>
+    </div>
+    <div>
+      <h3>What we store: the event log</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>event</th><th>at</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td class="ev-placed">OrderPlaced</td><td>28 Feb 09:14</td></tr>
+            <tr><td>2</td><td class="ev-paid">PaymentCaptured</td><td>1 Mar 16:40</td></tr>
+            <tr><td>3</td><td class="ev-shipped">OrderShipped</td><td>3 Mar 11:05</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="overwritten">New facts are only ever appended. The row on the left can be computed from this log at any time.</p>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="s-replay" class="prose">
+  <h2 id="s-replay">Try it: replay an order</h2>
+  <p>Step through the log and watch the state build up. The state is never stored here. It is recomputed from the events each time.</p>
+  <div class="demo">
+    <div class="demo-head">
+      <h3 class="mono">ORD-1042</h3>
+      <span class="example-note">Example order. Items, amounts and dates are illustrative.</span>
+    </div>
+    <div class="demo-grid">
+      <div>
+        <div class="log-title">Event store (append-only)</div>
+        <ol class="log" id="log"></ol>
+        <div class="log-foot" id="log-foot"></div>
+      </div>
+      <div class="state">
+        <div class="log-title">Current state = replay of events 1 to <span id="upto">0</span></div>
+        <div id="state-box"></div>
+        <pre class="fold">state = events
+  .filter(e =&gt; e.seq &lt;= <span id="fold-n">0</span>)
+  .reduce(apply, emptyOrder)</pre>
+      </div>
+    </div>
+    <div class="controls">
+      <button type="button" id="btn-reset">Reset</button>
+      <button type="button" id="btn-prev">Previous</button>
+      <input type="range" id="step-range" min="0" max="3" value="0" step="1" aria-label="Number of events replayed">
+      <button type="button" id="btn-next" class="primary">Apply next event</button>
+    </div>
+    <div class="controls">
+      <button type="button" id="btn-asof">What did this order look like on 1 March?</button>
+    </div>
+    <p class="answer" id="asof-answer" hidden>We replay only the events recorded up to the end of 1 March (events 1 and 2). The answer is: placed and paid, not yet shipped. The CRUD row above can't answer this, because it only knows "shipped".</p>
+  </div>
+</section>
+
+<section class="prose" aria-labelledby="s-proj">
+  <h2 id="s-proj">Reading: projections build read models</h2>
+  <p>Replaying the log for every screen would be slow, and the log is shaped for writing, not for querying. So <strong>projectors</strong> listen to new events and keep <strong>read models</strong> up to date: tables or documents shaped for one screen. In the order service, these include the <em>order list</em> and the <em>invoice view</em>. Both are built from the same events, and either one can be deleted and rebuilt from the log.</p>
+</section>
+
+<section class="prose" aria-labelledby="s-flow">
+  <h2 id="s-flow">How a change flows through the system</h2>
+  <ol class="flow">
+    <li data-side="write side"><strong>Command</strong><span>A request to change something, such as "capture payment".</span></li>
+    <li data-side="write side"><strong>Aggregate</strong><span>Rebuilds the order from its events, checks the rules, and decides which new events to emit.</span></li>
+    <li data-side="store"><strong>Event store</strong><span>Appends the new events. This is the source of truth.</span></li>
+    <li data-side="read side"><strong>Projector</strong><span>Reacts to new events and updates the read models.</span></li>
+    <li data-side="read side"><strong>Read model</strong><span>Query-ready views, such as the order list and the invoice view.</span></li>
+    <li data-side="read side"><strong>UI</strong><span>Reads from the read models, not from the event store.</span></li>
+  </ol>
+</section>
+
+<section class="prose" aria-labelledby="s-why">
+  <h2 id="s-why">Why ADR-007 chose this</h2>
+  <div class="pairs">
+    <div><h3>Full audit trail</h3><p>Medical billing needs a record of every change and when it happened. The event log is that record.</p></div>
+    <div><h3>Easy rebuild of read models</h3><p>Did a projection have a bug, or do you need a new view? Fix the projector and replay the log.</p></div>
+    <div><h3>Temporal queries</h3><p>"What did this order look like on 1 March?" Replay the events up to that date. Try it in the demo above.</p></div>
+  </div>
+</section>
+
+<section class="prose" aria-labelledby="s-cost">
+  <h2 id="s-cost">What it costs us</h2>
+  <p>These are the trade-offs you will run into in day-to-day work.</p>
+  <div class="pairs">
+    <div><h3>Event schema versioning</h3><p>Old events stay in the log forever. When an event's shape changes, code still has to read every earlier version.</p></div>
+    <div><h3>Eventual consistency</h3><p>Read models update after the write. For a short time, the UI can show the state from before a change that has already been recorded.</p></div>
+    <div><h3>Replay time grows</h3><p>Orders with long histories take longer to rebuild. We take a snapshot every <span class="cost-num">500</span> events, so a rebuild starts from the latest snapshot.</p></div>
+  </div>
+</section>
+
+<section class="prose" aria-labelledby="s-gloss">
+  <h2 id="s-gloss">Words you'll hear</h2>
+  <dl class="gloss">
+    <dt>Event</dt><dd>A fact that happened, named in the past tense. It is never changed after it is written.</dd>
+    <dt>Event store</dt><dd>The append-only log of events and the source of truth for orders.</dd>
+    <dt>Aggregate</dt><dd>The order as the write side sees it: rebuilt from events, used to validate commands.</dd>
+    <dt>Projection / projector</dt><dd>Code that turns events into a read model.</dd>
+    <dt>Read model</dt><dd>A view optimised for queries, such as the order list. It can be thrown away and rebuilt.</dd>
+    <dt>Snapshot</dt><dd>Saved state at a point in the log, taken every 500 events, so replay doesn't start from event 1.</dd>
+    <dt>Eventual consistency</dt><dd>Read models catch up with the event store shortly after each write, not instantly.</dd>
+  </dl>
+</section>
+
+<footer>Source: ADR-007 (order service, 2025-03). The example order on this page is illustrative.</footer>
+</main>
+
+<script>
+(function () {
+  var events = [
+    { seq: 1, type: "OrderPlaced", cls: "ev-placed", at: "28 Feb 09:14", data: "items: wrist splint ×1, compression sleeve ×2 · total €184.00" },
+    { seq: 2, type: "PaymentCaptured", cls: "ev-paid", at: "1 Mar 16:40", data: "amount: €184.00" },
+    { seq: 3, type: "OrderShipped", cls: "ev-shipped", at: "3 Mar 11:05", data: "tracking: TRK-88214" }
+  ];
+  function apply(state, e) {
+    var s = Object.assign({}, state);
+    if (e.type === "OrderPlaced") { s.status = "Placed"; s.items = "3 items"; s.total = "€184.00"; s.paid = "€0.00"; s.shipment = "Not shipped"; }
+    if (e.type === "PaymentCaptured") { s.status = "Paid"; s.paid = "€184.00"; }
+    if (e.type === "OrderShipped") { s.status = "Shipped"; s.shipment = "TRK-88214"; }
+    return s;
+  }
+  var step = 0;
+  var log = document.getElementById("log");
+  var box = document.getElementById("state-box");
+  var range = document.getElementById("step-range");
+  var prev = document.getElementById("btn-prev");
+  var next = document.getElementById("btn-next");
+  var answer = document.getElementById("asof-answer");
+
+  log.innerHTML = events.map(function (e) {
+    return '<li data-seq="' + e.seq + '"><span class="seq">#' + e.seq + '</span><span class="ev ' + e.cls + '">' + e.type + '</span><span class="ev-meta">' + e.at + ' · ' + e.data + '</span></li>';
+  }).join("");
+  var items = log.querySelectorAll("li");
+
+  function render() {
+    items.forEach(function (li, i) {
+      li.classList.toggle("pending", i >= step);
+      li.classList.toggle("current", i === step - 1);
+    });
+    document.getElementById("upto").textContent = step;
+    document.getElementById("fold-n").textContent = step;
+    document.getElementById("log-foot").textContent = step === 0
+      ? "Nothing replayed yet."
+      : step + " of " + events.length + " events applied. Faded events are not replayed yet.";
+    var s = events.slice(0, step).reduce(apply, {});
+    if (step === 0) {
+      box.innerHTML = '<div class="empty">No events replayed, so no order exists yet.</div>';
+    } else {
+      var rows = [["status", s.status], ["items", s.items], ["total", s.total], ["paid", s.paid], ["shipment", s.shipment]];
+      box.innerHTML = "<dl>" + rows.map(function (r) { return "<dt>" + r[0] + "</dt><dd>" + r[1] + "</dd>"; }).join("") + "</dl>";
+    }
+    range.value = step;
+    prev.disabled = step === 0;
+    next.disabled = step === events.length;
+  }
+  function go(n) { step = Math.max(0, Math.min(events.length, n)); answer.hidden = true; render(); }
+  next.addEventListener("click", function () { go(step + 1); });
+  prev.addEventListener("click", function () { go(step - 1); });
+  document.getElementById("btn-reset").addEventListener("click", function () { go(0); });
+  range.addEventListener("input", function () { go(parseInt(range.value, 10)); });
+  document.getElementById("btn-asof").addEventListener("click", function () { go(2); answer.hidden = false; });
+  step = 1; render();
+})();
+</script>
+</body>
+</html>

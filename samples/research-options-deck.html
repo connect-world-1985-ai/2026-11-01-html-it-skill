@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en" data-variant="ivory">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Agent HTML Options Deck</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+/* ---------- Page: deck ---------- */
+nav.toc { display: none !important; }
+.page, .page > main { max-width: none; }
+.slide { min-height: calc(100vh - 3.5rem); padding: 5vh 4vw; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; max-width: 72rem; margin: 0 auto; }
+.slide h1, .slide h2 { margin-top: 0; font-size: clamp(1.7rem, 1rem + 2.6vw, 3rem); }
+.slide h3 { margin: 0 0 .4rem; font-size: 1.05rem; color: var(--accent-ink); font-family: var(--sans); }
+.slide .lede { font-size: clamp(1.05rem, .9rem + .6vw, 1.35rem); max-width: 60ch; }
+.kicker { text-transform: uppercase; letter-spacing: .06em; font-size: .78rem; color: var(--muted); margin-bottom: .6rem; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1.5rem 2.5rem; font-size: 1.05rem; }
+.cols > div { min-width: 0; }
+.verdict { margin-top: 1.2rem; font-size: 1.05rem; }
+.verdict .pill { margin-right: .5rem; }
+ul.big { font-size: 1.15rem; } ul.big li { margin: .5rem 0; }
+.matrix th[scope="row"] { color: var(--fg); font-weight: 600; }
+.matrix tr.pick { background: var(--ok-bg); }
+.matrix { font-size: .92rem; }
+.notes { display: none; border-top: 1px dashed var(--line); margin-top: 2rem; padding-top: .8rem; color: var(--muted); font-size: .95rem; }
+.notes p { margin: 0; }
+.notes::before { content: "Speaker notes"; display: block; font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .3rem; }
+body.show-notes .notes { display: block; }
+body.deck-on .slide { display: none; border: 0; } body.deck-on .slide.on { display: flex; }
+.deck-bar { position: fixed; bottom: calc(.8rem + env(safe-area-inset-bottom, 0px)); right: max(1rem, env(safe-area-inset-right, 0px)); font-size: .85rem; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: .2rem .6rem; display: flex; gap: .6rem; align-items: center; }
+.deck-bar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 0 .5rem; cursor: pointer; }
+.deck-bar[hidden] { display: none; }
+@media print { body.deck-on .slide { display: flex !important; } .slide { min-height: auto; break-after: page; } .deck-bar { display: none !important; } .notes { display: block; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Research review deck</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <div class="deck">
+    <section class="slide title-slide" id="s-1">
+      <p class="kicker">Research review · 2026-10-30 report, presented 2026-11-03</p>
+      <h1>Ten ways to turn agent output into shareable HTML</h1>
+      <p class="lede"><strong>Recommendation: a skill that picks the page shape from the content and writes one self-contained HTML file.</strong> Three of the ten options fit that goal well, four fit part of it, and two belong inside applications, not in an email attachment. One more, Marp, gets a short note.</p>
+      <p class="meta">Source: the team's research report <code>research/report.md</code> (in Chinese), comparison table and option details. Facts as fetched on 2026-10-30.</p>
+      <aside class="notes"><p>Open with the goal: Raymond's agents write feature designs, pull request write-ups and code reviews, and the team wants one file it can open without an account. Then give the answer before the tour: the routing skill plus a single file. The rest of the deck is the evidence.</p></aside>
+    </section>
+
+    <section class="slide" id="s-2">
+      <p class="kicker">Option 1 · Built into the agent</p>
+      <h2>Claude Artifacts</h2>
+      <div class="cols">
+        <div><h3>What it is</h3><p>Claude puts standalone output (documents, decks, designs, dashboards, small interactive pages) beside the chat. Claude Code can publish a session's output as an interactive page, for example an annotated pull-request walkthrough. Design can export standalone HTML.</p></div>
+        <div><h3>Fit for single-file sharing</h3><p>Adapts well to the content. A single file is possible by exporting or downloading HTML. Native sharing usually needs a Claude account on the other side, so sending to any colleague means exporting the HTML.</p></div>
+      </div>
+      <p class="verdict"><span class="pill" data-state="ok">Fit: high</span> Good for iterating; hand off the exported file.</p>
+      <aside class="notes"><p>Key point: the native Share link needs a Claude account for everyone. Export is the way out.</p></aside>
+    </section>
+
+    <section class="slide" id="s-3">
+      <p class="kicker">Option 2 · Skill</p>
+      <h2>Anthropic skills: frontend-design and web-artifacts-builder</h2>
+      <div class="cols">
+        <div><h3>What it is</h3><p><code>frontend-design</code> sets typography, colour and motion so pages avoid the default "AI look". <code>web-artifacts-builder</code> sets up a React, TypeScript, Vite, Tailwind and shadcn project and bundles it into one <code>bundle.html</code>.</p></div>
+        <div><h3>Fit for single-file sharing</h3><p>Aimed directly at "different look per subject" and "one HTML at the end". Skills move to other agents, because a skill is instructions and scripts loaded on demand. The file can be sent by email or chat.</p></div>
+      </div>
+      <p class="verdict"><span class="pill" data-state="ok">Fit: high</span> The strongest ready-made design guidance; the React bundle is for real apps.</p>
+      <aside class="notes"><p>Two roles: taste (frontend-design) and packaging (web-artifacts-builder). Most of our pages need only the first.</p></aside>
+    </section>
+
+    <section class="slide" id="s-4">
+      <p class="kicker">Option 3 · Skill (an approach, not a product)</p>
+      <h2>Our own content-type routing skill</h2>
+      <div class="cols">
+        <div><h3>What it is</h3><p>A skill that first decides what the content is (feature design, pull request, code review, and so on), loads a matching layout (a review gets severity cards, a file table and suggestions; a design gets problem, approach, sequence and acceptance), and writes one self-contained HTML file.</p></div>
+        <div><h3>Fit for single-file sharing</h3><p>Fits all four needs: adaptive layout, one file, sharing without accounts, and our three everyday content types. Controllable, versioned, and not tied to one vendor. Types can be added one at a time.</p></div>
+      </div>
+      <p class="verdict"><span class="pill" data-state="ok">Fit: high</span> The report's main recommendation.</p>
+      <aside class="notes"><p>This is what we built as html-it, with one change: it composes the page from the content's traits instead of a fixed list of types.</p></aside>
+    </section>
+
+    <section class="slide" id="s-5">
+      <p class="kicker">Option 4 · Built into the agent</p>
+      <h2>Cursor Canvas and Grok Bot Pages</h2>
+      <div class="cols">
+        <div><h3>What it is</h3><p>Canvas puts interactive output (dashboards, audits, reports) beside the chat and can publish a read-only link to the team on paid team plans. Grok Bot Pages turns output into a readable page; sharing can be by invitation, team, or anyone with the link (not on Enterprise).</p></div>
+        <div><h3>Fit for single-file sharing</h3><p>Adaptation depends on the prompt or skill. Both are mainly hosted views; a one-click "export one self-contained HTML" was not confirmed in the official documentation. Pages share well; Canvas sharing is limited to team members.</p></div>
+      </div>
+      <p class="verdict"><span class="pill" data-state="warn">Fit: medium</span> Good for quick previews; not a file to send.</p>
+      <aside class="notes"><p>Watch the "anyone with the link" option for sensitive content, and note that Enterprise turns it off.</p></aside>
+    </section>
+
+    <section class="slide" id="s-6">
+      <p class="kicker">Option 5 · Built into the agent</p>
+      <h2>ChatGPT Sites</h2>
+      <div class="cols">
+        <div><h3>What it is</h3><p>Sites builds, hosts and shares small websites and apps from a description in ChatGPT or Codex: resource hubs, dashboards, trackers. ChatGPT Canvas has been removed from current models; third parties date that to 2026-05-28, which the report could not confirm in the official release notes.</p></div>
+        <div><h3>Fit for single-file sharing</h3><p>A complete hosted sharing path, suited to a small site rather than an email attachment. A local single file is not the main path, and sharing depends on Sites permissions and workspace policy.</p></div>
+      </div>
+      <p class="verdict"><span class="pill" data-state="warn">Fit: medium</span> Hosted URLs, not files.</p>
+      <aside class="notes"><p>The Canvas removal date comes from third parties; treat it as unconfirmed.</p></aside>
+    </section>
+
+    <section class="slide" id="s-7">
+      <p class="kicker">Option 6 · Open-source deck</p>
+      <h2>reveal.js</h2>
+      <div class="cols">
+        <div><h3>What it is</h3><p>A mature HTML presentation framework (MIT licence, about 72,500 stars on GitHub). Markdown plugins, editor extensions and other tools turn Markdown into a deck that opens in a browser, with transitions and step-by-step reveals.</p></div>
+        <div><h3>Fit for single-file sharing</h3><p>Third-party tools export a standalone HTML with assets inlined, and it opens offline. The form is always slides, so it does not change the whole page layout per content type, but it suits a review walkthrough or a feature demo.</p></div>
+      </div>
+      <p class="verdict"><span class="pill" data-state="warn">Fit: medium</span> The most dependable engine for slide walkthroughs.</p>
+      <aside class="notes"><p>Star count from the GitHub page on 2026-10-30. The latest version was not re-checked.</p></aside>
+    </section>
+
+    <section class="slide" id="s-8">
+      <p class="kicker">Option 7 · Open-source Markdown deck</p>
+      <h2>Slidev</h2>
+      <div class="cols">
+        <div><h3>What it is</h3><p>Developer-oriented Markdown slides built on Vue (MIT licence, about 49,300 stars). <code>slidev build</code> produces a single-page app to host; it can export PDF, PPTX or PNG, and it has an official server for AI agents to read and write slides.</p></div>
+        <div><h3>Fit for single-file sharing</h3><p>Sources conflict. A third-party blog names a single-file flag, a pull request adding a standalone bundle was closed and rejected by the maintainers, and the official CLI documentation lists neither. The dependable path is to build a folder and host it.</p></div>
+      </div>
+      <p class="verdict"><span class="pill" data-state="warn">Fit: medium</span> Great authoring; single-file export unconfirmed.</p>
+      <aside class="notes"><p>Do not promise a single Slidev file to anyone until the official docs list the flag.</p></aside>
+    </section>
+
+    <section class="slide" id="s-9">
+      <p class="kicker">Option 8 · Report generator</p>
+      <h2>Pandoc and Quarto</h2>
+      <div class="cols">
+        <div><h3>What it is</h3><p>Pandoc converts documents; with <code>--standalone --embed-resources</code> it writes HTML with no external links. Quarto, built on Pandoc, does the same with <code>embed-resources: true</code> and adds a table of contents, code blocks and tab sets.</p></div>
+        <div><h3>Fit for single-file sharing</h3><p>Extremely mature for long documents and written reviews, and truly one file. It does not change the layout per content type unless we write and maintain several templates, which leads back to option 3.</p></div>
+      </div>
+      <p class="verdict"><span class="pill" data-state="warn">Fit: medium</span> High for long reports, low for adaptive pages.</p>
+      <aside class="notes"><p>Licences differ: Pandoc is GPL-2.0; Quarto says MIT from version 1.4, while GitHub shows no assertion. The report lists both.</p></aside>
+    </section>
+
+    <section class="slide" id="s-10">
+      <p class="kicker">Option 9 · Generative UI library</p>
+      <h2>Vercel json-render</h2>
+      <div class="cols">
+        <div><h3>What it is</h3><p>A generative UI framework: the model writes JSON within a predefined catalogue of components, and a client renderer draws it, with streaming through the Vercel AI SDK. Apache-2.0 licence, about 18,800 stars.</p></div>
+        <div><h3>Fit for single-file sharing</h3><p>Highly adaptive and easier to test than free HTML, but it is an application runtime. A single file would need a static export pipeline of our own.</p></div>
+      </div>
+      <p class="verdict"><span class="pill" data-state="bad">Fit: low</span> For adaptive UI inside an app, not for files.</p>
+      <aside class="notes"><p>Re-evaluate only if we build an agent UI into a product.</p></aside>
+    </section>
+
+    <section class="slide" id="s-11">
+      <p class="kicker">Option 10 · Generative UI stack</p>
+      <h2>CopilotKit with A2UI</h2>
+      <div class="cols">
+        <div><h3>What it is</h3><p>A front-end stack for agents. Generative UI connects to the A2UI component catalogue and a standard component library, and the AG-UI protocol renders the agent's UI actions in React, Angular and others. MIT licence, about 38,400 stars.</p></div>
+        <div><h3>Fit for single-file sharing</h3><p>Strong for copilots inside a product, weak for producing an HTML file to forward. A2UI 1.0 is still a candidate, so its interface may change.</p></div>
+      </div>
+      <p class="verdict"><span class="pill" data-state="bad">Fit: low</span> Same answer as json-render.</p>
+      <aside class="notes"><p>Mention Marp here if asked: simple Markdown decks, usually needs a second tool to inline images into one portable file.</p></aside>
+    </section>
+
+    <section class="slide" id="s-12">
+      <p class="kicker">Summary</p>
+      <h2>All ten side by side</h2>
+      <div class="table-wrap"><table class="matrix">
+        <thead><tr><th scope="col">Option</th><th scope="col">Kind</th><th scope="col">Adapts to content</th><th scope="col">Single HTML file</th><th scope="col">Team sharing</th><th scope="col">Fit</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">1. Claude Artifacts</th><td>Built into agent</td><td>High</td><td>Medium-high (export)</td><td>Medium (account)</td><td><span class="pill" data-state="ok">High</span></td></tr>
+          <tr><th scope="row">2. frontend-design + web-artifacts-builder</th><td>Skill</td><td>High</td><td>High (bundle)</td><td>High (send the file)</td><td><span class="pill" data-state="ok">High</span></td></tr>
+          <tr class="pick"><th scope="row">3. Own routing skill</th><td>Skill approach</td><td>High</td><td>High</td><td>High</td><td><span class="pill" data-state="ok">High</span></td></tr>
+          <tr><th scope="row">4. Cursor Canvas / Grok Bot Pages</th><td>Built into agent</td><td>Medium-high</td><td>Low to medium (hosted)</td><td>Medium-high (link)</td><td><span class="pill" data-state="warn">Medium</span></td></tr>
+          <tr><th scope="row">5. ChatGPT Sites</th><td>Built into agent</td><td>Medium-high</td><td>Low (hosted)</td><td>Medium-high (link)</td><td><span class="pill" data-state="warn">Medium</span></td></tr>
+          <tr><th scope="row">6. reveal.js</th><td>Open-source deck</td><td>Low to medium</td><td>Medium-high</td><td>High</td><td><span class="pill" data-state="warn">Medium</span></td></tr>
+          <tr><th scope="row">7. Slidev</th><td>Markdown deck</td><td>Medium</td><td>Conflicting sources</td><td>High (hosted app)</td><td><span class="pill" data-state="warn">Medium</span></td></tr>
+          <tr><th scope="row">8. Pandoc / Quarto</th><td>Report generator</td><td>Low</td><td>High</td><td>High</td><td><span class="pill" data-state="warn">Medium</span></td></tr>
+          <tr><th scope="row">9. json-render</th><td>Generative UI library</td><td>High</td><td>Low</td><td>Low (in app)</td><td><span class="pill" data-state="bad">Low</span></td></tr>
+          <tr><th scope="row">10. CopilotKit + A2UI</th><td>Generative UI stack</td><td>High</td><td>Low</td><td>Low (in app)</td><td><span class="pill" data-state="bad">Low</span></td></tr>
+        </tbody>
+      </table></div>
+      <aside class="notes"><p>The highlighted row is the main path. Options 1 and 2 support it: Artifacts for iterating, frontend-design for taste.</p></aside>
+    </section>
+
+    <section class="slide" id="s-13">
+      <p class="kicker">Decision</p>
+      <h2>What we did with it</h2>
+      <ul class="big">
+        <li><strong>Main path:</strong> option 3, built as the html-it skill, with taste from option 2.</li>
+        <li><strong>Previews:</strong> Claude Artifacts or Cursor and Grok Bot Pages while iterating; the exported file for the handoff.</li>
+        <li><strong>Talks:</strong> html-it's own deck mode, or reveal.js.</li>
+        <li><strong>Long written reports:</strong> Pandoc or Quarto with embedded resources.</li>
+        <li><strong>Not now:</strong> json-render and CopilotKit, until we build agent UI into a product.</li>
+      </ul>
+      <aside class="notes"><p>Close on the verdict page, research/single-html-verdict.html, which explains where one file stops being enough.</p></aside>
+    </section>
+    </div>
+    <div class="deck-bar" hidden><span id="deck-count"></span> <span class="hint">← → to move, N for notes</span></div>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill, 2026-11-03. Press N for speaker notes. Opens offline.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  // Deck mode: arrow keys, PageUp/PageDown, Home/End, a counter, N toggles speaker notes.
+  const slides = [...document.querySelectorAll('.slide')], bar = document.querySelector('.deck-bar');
+  let cur = Math.max(0, slides.findIndex((s) => '#' + s.id === location.hash));
+  document.body.classList.add('deck-on'); bar.hidden = false;
+  const prev = document.createElement('button'), next = document.createElement('button');
+  prev.type = next.type = 'button'; prev.textContent = '←'; next.textContent = '→';
+  prev.setAttribute('aria-label', 'Previous slide'); next.setAttribute('aria-label', 'Next slide');
+  bar.prepend(prev); bar.append(next);
+  const go = (i) => {
+    cur = Math.min(slides.length - 1, Math.max(0, i));
+    slides.forEach((s, k) => s.classList.toggle('on', k === cur));
+    document.getElementById('deck-count').textContent = (cur + 1) + ' / ' + slides.length;
+    history.replaceState(null, '', '#' + slides[cur].id);
+  };
+  prev.addEventListener('click', () => go(cur - 1)); next.addEventListener('click', () => go(cur + 1));
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest('input, textarea, select, button')) return;
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) go(cur - 1);
+    else if (e.key === 'Home') go(0); else if (e.key === 'End') go(slides.length - 1);
+    else if (e.key.toLowerCase() === 'n') document.body.classList.toggle('show-notes');
+  });
+  go(cur);
+})();
+</script>
+</body>
+</html>

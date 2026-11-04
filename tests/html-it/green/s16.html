@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en" data-variant="graphite">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>Password reset prototype</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+
+/* ---------- Prototype frame ---------- */
+.device { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface-2); margin-bottom: 1rem; }
+.device-bar { display: flex; align-items: center; gap: .4rem; padding: .45rem .8rem; background: var(--surface); border-bottom: 1px solid var(--line); font-size: .8rem; color: var(--muted); }
+.device-bar span { width: .6rem; height: .6rem; border-radius: 50%; background: var(--line); }
+.device-bar b { margin-left: .6rem; font-weight: 600; }
+.proto { padding: 1.5rem 1rem 2rem; min-height: 26rem; }
+.proto.js [data-screen] { display: none; } .proto.js [data-screen].on { display: block; }
+.proto [data-screen] + [data-screen] { margin-top: 2rem; }
+.proto.js [data-screen] + [data-screen] { margin-top: 0; }
+.screen-tag { text-align: center; font-size: .78rem; color: var(--muted); margin: 0 0 .8rem; text-transform: uppercase; letter-spacing: .04em; }
+.app-card { max-width: 24rem; margin: 0 auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1.4rem 1.5rem; box-shadow: 0 2px 10px rgb(0 0 0 / .06); }
+.app-card h4 { margin: .2rem 0 .8rem; font-size: 1.3rem; }
+.app-card p { font-size: .95rem; }
+.brand { font-size: .8rem; font-weight: 700; color: var(--accent-ink); letter-spacing: .05em; text-transform: uppercase; }
+.field { display: grid; gap: .25rem; font-size: .88rem; color: var(--muted); margin-bottom: .8rem; }
+.field input { font: inherit; font-size: 1rem; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: .55rem .65rem; }
+.field-error { color: var(--bad); font-size: .85rem; margin-top: -.4rem; }
+.check { display: flex; gap: .4rem; align-items: center; font-size: .88rem; color: var(--muted); margin-bottom: .6rem; }
+.btn { display: block; width: 100%; font: inherit; font-weight: 600; padding: .6rem; border-radius: 6px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); cursor: pointer; margin-bottom: .6rem; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.link { font: inherit; background: none; border: 0; padding: 0; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.app-small { font-size: .88rem; color: var(--muted); text-align: center; margin: .4rem 0 0; }
+.noop-msg { font-size: .85rem; color: var(--warn); text-align: center; }
+.big-ok { font-size: 2.4rem; color: var(--ok); margin: 0; text-align: center; }
+.rules { list-style: none; padding: 0; margin: 0 0 1rem; font-size: .9rem; }
+.rules li { padding-left: 1.5rem; position: relative; margin: .3rem 0; color: var(--muted); }
+.rules li::before { content: "\25CB"; position: absolute; left: .2rem; }
+.rules li[data-met="true"] { color: var(--ok); } .rules li[data-met="true"]::before { content: "\2713"; }
+.rules li[data-met="bad"] { color: var(--bad); } .rules li[data-met="bad"]::before { content: "\2715"; }
+.rules .count { font-variant-numeric: tabular-nums; }
+.sim { max-width: 24rem; margin: 1rem auto 0; display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; font-size: .8rem; color: var(--muted); border: 1px dashed var(--muted); border-radius: 6px; padding: .5rem .6rem; }
+.sim button { font: inherit; background: var(--surface-2); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: .25rem .5rem; cursor: pointer; }
+.moderator { border: 1px dashed var(--line); padding: .7rem .9rem; border-radius: var(--radius); color: var(--muted); font-size: .9rem; }
+.moderator p { margin: 0 0 .5rem; }
+.mod-row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-bottom: .5rem; }
+.mod-row button, .mod-row select { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .6rem; cursor: pointer; }
+.mod-note { font-size: .85rem; }
+/* Flow diagram */
+figure.flow { margin: 0 0 1rem; overflow-x: auto; }
+figure.flow svg { display: block; width: 100%; min-width: 560px; height: auto; }
+figure.flow .node rect { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+figure.flow .node.err rect { stroke: var(--bad); stroke-dasharray: 4 3; }
+figure.flow text { fill: var(--fg); font: 600 13px var(--sans); text-anchor: middle; }
+figure.flow text.sub { fill: var(--muted); font-weight: 400; font-size: 11px; }
+figure.flow text.lbl { fill: var(--muted); font-weight: 400; font-size: 11px; }
+figure.flow .edge { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+figure.flow .edge.dash { stroke-dasharray: 5 4; }
+figure.flow .ar { fill: var(--muted); }
+figcaption { font-size: .88rem; color: var(--muted); margin-top: .4rem; }
+@media print {
+  .proto [data-screen] { display: block !important; break-inside: avoid; margin-top: 1.5rem !important; }
+  .moderator, .sim, .device-bar { display: none !important; }
+  .device { border: 0; background: none; }
+  .noop-msg[hidden], .field-error[hidden], #resent-msg[hidden] { display: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Usability test prototype</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Password reset prototype</h1>
+    <p class="lede">This is the clickable prototype of the new password reset in the patient portal, for the usability test on Thursday 2026-11-06 <span class="pill" data-state="warn">date to be confirmed</span>. Testers start on the sign-in screen and click through five steps to a new password; the <dfn data-gloss="The person who runs the test session and steers the prototype between tasks.">moderator</dfn> can reset to the start or jump to any screen, including the expired-link error, from the controls under the prototype.</p>
+    <p class="meta">Prepared 2026-11-03 for the usability test team. Built for a laptop browser; it opens offline from this file.</p>
+
+    <h2 id="try">What to try and what is simulated</h2>
+    <p>Ask testers to reset their password as if they had forgotten it: from <q>Forgot password?</q> on the sign-in screen, through entering an email address and the <q>Check your inbox</q> screen, to setting a new password and returning to sign-in. The moderator can then show the expired-link screen to see whether testers understand how to get a new link.</p>
+    <aside class="callout" data-kind="warn"><p><strong>This is a prototype.</strong> No email is sent, no account is checked and no password is stored. Any email address leads to the <q>Check your inbox</q> screen. The email itself is replaced by two grey prototype buttons on that screen, one for a fresh link and one for a link older than 30 minutes. Signing in with a password does nothing.</p></aside>
+
+    <h2 id="prototype">The prototype</h2>
+    <div class="device">
+      <div class="device-bar" aria-hidden="true"><span></span><span></span><span></span><b>Patient portal</b></div>
+      <div class="proto" id="proto">
+
+        <section data-screen="login" aria-label="1 Sign in">
+          <p class="screen-tag">Screen 1 of 5: sign in</p>
+          <div class="app-card">
+            <div class="brand">Patient portal</div>
+            <h4>Sign in</h4>
+            <label class="field">Email address <input type="email" autocomplete="off" placeholder="name@example.com"></label>
+            <label class="field">Password <input type="password" autocomplete="off"></label>
+            <button type="button" class="btn primary" data-noop>Sign in</button>
+            <p class="noop-msg" hidden>Signing in is not part of this test.</p>
+            <p class="app-small"><button type="button" class="link" data-go="email">Forgot password?</button></p>
+          </div>
+        </section>
+
+        <section data-screen="email" aria-label="2 Enter email">
+          <p class="screen-tag">Screen 2 of 5: enter email</p>
+          <div class="app-card">
+            <div class="brand">Patient portal</div>
+            <h4>Reset your password</h4>
+            <p>Enter the email address you use for the patient portal. We will send you a link to set a new password.</p>
+            <label class="field">Email address <input type="email" id="reset-email" autocomplete="off" placeholder="name@example.com"></label>
+            <p class="field-error" id="email-error" hidden>Enter an email address, for example name@example.com.</p>
+            <button type="button" class="btn primary" id="send-link">Send reset link</button>
+            <p class="app-small"><button type="button" class="link" data-go="login">Back to sign in</button></p>
+          </div>
+        </section>
+
+        <section data-screen="inbox" aria-label="3 Check your inbox">
+          <p class="screen-tag">Screen 3 of 5: check your inbox (also shown for unknown email addresses)</p>
+          <div class="app-card">
+            <div class="brand">Patient portal</div>
+            <h4>Check your inbox</h4>
+            <p>If an account exists for <b class="echo-email">your email address</b>, we have sent it a link to set a new password. The link is valid for 30 minutes.</p>
+            <p class="app-small">No email? Check your spam folder or send it again.</p>
+            <button type="button" class="btn" id="resend" disabled>Resend email in <span id="resend-s">60</span> s</button>
+            <p class="app-small" id="resent-msg" hidden>A new email is on its way (simulated).</p>
+            <p class="app-small"><button type="button" class="link" data-go="login">Back to sign in</button></p>
+          </div>
+          <div class="sim" aria-label="Prototype only: stands in for the email">
+            <span>Prototype only, stands in for the email:</span>
+            <button type="button" data-go="newpw">Open the reset link</button>
+            <button type="button" data-go="expired">Open a link older than 30 minutes</button>
+          </div>
+        </section>
+
+        <section data-screen="newpw" aria-label="4 Set a new password">
+          <p class="screen-tag">Screen 4 of 5: set a new password</p>
+          <div class="app-card">
+            <div class="brand">Patient portal</div>
+            <h4>Set a new password</h4>
+            <label class="field">New password <input type="password" id="new-pw" autocomplete="new-password"></label>
+            <label class="check"><input type="checkbox" id="show-pw"> Show password</label>
+            <ul class="rules" aria-live="polite">
+              <li id="rule-len" data-met="false">At least 12 characters <span class="count" id="pw-count">(0 of 12)</span></li>
+              <li id="rule-hist" data-met="false">Not one of your last 5 passwords</li>
+            </ul>
+            <button type="button" class="btn primary" id="set-pw" disabled>Set new password</button>
+          </div>
+        </section>
+
+        <section data-screen="success" aria-label="5 Success">
+          <p class="screen-tag">Screen 5 of 5: success</p>
+          <div class="app-card">
+            <div class="brand">Patient portal</div>
+            <p class="big-ok" aria-hidden="true">&#10003;</p>
+            <h4>Your password has been changed</h4>
+            <p>You can now sign in with your new password.</p>
+            <button type="button" class="btn primary" data-go="login">Back to sign in</button>
+          </div>
+        </section>
+
+        <section data-screen="expired" aria-label="Error: link expired">
+          <p class="screen-tag">Error path: the link is older than 30 minutes</p>
+          <div class="app-card">
+            <div class="brand">Patient portal</div>
+            <h4>This link has expired</h4>
+            <p>For your security, reset links are valid for 30 minutes. Send a new link and use it within 30 minutes.</p>
+            <button type="button" class="btn primary" id="send-new">Send a new link</button>
+            <p class="app-small"><button type="button" class="link" data-go="login">Back to sign in</button></p>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <aside class="moderator" id="moderator" aria-label="Moderator controls">
+      <p><strong>Moderator controls</strong> (not part of the product)</p>
+      <div class="mod-row">
+        <button type="button" id="proto-reset">Reset to start</button>
+        <label>Jump to <select id="proto-jump"></select></label>
+        <button type="button" id="skip-wait">Skip the 60 s resend wait</button>
+      </div>
+      <p class="mod-note">Reset clears every field and the resend timer and returns to the sign-in screen. Each screen also has its own address (for example <code>#expired</code>), so a bookmark opens it directly. For the rule <q>not one of your last 5 passwords</q>, the prototype treats the example password <code>Portal-Example-2025</code> as one of the last five; type it to show the rule failing.</p>
+    </aside>
+
+    <h2 id="flow">Flow and error paths</h2>
+    <p>The main path has five screens. Two error paths branch off it. An unknown email address does not get its own screen: it leads to the same <q>Check your inbox</q> screen as a known one, so the page never reveals whether an account exists and prevents <dfn data-gloss="Finding out which email addresses have an account by watching how a system answers.">account enumeration</dfn> (<a class="ref" data-ref="SEC-31" href="#ref-SEC-31"><span class="ref-id">SEC-31</span> never reveal whether an account exists</a>). A link older than 30 minutes leads to <q>This link has expired</q>, whose button sends a new link and returns to step 3.</p>
+    <figure class="flow">
+      <svg viewBox="0 0 760 250" role="img" aria-labelledby="flow-title flow-desc">
+        <title id="flow-title">Password reset flow</title>
+        <desc id="flow-desc">Sign in, then Forgot password, then enter email, then check your inbox, then set a new password, then success and back to sign in. An unknown email also leads to check your inbox. An expired link leads to the link expired screen, which sends a new link back to check your inbox.</desc>
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ar"/></marker></defs>
+        <g class="node"><rect x="10" y="40" width="120" height="56" rx="6"/><text x="70" y="64">1 Sign in</text><text x="70" y="82" class="sub">Forgot password?</text></g>
+        <g class="node"><rect x="160" y="40" width="120" height="56" rx="6"/><text x="220" y="64">2 Enter email</text><text x="220" y="82" class="sub">Send reset link</text></g>
+        <g class="node"><rect x="310" y="40" width="130" height="56" rx="6"/><text x="375" y="64">3 Check inbox</text><text x="375" y="82" class="sub">Resend after 60 s</text></g>
+        <g class="node"><rect x="470" y="40" width="130" height="56" rx="6"/><text x="535" y="64">4 New password</text><text x="535" y="82" class="sub">live rule checklist</text></g>
+        <g class="node"><rect x="630" y="40" width="120" height="56" rx="6"/><text x="690" y="64">5 Success</text><text x="690" y="82" class="sub">back to sign in</text></g>
+        <g class="node err"><rect x="160" y="170" width="120" height="56" rx="6"/><text x="220" y="194">Unknown email</text><text x="220" y="212" class="sub">same screen as 3</text></g>
+        <g class="node err"><rect x="470" y="170" width="130" height="56" rx="6"/><text x="535" y="194">Link expired</text><text x="535" y="212" class="sub">older than 30 min</text></g>
+        <path d="M130 68H158" class="edge" marker-end="url(#arr)"/>
+        <path d="M280 68H308" class="edge" marker-end="url(#arr)"/>
+        <path d="M440 68H468" class="edge" marker-end="url(#arr)"/>
+        <path d="M600 68H628" class="edge" marker-end="url(#arr)"/>
+        <path d="M690 40V18H70V38" class="edge" marker-end="url(#arr)"/>
+        <path d="M220 96V168" class="edge dash" marker-end="url(#arr)"/>
+        <path d="M280 198H340V98" class="edge dash" marker-end="url(#arr)"/>
+        <path d="M440 82H455V150H535V168" class="edge dash" marker-end="url(#arr)"/>
+        <path d="M470 210H400V98" class="edge dash" marker-end="url(#arr)"/>
+        <text x="300" y="150" class="lbl">same screen</text>
+        <text x="420" y="240" class="lbl">Send a new link</text>
+        <text x="380" y="13" class="lbl">back to sign in</text>
+      </svg>
+      <figcaption>Solid arrows: the main path. Dashed arrows: error paths. From step 3 the reset link either works (step 4) or has expired.</figcaption>
+    </figure>
+
+    <h2 id="rules">Rules behind the screens</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Screen</th><th>Behaviour</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>2 Enter email</td><td>Any well-formed email address continues to step 3.</td><td>The answer must be the same for known and unknown addresses (<a class="ref" data-ref="SEC-31" href="#ref-SEC-31"><span class="ref-id">SEC-31</span> no account enumeration</a>).</td></tr>
+        <tr><td>3 Check your inbox</td><td><q>Resend</q> is disabled for 60 seconds, then enabled; each resend starts the 60 seconds again.</td><td>Stops repeated sending while the first email is still on its way.</td></tr>
+        <tr><td>4 New password</td><td>At least 12 characters and not one of the last 5 passwords. Both rules are shown as a checklist that updates while typing; <q>Set new password</q> is enabled only when both are met.</td><td>Testers see why a password is not accepted before they submit it.</td></tr>
+        <tr><td>Link expired</td><td>A reset link older than 30 minutes shows <q>This link has expired</q> with a button that sends a new link.</td><td>Old links in a mailbox cannot be used to take over an account.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="confirm">To be confirmed</h2>
+    <ul>
+      <li>The test date: the brief says <q>Thursday 2026-11-06</q>, but 2026-11-06 is a Friday. Either the weekday or the date needs correcting before invitations go out.</li>
+      <li>The wording on every screen is a first draft for the test, not approved product copy.</li>
+    </ul>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-SEC-31"><b>SEC-31</b> <span class="ref-summary">The team's security rule "never reveal whether an account exists". For password reset this means an unknown email address gets exactly the same screen as a known one.</span> Source: the prototype brief for the 2026-11-06 usability test; no link to the rule was given.</li>
+    </ol>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt id="gloss-enum">Account enumeration</dt>
+      <dd>Finding out which email addresses have an account by watching how a system answers, for example a different message for unknown addresses.</dd>
+      <dt id="gloss-moderator">Moderator</dt>
+      <dd>The person who runs the usability test session, gives testers their task and steers the prototype between tasks.</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Made with the html-it skill. Opens offline; no network access needed.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  // Prototype: screens as states, moderator reset and jump, deep links per screen.
+  const proto = document.getElementById('proto'); proto.classList.add('js');
+  const screens = [...proto.querySelectorAll('[data-screen]')], first = screens[0].dataset.screen;
+  const ids = screens.map((s) => s.dataset.screen);
+  const jump = document.getElementById('proto-jump');
+  const emailIn = document.getElementById('reset-email'), emailErr = document.getElementById('email-error');
+  const resend = document.getElementById('resend'), resendS = document.getElementById('resend-s'), resentMsg = document.getElementById('resent-msg');
+  const pw = document.getElementById('new-pw'), showPw = document.getElementById('show-pw'), setPw = document.getElementById('set-pw');
+  const ruleLen = document.getElementById('rule-len'), ruleHist = document.getElementById('rule-hist'), pwCount = document.getElementById('pw-count');
+  const EXAMPLE_OLD = ['Portal-Example-2025']; // labelled example data, not real passwords
+  let timer = null, left = 60;
+
+  const stopTimer = () => { clearInterval(timer); timer = null; };
+  const startTimer = () => {
+    stopTimer(); left = 60; resend.disabled = true; resend.innerHTML = 'Resend email in <span id="resend-s">60</span> s';
+    timer = setInterval(() => { left -= 1; if (left <= 0) enableResend(); else document.getElementById('resend-s').textContent = left; }, 1000);
+  };
+  const enableResend = () => { stopTimer(); resend.disabled = false; resend.textContent = 'Resend email'; };
+
+  const show = (id, opts = {}) => {
+    screens.forEach((s) => s.classList.toggle('on', s.dataset.screen === id));
+    jump.value = id;
+    history.replaceState(null, '', '#' + id);
+    if (id === 'inbox' && !opts.keepTimer) { resentMsg.hidden = true; startTimer(); }
+    if (id !== 'inbox') stopTimer();
+    if (id === 'newpw') checkPw();
+    const focus = proto.querySelector('[data-screen="' + id + '"] input, [data-screen="' + id + '"] h4');
+    if (opts.focus && focus) { if (focus.tagName === 'H4') focus.tabIndex = -1; focus.focus({ preventScroll: true }); }
+  };
+
+  const echo = () => {
+    const v = emailIn.value.trim();
+    proto.querySelectorAll('.echo-email').forEach((b) => (b.textContent = v || 'your email address'));
+  };
+
+  const checkPw = () => {
+    const v = pw.value, lenOk = v.length >= 12, used = EXAMPLE_OLD.includes(v);
+    ruleLen.dataset.met = String(lenOk); pwCount.textContent = '(' + Math.min(v.length, 999) + ' of 12)';
+    ruleHist.dataset.met = v.length === 0 ? 'false' : used ? 'bad' : 'true';
+    setPw.disabled = !(lenOk && v.length > 0 && !used);
+  };
+
+  proto.addEventListener('click', (e) => {
+    const go = e.target.closest('[data-go]'); if (go) { show(go.dataset.go, { focus: true }); return; }
+    const noop = e.target.closest('[data-noop]'); if (noop) noop.nextElementSibling.hidden = false;
+  });
+  document.getElementById('send-link').addEventListener('click', () => {
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailIn.value.trim());
+    emailErr.hidden = ok; if (!ok) { emailIn.focus(); return; }
+    echo(); show('inbox', { focus: true }); // known and unknown addresses get the same screen
+  });
+  emailIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('send-link').click(); });
+  resend.addEventListener('click', () => { resentMsg.hidden = false; startTimer(); });
+  document.getElementById('send-new').addEventListener('click', () => { echo(); show('inbox', { focus: true }); });
+  pw.addEventListener('input', checkPw);
+  showPw.addEventListener('change', () => (pw.type = showPw.checked ? 'text' : 'password'));
+  setPw.addEventListener('click', () => { if (!setPw.disabled) show('success', { focus: true }); });
+
+  screens.forEach((s) => jump.append(new Option(s.getAttribute('aria-label'), s.dataset.screen)));
+  jump.addEventListener('change', () => show(jump.value));
+  document.getElementById('skip-wait').addEventListener('click', () => { if (timer) enableResend(); });
+  document.getElementById('proto-reset').addEventListener('click', () => {
+    proto.querySelectorAll('input').forEach((i) => { if (i.type === 'checkbox') i.checked = false; else i.value = ''; });
+    pw.type = 'password'; emailErr.hidden = true; resentMsg.hidden = true;
+    proto.querySelectorAll('.noop-msg').forEach((m) => (m.hidden = true));
+    echo(); checkPw(); show(first);
+  });
+
+  const start = location.hash.slice(1);
+  show(ids.includes(start) ? start : first);
+})();
+</script>
+</body>
+</html>

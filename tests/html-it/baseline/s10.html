@@ -1,0 +1,386 @@
+<title>Reminder Delivery Proposal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a 16:9 stage that scales to the screen, one slide at a time; below 760px wide the deck becomes a scrolling column of slides. */
+:root {
+  --bg: #e9eef0;          /* room around the slide */
+  --paper: #fbfcfc;       /* slide surface */
+  --ink: #12262e;         /* text */
+  --muted: #566a72;       /* secondary text */
+  --line: #c9d5da;        /* rules, table borders */
+  --accent: #0b6e72;      /* recommended option, links, focus */
+  --accent-soft: #d8ecec;
+  --late: #a8590c;        /* the "late" figure and risks */
+  --late-soft: #f6e6d3;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #081216; --paper: #0f1d23; --ink: #e4eef0; --muted: #93a8b0; --line: #284049;
+    --accent: #4fc3c3; --accent-soft: #143538; --late: #f0a65a; --late-soft: #3a2614;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #081216; --paper: #0f1d23; --ink: #e4eef0; --muted: #93a8b0; --line: #284049;
+  --accent: #4fc3c3; --accent-soft: #143538; --late: #f0a65a; --late-soft: #3a2614;
+  color-scheme: dark;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+  box-sizing: border-box;
+}
+*, *::before, *::after { box-sizing: border-box; }
+
+.deck {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 10px;
+  padding-block: 12px;
+}
+.viewport { min-height: 0; display: grid; place-items: center; container-type: size; }
+.slide {
+  width: min(100cqw, 100cqh * 16 / 9);
+  aspect-ratio: 16 / 9;
+  max-width: 100%;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  container-type: inline-size;
+  padding: 5.5cqw 6.5cqw 4.5cqw;
+  display: flex; flex-direction: column; gap: 2.4cqw;
+  font-size: 2.05cqw;
+  line-height: 1.35;
+  position: relative;
+  overflow: hidden;
+}
+.slide:not(.is-current) { display: none; }
+
+.eyebrow {
+  font-family: var(--mono); font-size: 1.15cqw; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+  display: flex; justify-content: space-between; gap: 2cqw;
+}
+h1, h2 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: 5.6cqw; line-height: 1.02; max-width: 22ch; }
+h2 { font-size: 3.6cqw; line-height: 1.08; max-width: 26ch; }
+p { margin: 0; max-width: 52ch; }
+.lede { font-size: 2.4cqw; color: var(--muted); max-width: 46ch; }
+.mono { font-family: var(--mono); font-size: .82em; }
+.tag {
+  font-family: var(--mono); font-size: .78em; padding: .1em .45em; border-radius: 4px;
+  background: var(--accent-soft); color: var(--accent); white-space: nowrap;
+}
+.tag.risk { background: var(--late-soft); color: var(--late); }
+.foot { margin-top: auto; font-size: 1.35cqw; color: var(--muted); display: flex; justify-content: space-between; gap: 2cqw; }
+
+/* Title slide: a reminder timeline as the subject's own image */
+.timeline { margin-top: auto; display: grid; grid-template-columns: repeat(24, 1fr); align-items: end; gap: .35cqw; height: 9cqw; }
+.timeline span { background: var(--line); border-radius: 2px 2px 0 0; }
+.timeline span.peak { background: var(--late); }
+.timeline-axis { display: grid; grid-template-columns: repeat(4, 1fr); font-family: var(--mono); font-size: 1.1cqw; color: var(--muted); }
+.title-meta { display: flex; gap: 4cqw; flex-wrap: wrap; font-size: 1.9cqw; }
+.title-meta dt { font-family: var(--mono); font-size: .62em; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.title-meta dd { margin: .2em 0 0; font-weight: 600; }
+
+/* Problem slide */
+.problem { display: grid; grid-template-columns: 1fr 1.25fr; gap: 5cqw; align-items: center; flex: 1; }
+.bigfig { font-family: var(--display); font-weight: 700; font-size: 15cqw; line-height: .9; color: var(--late); font-variant-numeric: tabular-nums; }
+.bigfig small { font-size: .4em; }
+.bigfig-cap { font-size: 2.1cqw; margin-top: 1cqw; }
+.facts { display: grid; gap: 2cqw; }
+.facts div { border-top: 1px solid var(--line); padding-top: 1.2cqw; }
+.facts b { display: block; font-family: var(--mono); font-weight: 500; font-size: 1.15cqw; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: .3em; }
+
+/* Options slide */
+.options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.2cqw; flex: 1; }
+.opt { border: 1px solid var(--line); border-radius: 6px; padding: 2.2cqw; display: flex; flex-direction: column; gap: 1.2cqw; min-width: 0; }
+.opt.rec { border: 2px solid var(--accent); background: var(--accent-soft); }
+.opt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1cqw; }
+.opt-letter { font-family: var(--display); font-weight: 700; font-size: 4.4cqw; line-height: 1; }
+.opt.rec .opt-letter { color: var(--accent); }
+.opt h3 { font-family: var(--display); font-weight: 500; font-size: 2.2cqw; margin: 0; line-height: 1.12; }
+.opt ul { margin: 0; padding-left: 1.1em; display: grid; gap: .5em; font-size: 1.75cqw; }
+.opt .effort { margin-top: auto; font-family: var(--mono); font-size: 1.35cqw; color: var(--muted); border-top: 1px solid var(--line); padding-top: 1cqw; }
+
+/* Comparison slide */
+.table-wrap { overflow-x: auto; flex: 1; }
+table { width: 100%; border-collapse: collapse; font-size: 1.75cqw; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 1cqw 1.2cqw; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { font-family: var(--display); font-size: 2.1cqw; border-bottom: 2px solid var(--ink); }
+tbody th { font-family: var(--mono); font-weight: 500; font-size: 1.2cqw; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); width: 18%; }
+.col-rec { background: var(--accent-soft); }
+.yes { color: var(--accent); font-weight: 600; }
+.no { color: var(--late); font-weight: 600; }
+.ns { color: var(--muted); font-style: italic; }
+
+/* Recommendation slide */
+.rec-grid { display: grid; grid-template-columns: auto 1fr; gap: 5cqw; align-items: center; flex: 1; }
+.rec-mark { font-family: var(--display); font-weight: 700; font-size: 22cqw; line-height: .8; color: var(--accent); }
+.reasons { display: grid; gap: 1.6cqw; margin: 0; padding: 0; list-style: none; }
+.reasons li { display: grid; grid-template-columns: 2.4cqw 1fr; gap: 1cqw; }
+.reasons li::before { content: "+"; font-family: var(--mono); color: var(--accent); font-weight: 500; }
+.reasons li.cost::before { content: "\2212"; color: var(--late); }
+
+/* Decision slide */
+.ask { display: grid; grid-template-columns: 1.3fr 1fr; gap: 5cqw; flex: 1; align-items: center; }
+.ask-q { font-family: var(--display); font-weight: 700; font-size: 4.6cqw; line-height: 1.05; text-wrap: balance; }
+.ask-q em { font-style: normal; color: var(--accent); }
+.ask-card { border: 2px solid var(--ink); border-radius: 6px; padding: 2.6cqw; display: grid; gap: 1.6cqw; }
+.ask-card dt { font-family: var(--mono); font-size: 1.15cqw; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.ask-card dd { margin: .2em 0 0; font-size: 2.2cqw; font-weight: 600; }
+
+/* Controls */
+.controls { display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.controls button {
+  font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 12px; cursor: pointer;
+}
+.controls button:hover { border-color: var(--accent); }
+.controls button:disabled { opacity: .4; cursor: default; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.counter { min-width: 6ch; text-align: center; font-variant-numeric: tabular-nums; }
+.hint { opacity: .8; }
+
+/* Fullscreen: hide controls, let the slide fill the screen */
+.deck:fullscreen { background: var(--bg); padding: 0; grid-template-rows: 1fr; }
+.deck:fullscreen .controls { display: none; }
+.deck:fullscreen .slide { border: 0; border-radius: 0; }
+
+/* Phone and narrow windows: read as a scrolling page */
+@media (max-width: 760px) {
+  html, body { height: auto; }
+  .deck { display: block; height: auto; padding-block: 16px; }
+  .viewport { display: grid; gap: 16px; container-type: normal; }
+  .slide, .slide:not(.is-current) { display: flex; width: 100%; aspect-ratio: auto; font-size: 15px; padding: 22px 18px; gap: 14px; container-type: normal; }
+  .eyebrow, .timeline-axis, .facts b, tbody th, .ask-card dt { font-size: 11px; }
+  h1 { font-size: 30px; } h2 { font-size: 23px; }
+  .lede { font-size: 16px; }
+  .title-meta { font-size: 15px; gap: 18px; }
+  .timeline { height: 56px; gap: 2px; }
+  .problem, .rec-grid, .ask { grid-template-columns: 1fr; gap: 16px; }
+  .bigfig { font-size: 72px; } .bigfig-cap { font-size: 16px; }
+  .options { grid-template-columns: 1fr; gap: 12px; }
+  .opt { padding: 14px; gap: 8px; }
+  .opt-letter { font-size: 30px; } .opt h3 { font-size: 17px; } .opt ul { font-size: 15px; } .opt .effort { font-size: 12px; }
+  table { font-size: 14px; min-width: 560px; } thead th { font-size: 15px; } th, td { padding: 8px; }
+  .rec-mark { font-size: 96px; }
+  .reasons { gap: 10px; } .reasons li { grid-template-columns: 18px 1fr; gap: 6px; }
+  .ask-q { font-size: 26px; } .ask-card { padding: 16px; gap: 12px; } .ask-card dd { font-size: 17px; }
+  .foot { font-size: 12px; }
+  .controls { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .slide.is-current { animation: in .22s ease-out; }
+  @keyframes in { from { opacity: .6; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+}
+</style>
+
+<main class="deck" id="deck">
+  <div class="viewport">
+
+    <!-- 1. Title -->
+    <section class="slide is-current" id="title" aria-label="Slide 1: title">
+      <div class="eyebrow"><span>Architecture review</span><span>Fri 2026-11-07</span></div>
+      <h1>How we send appointment reminders</h1>
+      <p class="lede">Three ways to stop late reminders and manual retries, and the one we recommend.</p>
+      <dl class="title-meta">
+        <div><dt>Decision from</dt><dd>Lena, tech lead</dd></div>
+        <div><dt>Ticket</dt><dd class="mono">KT-955</dd></div>
+        <div><dt>Recommendation</dt><dd>Option B, queue-based</dd></div>
+      </dl>
+      <div aria-hidden="true">
+        <div class="timeline">
+          <span style="height:6%"></span><span style="height:6%"></span><span class="peak" style="height:100%"></span><span style="height:6%"></span>
+          <span style="height:6%"></span><span style="height:6%"></span><span style="height:6%"></span><span style="height:6%"></span>
+          <span style="height:6%"></span><span style="height:6%"></span><span style="height:6%"></span><span style="height:6%"></span>
+          <span style="height:6%"></span><span style="height:6%"></span><span style="height:6%"></span><span style="height:6%"></span>
+          <span style="height:6%"></span><span style="height:6%"></span><span style="height:6%"></span><span style="height:6%"></span>
+          <span style="height:6%"></span><span style="height:6%"></span><span style="height:6%"></span><span style="height:6%"></span>
+        </div>
+        <div class="timeline-axis"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span></div>
+      </div>
+    </section>
+
+    <!-- 2. Problem -->
+    <section class="slide" id="problem" aria-label="Slide 2: the problem">
+      <div class="eyebrow"><span>The problem</span><span class="mono">KT-955</span></div>
+      <h2>One nightly cron job sends every reminder</h2>
+      <div class="problem">
+        <div>
+          <div class="bigfig">6<small>&nbsp;%</small></div>
+          <p class="bigfig-cap">of reminders arrive late.</p>
+        </div>
+        <div class="facts">
+          <div><b>Where it runs</b>A nightly cron job inside the core service.</div>
+          <div><b>When it fails</b>Retries are manual.</div>
+          <div><b>Load</b>All sending lands on one peak at 02:00.</div>
+        </div>
+      </div>
+      <div class="foot"><span>Reminder delivery proposal</span><span>2 / 6</span></div>
+    </section>
+
+    <!-- 3. Options -->
+    <section class="slide" id="options" aria-label="Slide 3: three options">
+      <div class="eyebrow"><span>Options</span><span>Effort shown at the bottom of each</span></div>
+      <h2>Three ways forward</h2>
+      <div class="options">
+        <article class="opt">
+          <div class="opt-head"><span class="opt-letter">A</span></div>
+          <h3>Keep the cron job, add retries</h3>
+          <ul>
+            <li>Smallest change.</li>
+            <li>Does not fix the 02:00 load peak.</li>
+          </ul>
+          <div class="effort">Effort: 3 days</div>
+        </article>
+        <article class="opt rec">
+          <div class="opt-head"><span class="opt-letter">B</span><span class="tag">Recommended</span></div>
+          <h3>Queue-based, on RabbitMQ</h3>
+          <ul>
+            <li>RabbitMQ is already used by <span class="mono">sms-service</span>.</li>
+            <li>Retries and back-pressure are built in.</li>
+            <li>Needs an ops runbook.</li>
+          </ul>
+          <div class="effort">Effort: 2 sprints</div>
+        </article>
+        <article class="opt">
+          <div class="opt-head"><span class="opt-letter">C</span><span class="tag risk">SEC-20</span></div>
+          <h3>External notification provider</h3>
+          <ul>
+            <li>About 1,800 EUR per month.</li>
+            <li>Patient data leaves our hosting, so it needs a data processing agreement.</li>
+          </ul>
+          <div class="effort">Effort: 1 sprint</div>
+        </article>
+      </div>
+      <div class="foot"><span>SEC-20: patient data stays in EU-hosted systems covered by a data processing agreement.</span><span>3 / 6</span></div>
+    </section>
+
+    <!-- 4. Comparison -->
+    <section class="slide" id="compare" aria-label="Slide 4: side by side">
+      <div class="eyebrow"><span>Side by side</span><span>Only facts from the proposal</span></div>
+      <h2>What each option gets us</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><td></td><th scope="col">A. Cron + retries</th><th scope="col" class="col-rec">B. RabbitMQ queue</th><th scope="col">C. External provider</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Effort</th><td>3 days</td><td class="col-rec">2 sprints</td><td>1 sprint</td></tr>
+            <tr><th scope="row">Retries</th><td class="yes">Added</td><td class="col-rec yes">Built in</td><td class="ns">Not stated</td></tr>
+            <tr><th scope="row">02:00 peak</th><td class="no">Not fixed</td><td class="col-rec yes">Back-pressure built in</td><td class="ns">Not stated</td></tr>
+            <tr><th scope="row">Running cost</th><td class="ns">Not stated</td><td class="col-rec ns">Not stated</td><td>~1,800 EUR / month</td></tr>
+            <tr><th scope="row">Patient data</th><td>Stays in our hosting</td><td class="col-rec">Stays in our hosting</td><td class="no">Leaves our hosting; needs DPA (SEC-20)</td></tr>
+            <tr><th scope="row">New work for ops</th><td class="ns">Not stated</td><td class="col-rec">Ops runbook</td><td class="ns">Not stated</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="foot"><span>DPA = data processing agreement</span><span>4 / 6</span></div>
+    </section>
+
+    <!-- 5. Recommendation -->
+    <section class="slide" id="recommendation" aria-label="Slide 5: recommendation">
+      <div class="eyebrow"><span>Our recommendation</span><span>Option B</span></div>
+      <div class="rec-grid">
+        <div class="rec-mark" aria-hidden="true">B</div>
+        <div style="display:grid;gap:2.4cqw;min-width:0">
+          <h2>Move reminders onto a RabbitMQ queue</h2>
+          <ul class="reasons">
+            <li>Retries are built in, so no more manual retries (KT-955).</li>
+            <li>Back-pressure is built in, so sending no longer piles up at 02:00.</li>
+            <li>We already run RabbitMQ for <span class="mono">sms-service</span>.</li>
+            <li>Patient data stays in our hosting; no new SEC-20 agreement.</li>
+            <li class="cost">Costs 2 sprints and needs an ops runbook.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="foot"><span>Reminder delivery proposal</span><span>5 / 6</span></div>
+    </section>
+
+    <!-- 6. Decision -->
+    <section class="slide" id="decision" aria-label="Slide 6: decision needed">
+      <div class="eyebrow"><span>Decision needed</span><span>Today</span></div>
+      <div class="ask">
+        <p class="ask-q">Lena, do we go with <em>option B</em>?</p>
+        <dl class="ask-card">
+          <div><dt>Who decides</dt><dd>Lena (tech lead)</dd></div>
+          <div><dt>If B is chosen</dt><dd>Work starts in sprint 47</dd></div>
+          <div><dt>Effort</dt><dd>2 sprints, plus an ops runbook</dd></div>
+        </dl>
+      </div>
+      <div class="foot"><span>Reminder delivery proposal</span><span>6 / 6</span></div>
+    </section>
+
+  </div>
+
+  <nav class="controls" aria-label="Slide controls">
+    <button type="button" id="prev" aria-label="Previous slide">&larr; Prev</button>
+    <span class="counter" id="counter" aria-live="polite">1 / 6</span>
+    <button type="button" id="next" aria-label="Next slide">Next &rarr;</button>
+    <button type="button" id="fs">Full screen</button>
+    <span class="hint">Arrow keys or space to move, F for full screen</span>
+  </nav>
+</main>
+
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var deck = document.getElementById('deck');
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var counter = document.getElementById('counter');
+  var fsBtn = document.getElementById('fs');
+  var i = 0;
+
+  function show(n, fromHash) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function (s, k) { s.classList.toggle('is-current', k === i); });
+    counter.textContent = (i + 1) + ' / ' + slides.length;
+    prev.disabled = i === 0;
+    next.disabled = i === slides.length - 1;
+    if (!fromHash) {
+      try { history.replaceState(null, '', '#' + slides[i].id); } catch (e) { location.hash = slides[i].id; }
+    }
+  }
+  function fromHash() {
+    var id = location.hash.slice(1);
+    var k = slides.findIndex(function (s) { return s.id === id; });
+    show(k < 0 ? 0 : k, true);
+  }
+  function toggleFs() {
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else if (deck.requestFullscreen) deck.requestFullscreen().catch(function () {});
+    } catch (e) {}
+  }
+
+  prev.addEventListener('click', function () { show(i - 1); });
+  next.addEventListener('click', function () { show(i + 1); });
+  fsBtn.addEventListener('click', toggleFs);
+  document.addEventListener('keydown', function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    var k = e.key;
+    if ((k === ' ' || k === 'Enter') && e.target.closest && e.target.closest('button')) return;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); show(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); show(i - 1); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 'f' || k === 'F') { toggleFs(); }
+  });
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>

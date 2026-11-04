@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en" data-variant="graphite">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="html-it">
+<title>PR 418 review</title>
+<style>
+/* Layout: one reading column (max ~72ch) with an optional sticky table of contents on wide screens. */
+/* ---------- Tokens: Ivory (default) ---------- */
+:root {
+  --bg: #FAF9F5; --surface: #FFFFFF; --surface-2: #F0EEE6; --fg: #141413; --muted: #5E5D59;
+  --line: #E3DACC; --accent: #D97757; --accent-ink: #A9502F; --ok: #5E7A3E; --warn: #A86A12; --bad: #B03A2E;
+  --ok-bg: #EEF2E6; --warn-bg: #F7EEDC; --bad-bg: #F6E3DF; --code-bg: #F3F1EA;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+  --display: var(--serif); --body: var(--sans);
+  --measure: 72ch; --radius: 6px; --space: 1rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #1A1918; --surface: #232220; --surface-2: #2C2A27; --fg: #F0EEE6; --muted: #A8A49B;
+  --line: #3A3733; --accent: #E08A6C; --accent-ink: #EBA88E; --ok: #A3B887; --warn: #DDAA55; --bad: #EC8A7C;
+  --ok-bg: #263020; --warn-bg: #352A17; --bad-bg: #3A221E; --code-bg: #262422; color-scheme: dark; }
+
+/* ---------- Graphite ---------- */
+:root[data-variant="graphite"] {
+  --bg: #F7F8FA; --surface: #FFFFFF; --surface-2: #EEF1F5; --fg: #16191F; --muted: #596170;
+  --line: #DCE1E8; --accent: #2F6FEB; --accent-ink: #1F55C0; --ok: #23784A; --warn: #9A6410; --bad: #BE2F2F;
+  --ok-bg: #E4F3EA; --warn-bg: #F8EFDD; --bad-bg: #FBE6E6; --code-bg: #F1F3F6;
+  --display: var(--sans); --measure: 80ch; --radius: 4px; }
+@media (prefers-color-scheme: dark) { :root[data-variant="graphite"]:not([data-theme="light"]) {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; } }
+:root[data-variant="graphite"][data-theme="dark"] {
+  --bg: #111418; --surface: #181C22; --surface-2: #20252D; --fg: #E6E9EF; --muted: #9AA3B2;
+  --line: #2C323C; --accent: #6EA0FF; --accent-ink: #94B9FF; --ok: #5CC08A; --warn: #E0A84A; --bad: #F07272;
+  --ok-bg: #16291F; --warn-bg: #2E2414; --bad-bg: #331A1A; --code-bg: #1A1F26; color-scheme: dark; }
+
+/* ---------- Console (dark first; light only when chosen) ---------- */
+:root[data-variant="console"] {
+  --bg: #0F1215; --surface: #161A1F; --surface-2: #1D232A; --fg: #DCE3EA; --muted: #8B96A3;
+  --line: #2A3139; --accent: #4FB3A9; --accent-ink: #7FD0C7; --ok: #5FC27E; --warn: #E3B341; --bad: #F2706B;
+  --ok-bg: #15281C; --warn-bg: #2E2611; --bad-bg: #33191A; --code-bg: #12161A;
+  --display: var(--sans); --measure: 96ch; --radius: 3px; color-scheme: dark; }
+:root[data-variant="console"][data-theme="light"] {
+  --bg: #F4F6F7; --surface: #FFFFFF; --surface-2: #E9EDF0; --fg: #12171C; --muted: #56616C;
+  --line: #D5DCE2; --accent: #1F8077; --accent-ink: #176259; --ok: #23784A; --warn: #8F6200; --bad: #B8312C;
+  --ok-bg: #E4F3EA; --warn-bg: #F6EFD8; --bad-bg: #FBE4E3; --code-bg: #EEF1F3; color-scheme: light; }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body);
+  padding-block: 0 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+:root[data-variant="console"] body { font-size: 14px; line-height: 1.5; }
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.25; text-wrap: balance; margin: 2em 0 .5em; }
+h1 { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 2.6rem); margin-top: .4em; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 600; } h3 { font-size: 1.15rem; font-weight: 600; }
+p, ul, ol, dl, table, figure, pre, details, aside { margin: 0 0 var(--space); }
+a { color: var(--accent-ink); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd, samp { font-family: var(--mono); font-size: .9em; }
+code { background: var(--code-bg); padding: .1em .3em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: .9rem 1rem; border-radius: var(--radius); overflow-x: auto; line-height: 1.5; position: relative; }
+pre code { background: none; padding: 0; }
+img, svg, video, iframe { max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+
+/* ---------- Page frame ---------- */
+.page { max-width: calc(var(--measure) + 18rem); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+@media (min-width: 1100px) { .page.has-toc { grid-template-columns: 14rem minmax(0, var(--measure)); justify-content: center; } }
+.page > main { min-width: 0; max-width: var(--measure); }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .8rem; color: var(--muted); font-size: .85rem; }
+.topbar button { font: inherit; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .7rem; cursor: pointer; }
+.lede { font-size: 1.15rem; color: var(--fg); }
+.meta { color: var(--muted); font-size: .9rem; }
+nav.toc { position: sticky; top: 1rem; align-self: start; font-size: .9rem; display: none; }
+@media (min-width: 1100px) { nav.toc { display: block; } }
+nav.toc ol { list-style: none; padding: 0; margin: 0; } nav.toc li { margin: .3rem 0; }
+nav.toc li.h3 { padding-left: .9rem; font-size: .85rem; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a[aria-current="true"] { color: var(--fg); }
+footer.page-foot { max-width: var(--measure); margin: 3rem auto 0; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+
+/* ---------- Components used by the shell ---------- */
+.ref { display: inline-flex; align-items: baseline; gap: .35em; text-decoration: none; color: var(--fg); border-bottom: 1px dotted var(--accent); position: relative; }
+.ref-id { font-family: var(--mono); font-size: .8em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 .3em; color: var(--accent-ink); }
+.ref[data-ref-status="unresolved"] { border-bottom-color: var(--bad); }
+.ref[data-ref-status="unresolved"] .ref-id { color: var(--bad); background: var(--bad-bg); }
+.pop { position: absolute; z-index: 20; max-width: min(24rem, 90vw); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem .8rem; font-size: .88rem; line-height: 1.45; box-shadow: 0 6px 24px rgb(0 0 0 / .18); }
+dfn { font-style: normal; border-bottom: 1px dashed var(--muted); cursor: help; }
+.callout { border-left: 3px solid var(--accent); background: var(--surface-2); padding: .8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; }
+.callout[data-kind="warn"] { border-color: var(--warn); background: var(--warn-bg); }
+.callout[data-kind="decision"] { border-color: var(--ok); background: var(--ok-bg); }
+.pill { display: inline-block; font-size: .8rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
+.pill[data-state="ok"] { background: var(--ok-bg); color: var(--ok); }
+.pill[data-state="warn"] { background: var(--warn-bg); color: var(--warn); }
+.pill[data-state="bad"] { background: var(--bad-bg); color: var(--bad); }
+.copy-btn { position: absolute; top: .4rem; right: .4rem; font: .75rem var(--sans); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: .15rem .5rem; cursor: pointer; }
+.references li, .glossary dt { scroll-margin-top: 1rem; }
+.references li:target { background: var(--warn-bg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print {
+  .topbar, nav.toc, .copy-btn { display: none !important; }
+  body { background: #fff; color: #000; }
+  details > *:not(summary) { display: block !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+  pre { white-space: pre-wrap; }
+}
+
+/* ---------- Page components ---------- */
+.verdict { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-bottom: var(--space); }
+.verdict .pill { font-size: .95rem; padding: .2rem .8rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+.chips[hidden] { display: none; }
+.chip { font: inherit; font-size: .85rem; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: .2rem .8rem; cursor: pointer; }
+.chip[aria-pressed=true] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.finding { border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: .9rem 1rem .3rem; margin-bottom: 1rem; }
+.finding[hidden] { display: none; }
+.finding[data-sev="high"] { border-left-color: var(--bad); }
+.finding[data-sev="medium"] { border-left-color: var(--warn); }
+.finding h3 { margin: 0 0 .5rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; }
+.finding dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .3rem 1rem; }
+.finding dt { color: var(--muted); font-weight: 600; }
+.finding dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 520px) { .finding dl { grid-template-columns: minmax(0, 1fr); } .finding dd { margin-bottom: .4rem; } }
+.filter-status { color: var(--muted); font-size: .9rem; }
+@media print { .chips { display: none !important; } .finding[hidden] { display: block !important; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span>Code review</span>
+  <button type="button" id="theme-toggle" aria-label="Switch colour theme">Theme: system</button>
+</div>
+<div class="page has-toc">
+  <nav class="toc" aria-label="On this page"><ol id="toc-list"></ol></nav>
+  <main id="content">
+    <h1>Review of pull request 418</h1>
+    <div class="verdict"><span class="pill" data-state="bad">Request changes</span> <span class="pill" data-state="bad">Merge blocked</span></div>
+    <p class="lede">Pull request 418 should not be merged yet. Its new session refresh keeps the <dfn data-gloss="A long-lived credential the app uses to get a new session without asking the user to log in again.">refresh token</dfn> in <code>localStorage</code>, where any script running on the page can read it, and the team's security rule <a class="ref" data-ref="SEC-12" href="#ref-SEC-12"><span class="ref-id">SEC-12</span> no tokens in web storage</a> forbids that. Lena owns the changes, due 7 November 2026. Two smaller findings, a retry loop without backoff and a log line that prints the user's email, do not block the merge on their own.</p>
+    <p class="meta">Review of <a class="ref" data-ref="PR-418" href="#ref-PR-418"><span class="ref-id">PR-418</span> session refresh</a>. Three findings: one high, one medium, one low. Only <a class="ref" data-ref="F001" href="#ref-F001"><span class="ref-id">F001</span> refresh token in localStorage</a> blocks the merge.</p>
+
+    <h2 id="findings">Findings by severity</h2>
+    <p>Each finding has a number from the reviewer's finding table, its location in the code, what is wrong and why it matters, and a suggested fix. The suggested fixes are the usual way to meet the rule or close the gap; the author may choose another way that does the same.</p>
+    <div class="chips" role="group" aria-label="Filter findings by severity" hidden>
+      <button type="button" class="chip" aria-pressed="true" data-sev="all">All (3)</button>
+      <button type="button" class="chip" aria-pressed="false" data-sev="high">High (1)</button>
+      <button type="button" class="chip" aria-pressed="false" data-sev="medium">Medium (1)</button>
+      <button type="button" class="chip" aria-pressed="false" data-sev="low">Low (1)</button>
+    </div>
+    <p class="filter-status" id="filter-status" aria-live="polite" hidden></p>
+
+    <article class="finding" data-sev="high" id="finding-F001">
+      <h3><span class="pill" data-state="bad">High, blocks merge</span> <a class="ref" data-ref="F001" href="#ref-F001"><span class="ref-id">F001</span> refresh token stored in localStorage</a></h3>
+      <dl>
+        <dt>Location</dt><dd><code>auth/session.ts</code>, line 88</dd>
+        <dt>Problem</dt><dd>The session refresh writes the refresh token to <code>localStorage</code>, a form of <dfn data-gloss="Browser storage (localStorage and sessionStorage) that any JavaScript running on the page can read and write.">web storage</dfn>. Any script on the page, including one injected through a cross-site scripting bug or a compromised third-party script, can read it and keep a user's session alive from elsewhere.</dd>
+        <dt>Rule</dt><dd><a class="ref" data-ref="SEC-12" href="#ref-SEC-12"><span class="ref-id">SEC-12</span> no tokens in web storage</a>. The reviewer asks for the fix to follow this rule.</dd>
+        <dt>Suggested fix</dt><dd>Keep the refresh token out of web storage altogether, for example in an <dfn data-gloss="A cookie the browser sends with requests but that page scripts cannot read.">HttpOnly cookie</dfn> set by the server, so that page scripts can no longer read it.</dd>
+      </dl>
+    </article>
+
+    <article class="finding" data-sev="medium" id="finding-F002">
+      <h3><span class="pill" data-state="warn">Medium</span> <a class="ref" data-ref="F002" href="#ref-F002"><span class="ref-id">F002</span> retry loop without backoff</a></h3>
+      <dl>
+        <dt>Location</dt><dd>The refresh retry loop in pull request 418 (no line number given in the review)</dd>
+        <dt>Problem</dt><dd>When a refresh fails, the loop retries straight away, again and again. Many clients doing this at once flood the login service and keep it down. This is the same pattern that caused <a class="ref" data-ref="INC-2291" href="#ref-INC-2291"><span class="ref-id">INC-2291</span> login outage of 14 September 2026</a>, a <dfn data-gloss="A wave of repeated requests from many clients retrying at the same time, which overloads the service they are waiting for.">retry storm</dfn>.</dd>
+        <dt>Suggested fix</dt><dd>Wait longer between attempts, for example with exponential <dfn data-gloss="Waiting a growing amount of time between retries, usually with some randomness, so that clients do not retry in step.">backoff</dfn> and a cap on the number of retries.</dd>
+      </dl>
+    </article>
+
+    <article class="finding" data-sev="low" id="finding-F003">
+      <h3><span class="pill">Low</span> <a class="ref" data-ref="F003" href="#ref-F003"><span class="ref-id">F003</span> log line leaks user email</a></h3>
+      <dl>
+        <dt>Location</dt><dd><code>auth/session.ts</code>, line 131</dd>
+        <dt>Problem</dt><dd>A log line writes the user's email address. Logs are read by more people and kept longer than user data, so personal data should not appear in them.</dd>
+        <dt>Suggested fix</dt><dd>Drop the email from the log line, or log an internal user identifier instead.</dd>
+      </dl>
+    </article>
+
+    <h2 id="next">What happens next</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>What</th><th>Owner</th><th>Due</th><th>Blocks merge</th></tr></thead>
+      <tbody>
+        <tr><td>Move the refresh token out of web storage (<a class="ref" data-ref="F001" href="#ref-F001"><span class="ref-id">F001</span></a>)</td><td>Lena</td><td>2026-11-07</td><td><span class="pill" data-state="bad">Yes</span></td></tr>
+        <tr><td>Add backoff to the retry loop (<a class="ref" data-ref="F002" href="#ref-F002"><span class="ref-id">F002</span></a>)</td><td>Lena</td><td>2026-11-07</td><td><span class="pill">No</span></td></tr>
+        <tr><td>Remove the email from the log line (<a class="ref" data-ref="F003" href="#ref-F003"><span class="ref-id">F003</span></a>)</td><td>Lena</td><td>2026-11-07</td><td><span class="pill">No</span></td></tr>
+      </tbody>
+    </table></div>
+    <p>The review names Lena as owner and 7 November 2026 as the due date for the requested changes as a whole. Once the fix for <a class="ref" data-ref="F001" href="#ref-F001"><span class="ref-id">F001</span> refresh token in localStorage</a> is pushed, the pull request needs a new review before it can be merged.</p>
+
+    <h2 id="references">References</h2>
+    <ol class="references">
+      <li id="ref-PR-418"><b>PR-418</b> <span class="ref-summary">Pull request 418, which changes how the app refreshes user sessions. It is the change under review on this page.</span> Source: the review summary. No link to the pull request was provided.</li>
+      <li id="ref-F001"><b>F001</b> <span class="ref-summary">High-severity review finding: the refresh token is stored in localStorage, where any script on the page can read it. Blocks the merge.</span> Location <code>auth/session.ts:88</code>. Source: review summary; the full finding table in <code>review-notes.md</code> was not provided. Original line: "refresh token stored in localStorage, see auth/session.ts:88. Fix per SEC-12."</li>
+      <li id="ref-F002"><b>F002</b> <span class="ref-summary">Medium-severity review finding: the refresh retry loop has no backoff, the same pattern behind the INC-2291 login outage.</span> Source: review summary; the finding table in <code>review-notes.md</code> was not provided. Original line: "retry loop has no backoff; matches incident INC-2291."</li>
+      <li id="ref-F003"><b>F003</b> <span class="ref-summary">Low-severity review finding: a log line writes the user's email address.</span> Location <code>auth/session.ts:131</code>. Source: review summary; the finding table in <code>review-notes.md</code> was not provided.</li>
+      <li id="ref-SEC-12"><b>SEC-12</b> <span class="ref-summary">The team's security rule "no tokens in web storage": tokens must not be kept in localStorage or sessionStorage.</span> Source: review summary. No link to the rule text was provided.</li>
+      <li id="ref-INC-2291"><b>INC-2291</b> <span class="ref-summary">The login outage of 14 September 2026, caused by retry storms.</span> Source: review summary. No link to the incident report was provided.</li>
+    </ol>
+    <h3 id="unresolved">Could not be resolved</h3>
+    <ul>
+      <li><code>review-notes.md</code>: the file whose table the finding numbers <a class="ref" data-ref="F001" href="#ref-F001"><span class="ref-id">F001</span></a> to <a class="ref" data-ref="F003" href="#ref-F003"><span class="ref-id">F003</span></a> index. It was not provided, so this page relies only on the review summary. Each finding above is fully described there (what, where, how severe); the evidence and any discussion in the table are not shown here.</li>
+    </ul>
+
+    <h2 id="glossary">Glossary</h2>
+    <dl class="glossary">
+      <dt id="gloss-backoff">Backoff</dt>
+      <dd>Waiting a growing amount of time between retries, usually with some randomness, so that clients do not retry in step.</dd>
+      <dt id="gloss-httponly">HttpOnly cookie</dt>
+      <dd>A cookie the browser sends with requests but that page scripts cannot read.</dd>
+      <dt id="gloss-refresh-token">Refresh token</dt>
+      <dd>A long-lived credential the app uses to get a new session without asking the user to log in again.</dd>
+      <dt id="gloss-retry-storm">Retry storm</dt>
+      <dd>A wave of repeated requests from many clients retrying at the same time, which overloads the service they are waiting for.</dd>
+      <dt id="gloss-web-storage">Web storage</dt>
+      <dd>Browser storage (<code>localStorage</code> and <code>sessionStorage</code>) that any JavaScript running on the page can read and write.</dd>
+    </dl>
+  </main>
+</div>
+<footer class="page-foot">Prepared 3 November 2026 from the review summary of pull request 418. Opens offline; no network access needed.</footer>
+<script>
+(() => {
+  // Theme: system -> light -> dark, remembered per reader when storage is available.
+  const root = document.documentElement, btn = document.getElementById('theme-toggle');
+  const order = ['system', 'light', 'dark'];
+  const read = () => { try { return localStorage.getItem('html-it-theme') || 'system'; } catch { return 'system'; } };
+  const apply = (mode) => {
+    if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    if (btn) btn.textContent = 'Theme: ' + mode;
+    try { localStorage.setItem('html-it-theme', mode); } catch {}
+  };
+  apply(read());
+  btn?.addEventListener('click', () => apply(order[(order.indexOf(read()) + 1) % order.length]));
+
+  // Table of contents from h2/h3 inside <main>.
+  const list = document.getElementById('toc-list');
+  const heads = [...document.querySelectorAll('main h2, main h3')];
+  if (list && heads.length > 2) {
+    heads.forEach((h, i) => {
+      if (!h.id) h.id = 's' + (i + 1);
+      const li = document.createElement('li'); li.className = h.tagName.toLowerCase();
+      const a = document.createElement('a'); a.href = '#' + h.id; a.textContent = h.textContent;
+      li.append(a); list.append(li);
+    });
+  } else document.querySelector('.page')?.classList.remove('has-toc');
+
+  // Popovers for ref chips and glossary terms.
+  let pop = null;
+  const hide = () => { pop?.remove(); pop = null; };
+  const show = (el) => {
+    hide();
+    let text = el.dataset.gloss || '';
+    if (el.dataset.ref) {
+      const entry = document.getElementById('ref-' + el.dataset.ref);
+      text = entry ? (entry.querySelector('.ref-summary') || entry).textContent.trim()
+                   : 'Not found in the provided material.';
+    }
+    if (!text) return;
+    pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'tooltip'); pop.textContent = text;
+    document.body.append(pop);
+    const r = el.getBoundingClientRect();
+    const left = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 16);
+    pop.style.left = Math.max(16, left) + 'px'; pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  };
+  document.querySelectorAll('[data-ref], dfn[data-gloss]').forEach((el) => {
+    if (!el.hasAttribute('tabindex') && el.tagName !== 'A') el.tabIndex = 0;
+    el.addEventListener('mouseenter', () => show(el)); el.addEventListener('focus', () => show(el));
+    el.addEventListener('mouseleave', hide); el.addEventListener('blur', hide);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+
+  // Copy buttons on code blocks.
+  document.querySelectorAll('pre').forEach((pre) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-btn'; b.textContent = 'Copy';
+    b.addEventListener('click', async () => {
+      const text = pre.querySelector('code')?.innerText ?? pre.innerText;
+      try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1500);
+    });
+    pre.append(b);
+  });
+})();
+</script>
+<script>
+(() => {
+  // Severity filter. Without JavaScript the chips stay hidden and every finding shows.
+  const group = document.querySelector('.chips'), status = document.getElementById('filter-status');
+  const chips = [...group.querySelectorAll('.chip')], items = [...document.querySelectorAll('.finding')];
+  group.hidden = false; status.hidden = false;
+  const apply = (sev) => {
+    chips.forEach((c) => c.setAttribute('aria-pressed', c.dataset.sev === sev));
+    let n = 0;
+    items.forEach((f) => { const show = sev === 'all' || f.dataset.sev === sev; f.hidden = !show; if (show) n++; });
+    status.textContent = sev === 'all' ? 'Showing all 3 findings.' : 'Showing ' + n + ' of 3 findings (' + sev + ').';
+  };
+  chips.forEach((c) => c.addEventListener('click', () => apply(c.dataset.sev)));
+  apply('all');
+  // Printing always shows every finding.
+  window.addEventListener('beforeprint', () => apply('all'));
+})();
+</script>
+</body>
+</html>

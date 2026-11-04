@@ -1,0 +1,176 @@
+<title>INC-2307 Postmortem</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column. Management summary first, then impact, actions and lessons. The chat log sits at the bottom, verbatim, as a time/text ledger. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #1b2230;
+  --muted: #5a6475;
+  --line: #dde1e8;
+  --accent: #2f5fb3;
+  --sev: #b4501a;
+  --sev-bg: #fbeee5;
+  --ok: #2d7a4f;
+  --ok-bg: #e6f3ea;
+  --bad: #a3352b;
+  --bad-bg: #f8e8e6;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a2029; --fg: #e4e8ef; --muted: #9aa4b4; --line: #2c3440;
+    --accent: #7ea6ec; --sev: #f0a273; --sev-bg: #3a2418; --ok: #7fcf9e; --ok-bg: #18301f;
+    --bad: #f08f86; --bad-bg: #3a1c1a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --fg: #e4e8ef; --muted: #9aa4b4; --line: #2c3440;
+  --accent: #7ea6ec; --sev: #f0a273; --sev-bg: #3a2418; --ok: #7fcf9e; --ok-bg: #18301f;
+  --bad: #f08f86; --bad-bg: #3a1c1a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 1rem; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 2.5rem 4rem;
+}
+main { max-width: 46rem; margin: 0 auto; display: grid; gap: 2.75rem; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.1; font-weight: 700; }
+h2 { font-size: 1.35rem; font-weight: 600; }
+h3 { font-size: 1rem; font-weight: 600; margin: 0; }
+p { margin: 0; max-width: 65ch; }
+.label { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.mono { font-family: var(--font-mono); font-size: .92em; }
+section { display: grid; gap: 1rem; min-width: 0; }
+
+header { display: grid; gap: .9rem; }
+.meta { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.chip { font-family: var(--font-mono); font-size: .8rem; padding: .2rem .55rem; border-radius: 4px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
+.chip.sev { background: var(--sev-bg); color: var(--sev); border-color: transparent; font-weight: 500; }
+
+.summary { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1.4rem 1.5rem; display: grid; gap: 1.1rem; }
+.summary p.lead { font-size: 1.1rem; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 1rem; margin: 0; }
+.facts div { display: grid; gap: .15rem; border-top: 2px solid var(--line); padding-top: .55rem; }
+.facts dt { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.facts dd { margin: 0; font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.facts dd small { font-family: var(--font-body); font-size: .8rem; font-weight: 400; color: var(--muted); display: block; }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .7rem .9rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+td.id { font-family: var(--font-mono); color: var(--accent); white-space: nowrap; }
+td.date { font-family: var(--font-mono); white-space: nowrap; }
+
+.lessons { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.lessons > div { min-width: 0; display: grid; gap: .6rem; align-content: start; padding: 1.1rem 1.2rem; border-radius: 8px; }
+.lessons .good { background: var(--ok-bg); }
+.lessons .good h3 { color: var(--ok); }
+.lessons .badly { background: var(--bad-bg); }
+.lessons .badly h3 { color: var(--bad); }
+ul { margin: 0; padding-left: 1.1rem; display: grid; gap: .4rem; }
+
+.cause { border-left: 3px solid var(--sev); padding-left: 1rem; display: grid; gap: .5rem; }
+
+.log-intro { color: var(--muted); font-size: .92rem; }
+ol.log { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+ol.log li { display: grid; grid-template-columns: 3.6rem 1fr; gap: .9rem; padding: .65rem .9rem; border-bottom: 1px solid var(--line); font-family: var(--font-mono); font-size: .88rem; }
+ol.log li:last-child { border-bottom: 0; }
+ol.log time { color: var(--accent); font-weight: 500; font-variant-numeric: tabular-nums; }
+ol.log span { min-width: 0; overflow-wrap: anywhere; }
+ol.log li.recovered time { color: var(--ok); }
+ol.log li.alert time { color: var(--sev); }
+footer { color: var(--muted); font-size: .85rem; }
+</style>
+
+<main>
+  <header>
+    <div class="meta">
+      <span class="chip">INC-2307</span>
+      <span class="chip sev">SEV-2</span>
+      <span class="chip">2026-10-29</span>
+      <span class="chip">Blameless</span>
+    </div>
+    <h1>Booking API slowdown after release 8.4.0.0</h1>
+    <p class="label">Postmortem for engineering and product management</p>
+  </header>
+
+  <section class="summary" aria-labelledby="sum-h">
+    <h2 id="sum-h" class="label">Summary</h2>
+    <p class="lead">For 29 minutes on 29 October, booking was slow or failing. The new appointment search query from PR 402 had no index on <span class="mono">slots(practice_id, start_time)</span>, so every request did a full table scan and filled the database connection pool. Rolling back to 8.3.2.4 restored normal latency. No data was lost.</p>
+    <dl class="facts">
+      <div><dt>Duration</dt><dd>29 min<small>09:12–09:41 CET</small></dd></div>
+      <div><dt>Failed bookings</dt><dd>~1,140<small>attempts</small></dd></div>
+      <div><dt>Peak p95</dt><dd>9.8 s<small>normal 0.4 s</small></dd></div>
+      <div><dt>Data loss</dt><dd>None</dd></div>
+    </dl>
+  </section>
+
+  <section aria-labelledby="act-h">
+    <h2 id="act-h">Action items</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Action</th><th>Owner</th><th>Due</th></tr></thead>
+        <tbody>
+          <tr><td class="id">AI-1</td><td>Add the index migration</td><td>Priya</td><td class="date">2026-11-05</td></tr>
+          <tr><td class="id">AI-2</td><td>Extend LT-12 with search load</td><td>Tomasz</td><td class="date">2026-11-14</td></tr>
+          <tr><td class="id">AI-3</td><td>CI check that fails when a query plan shows a full scan on a table with more than 100k rows</td><td>Lena</td><td class="date">2026-11-28</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="cause-h">
+    <h2 id="cause-h">Root cause</h2>
+    <div class="cause">
+      <p>The migration plan included the index on <span class="mono">slots(practice_id, start_time)</span>, but the migration file was missing from PR 402. Load test LT-12 does not exercise search, so nothing caught the full table scan before release. Under production load the scans kept the database connection pool at 100&nbsp;% (max 50), and booking requests queued behind them.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="lessons-h">
+    <h2 id="lessons-h">What went well, what went badly</h2>
+    <div class="lessons">
+      <div class="good">
+        <h3>Went well</h3>
+        <ul>
+          <li>The alert fired within 2 minutes.</li>
+          <li>Rollback runbook RB-04 worked as written.</li>
+        </ul>
+      </div>
+      <div class="badly">
+        <h3>Went badly</h3>
+        <ul>
+          <li>Load test LT-12 does not cover search.</li>
+          <li>The index was in the migration plan, but the migration file was missing from the PR.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="log-intro">Measured from the 09:12 alert: acknowledged after 3 min, rollback started after 22 min, latency normal after 29 min, root cause found after 53 min.</p>
+  </section>
+
+  <section aria-labelledby="log-h">
+    <h2 id="log-h">Chat log excerpt</h2>
+    <p class="log-intro">Verbatim from the incident channel, times in CET. The wording is unchanged and only the layout differs from the raw paste.</p>
+    <ol class="log">
+      <li class="alert"><time>09:12</time><span>alert: booking API p95 latency 9.8 s (normal 0.4 s)</span></li>
+      <li><time>09:15</time><span>Tomasz (on call) acknowledges</span></li>
+      <li><time>09:21</time><span>dashboards show the DB connection pool at 100 % (max 50)</span></li>
+      <li><time>09:34</time><span>rollback from release 8.4.0.0 to 8.3.2.4 started</span></li>
+      <li class="recovered"><time>09:41</time><span>latency back to normal</span></li>
+      <li><time>10:05</time><span>root cause found: the new appointment search query from PR 402 has no index on slots(practice_id, start_time), so every request does a full table scan</span></li>
+    </ol>
+  </section>
+
+  <footer>INC-2307 · SEV-2 · Blameless postmortem. This page describes system and process gaps and does not assign fault to any person.</footer>
+</main>
