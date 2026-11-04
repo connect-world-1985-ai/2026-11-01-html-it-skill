@@ -56,6 +56,7 @@ Out of scope: hosting/publishing, Teams paste-safe mode, React/bundler pipeline 
 - `research/report.md` (Chinese) recommends content-type routing + single-file HTML.
 - The execution session "local: Dynamic HTML content conversion" (1,418 messages) hit Opus 5.5 safeguards (`[reasoning_extraction]`) while browser-testing the deck. Afterwards even a plain "commit and push" turn was blocked, so the whole context was affected, not one message. Fix: continue in a fresh session from files and git history.
 - Browser pane gotcha: page tools refuse `file://` tabs; serve the folder over localhost instead. Port 8765 may already be held by an old `http.server`.
+- **Real image tool tested (2026-11-04)**: s6 rerun in a fresh subagent with GPT Image via the `codex-gpt-image` bridge (Codex sign-in) instead of the simulated tool. PASS R1–R11; one image, 33 s, backend returned 1774×887 instead of the requested 1536×1024 and no model id; agent resized to 1600 px WebP (1.7 MB PNG → 47 KB). Results in `tests/html-it/green/RESULTS.md` ("Extra run"), files in `tests/html-it/green/real-image/`. Five gaps in `references/media.md` found (size mismatch, marking generated images, tool failure/timeout, format/weight target, review before embedding) and recorded there, not yet fixed in the skill.
 
 ---
 
@@ -75,7 +76,9 @@ Out of scope: hosting/publishing, Teams paste-safe mode, React/bundler pipeline 
 3. [x] Write skill folder, verdict page, samples, README.
 4. [x] Verify pages offline in browser (Task 13).
 5. [x] Commit and push to `feature/html-it`.
-6. [ ] Optional: code review of the branch, then a PR from `feature/html-it` to `main`.
+6. [x] Test s6 with a real image tool (extra run, PASS).
+7. [ ] Decide whether to add the five image-generation rules to `references/media.md` (then re-run s6).
+8. [ ] Optional: code review of the branch, then a PR from `feature/html-it` to `main`.
 
 ---
 
