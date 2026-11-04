@@ -2,7 +2,7 @@
 
 **Generated**: 2026-11-03
 **Last updated**: 2026-11-04
-**Project**: D:\git\2026-11-01-html-output-research
+**Project**: D:\git\2026-11-01-html-it-skill (renamed 2026-11-04 from `2026-11-01-html-output-research`; GitHub repo `connect-world-1985-ai/2026-11-01-html-it-skill`, public since 2026-11-04, merged to `main` via PR #1)
 **Focus**: Design and build one high-level skill that turns any in-context content into the best-fit self-contained HTML for team sharing.
 
 ---
